@@ -1,0 +1,10 @@
+.md .navbar a.link:before,
+.md .toolbar a.link:before,
+.md .subnavbar a.link:before,
+.md .data-table-rows-select a.link:before,
+.md .data-table-pagination a.link:before,
+.md .searchbar-disable-button:before,
+.md .searchbar .input-clear-button:before,
+.md .notification-close-button:before {
+  background-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.1) 66%, rgba(255, 255, 255, 0) 66%);
+}

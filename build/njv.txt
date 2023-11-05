@@ -1,0 +1,3 @@
+-mainClass=BA:BS
+source/BAMBS.be
+../beApp/source/TCPCS.be

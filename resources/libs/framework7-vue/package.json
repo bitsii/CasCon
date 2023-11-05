@@ -1,0 +1,107 @@
+{
+  "_args": [
+    [
+      "framework7-vue@^4.0.0",
+      "/home/craig/Workspace/fw7vue"
+    ]
+  ],
+  "_from": "framework7-vue@>=4.0.0 <5.0.0",
+  "_hasShrinkwrap": false,
+  "_id": "framework7-vue@4.3.0",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/framework7-vue",
+  "_nodeVersion": "11.6.0",
+  "_npmOperationalInternal": {
+    "host": "s3://npm-registry-packages",
+    "tmp": "tmp/framework7-vue_4.3.0_1555484207454_0.9204759448715214"
+  },
+  "_npmUser": {
+    "email": "nolimits4web@gmail.com",
+    "name": "nolimits4web"
+  },
+  "_npmVersion": "6.5.0-next.0",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "framework7-vue",
+    "raw": "framework7-vue@^4.0.0",
+    "rawSpec": "^4.0.0",
+    "scope": null,
+    "spec": ">=4.0.0 <5.0.0",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "#DEV:/"
+  ],
+  "_resolved": "https://registry.npmjs.org/framework7-vue/-/framework7-vue-4.3.0.tgz",
+  "_shasum": "bc39f1a62bb79681818eeef03e8f975a3661b8f1",
+  "_shrinkwrap": null,
+  "_spec": "framework7-vue@^4.0.0",
+  "_where": "/home/craig/Workspace/fw7vue",
+  "author": {
+    "name": "Vladimir Kharlampidi"
+  },
+  "bugs": {
+    "url": "https://github.com/framework7io/framework7/issues"
+  },
+  "dependencies": {},
+  "description": "Build full featured iOS & Android apps using Framework7 & Vue",
+  "devDependencies": {},
+  "directories": {},
+  "dist": {
+    "fileCount": 110,
+    "integrity": "sha512-wxVKJoCsn37EH97ARG5ZKotokKzOPFAHWulk8kLuxwl1xUqvwxbSI4zEfb9PpENwJb/Zmq8RsFRQmdY1eSUJ7A==",
+    "npm-signature": "-----BEGIN PGP SIGNATURE-----\r\nVersion: OpenPGP.js v3.0.4\r\nComment: https://openpgpjs.org\r\n\r\nwsFcBAEBCAAQBQJcts4wCRA9TVsSAnZWagAAJDoP/3xhae2neq6d0tJqcgga\n1z7okGg11vwhilSWuUxMETWRQTWEOw++aY4MO6budNbEHdpGQLEAkg2GlZBM\nGYiRBJTbT+0Cq7eKB+sxViovTI1PrUePBZ211e+ufAZ6PMOiSXZNBRw0/N0r\nIlSUUWBWjH/JyFIMxI14oY/X/hraa7ofc45PONd5GKzz9TMm2yFTPnRGlxZA\nny9QPqN1/Mv18+LLi0fyHG1FdPUiKBIGyhGavXg279//Osk1CxMXny8h80vz\nUeQKTwM1IESYuhO9No5j7RH2UL8djk19GN/gAWz3VOb+wt9PxU+Ihsa4ZRsF\nWK3yV3T2jEYCLsdFIxaFeYEqlQXnA3MBzak5NTQ3t4ychziUcD3MP7QqtGFE\nrHuTmRsPuI22vdIl0DrOHDw26xrOzz2wqd5MfcrVmOQfB0OZV9juE4MNDkTk\n08/puiLetGQCorqaZIy0ZQdL8mcKjW+2NgHyUi6qel74+kLwRIWVZ/dvCAtw\nlVyn1NNwW6cwuGaQH0BF5VTVZpdXTpygbIHbVuNJZeG1EPluoSYpkSqJ9jQl\ncFGf1PkV1uWWRF4+bfMTc4eOymOaEW2x+ZB4F9K3bsVtk19gXWGhi8xUOxbc\nfxtvrjkLFvkiR7EzsRgSsVp4SoymmrrleRcnjJIFAGI1F87CUgFBcAcF1eX/\nmhu7\r\n=UU7D\r\n-----END PGP SIGNATURE-----\r\n",
+    "shasum": "bc39f1a62bb79681818eeef03e8f975a3661b8f1",
+    "tarball": "https://registry.npmjs.org/framework7-vue/-/framework7-vue-4.3.0.tgz",
+    "unpackedSize": 1108783
+  },
+  "homepage": "http://framework7.io/vue/",
+  "jsnext:main": "framework7-vue.esm.js",
+  "keywords": [
+    "android",
+    "app",
+    "apple",
+    "appstore",
+    "cordova",
+    "f7",
+    "framework",
+    "framework7",
+    "google",
+    "googleplay",
+    "ios",
+    "ipad",
+    "iphone",
+    "material",
+    "mobile",
+    "native",
+    "phonegap",
+    "touch",
+    "vue",
+    "vuejs"
+  ],
+  "license": "MIT",
+  "main": "framework7-vue.bundle.js",
+  "maintainers": [
+    {
+      "name": "nolimits4web",
+      "email": "nolimits4web@gmail.com"
+    }
+  ],
+  "module": "framework7-vue.esm.js",
+  "name": "framework7-vue",
+  "optionalDependencies": {},
+  "peerDependencies": {
+    "vue": "2.x"
+  },
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/framework7io/framework7.git"
+  },
+  "scripts": {
+    "postinstall": "node -e \"console.log('\\u001b[35m\\u001b[1mLove Framework7 Vue? Support project by donating or pledging on patreon:\\u001b[22m\\u001b[39m\\n > \\u001b[32mhttps://patreon.com/vladimirkharlampidi\\u001b[0m\\n')\""
+  },
+  "typings": "framework7-vue.d.ts",
+  "version": "4.3.0"
+}

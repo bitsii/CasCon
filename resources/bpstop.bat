@@ -1,0 +1,1 @@
+App\BAM\stopwajvrs.bat

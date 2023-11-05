@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cd App 2> /dev/null >/dev/null
+unzip -o ../BP-BAM-Linux.zip 2> /dev/null >/dev/null
+chmod +x BAM/*.sh 2> /dev/null >/dev/null
+cd .. 2> /dev/null >/dev/null
+rm BP-BAM-Linux.zip 2> /dev/null >/dev/null
+touch upgradeDone_BAM.txt 2> /dev/null >/dev/null

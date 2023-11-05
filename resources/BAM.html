@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!--
+  Customize this policy to fit your own app's needs. For more guidance, see:
+      https://github.com/apache/cordova-plugin-whitelist/blob/master/README.md#content-security-policy
+  Some notes:
+      * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
+      * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+      * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+          * Enable inline JS: add 'unsafe-inline' to default-src
+  -->
+  <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content:">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui"> <!-- viewport-fit=cover for notch -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#2196f3">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="msapplication-tap-highlight" content="no">
+  <title>Casnic</title>
+  <link rel="stylesheet" href="libs/framework7/css/framework7.bundle.min.css">
+  <link rel="stylesheet" href="css/icons.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/fixcpu.css">
+  <link rel="stylesheet" href="dist/color-picker.css"/>
+  <script type="text/javascript" src="dist/color-picker.js"></script>
+  <script type="text/javascript" src="dist/qrcode.js"></script>
+</head>
+<body>
+<div id="hider" style="position: fixed; height: 100%; width: 100%; top:0; left: 0; background: #FFFFFF; z-index:9999;"></div>
+  <input type="hidden" id="pageName" value="BAM.html"/>
+  <input type="hidden" id="beUiMain" value="IUHub:Eui"/>
+  <input type="hidden" id="beApWkAppStart" value="BA:BamPlugin.iosAppStart"/>
+
+  <input type="hidden" id="disDevSsid" value=""/>
+
+  <div id="app">
+    <f7-app :params="f7params">
+      <!-- Statusbar -->
+      <f7-statusbar></f7-statusbar>
+
+      <!-- Left Panel -->
+      <f7-panel left reveal theme-dark>
+        <f7-view id="left-panel-view">
+          <f7-page>
+            <f7-navbar title="Left Panel"></f7-navbar>
+            <f7-block strong>
+              <p></p>
+            </f7-block>
+            <f7-block-title></f7-block-title>
+            <f7-list>
+              <f7-list-item link="/about/" title="About"></f7-list-item>
+              <f7-list-item link="/form/" title="Form"></f7-list-item>
+            </f7-list>
+            <f7-block-title></f7-block-title>
+            <f7-list>
+              <f7-list-item link="/about/" title="About" view="#main-view"
+              panel-close></f7-list-item>
+              <f7-list-item link="/form/" title="Form" view="#main-view"
+              panel-close></f7-list-item>
+            </f7-list>
+          </f7-page>
+        </f7-view>
+      </f7-panel>
+
+      <!-- Right Panel -->
+      <f7-panel right cover theme-dark>
+        <f7-view id="right-panel-view">
+          <f7-page>
+            <f7-navbar title="Right Panel" sliding></f7-navbar>
+            <f7-block>
+              <p></p>
+            </f7-block>
+            <f7-block-title></f7-block-title>
+            <f7-list>
+              <f7-list-item link="/about/" title="About"></f7-list-item>
+              <f7-list-item link="/form/" title="Form"></f7-list-item>
+            </f7-list>
+            <f7-block-title></f7-block-title>
+            <f7-list>
+              <f7-list-item link="/about/" title="About" view="#main-view"
+              panel-close></f7-list-item>
+              <f7-list-item link="/form/" title="Form" view="#main-view"
+              panel-close></f7-list-item>
+            </f7-list>
+          </f7-page>
+        </f7-view>
+      </f7-panel>
+
+      <!-- Main View -->
+      <f7-view id="main-view" main class="safe-areas">
+        <f7-page>
+          <f7-navbar>
+            <f7-nav-left>
+            </f7-nav-left>
+            <f7-nav-title></f7-nav-title>
+            <f7-button id="reloadButton" icon-f7='cloud_download' popup-open="#reload" style="display: none;"></f7-button>
+            
+            <f7-button id="loginButton" icon-f7='lock' login-screen-open="#login-screen" style="display: none;"></f7-button>
+            <f7-nav-right>
+              <f7-link onclick="callApp('loadWifiRequest');callApp('loadMqttRequest');return true;" href='/settings/'>Settings</f7-link>
+              <!--<f7-link icon-if-ios="f7:menu" icon-if-md="material:menu"
+              panel-open="right"></f7-link>-->
+            </f7-nav-right>
+          </f7-navbar>
+          <f7-toolbar bottom>
+              <f7-row tag="p">
+                  <f7-button class="col" onclick="callUI('discover');return false;" large fill raised>Setup a Device</f7-button>
+                </f7-row>
+
+          </f7-toolbar>
+          <div id="hadsList">
+
+          </div>
+
+          <div id="cpickercon" style="display: none;">
+          <div id="cpicker"></div>
+
+          <!--<f7-button id="cpickerClose" class="col" onclick="callUI('closePicker');return false;" icon-f7="close-round-fill">Close</f7-button>-->
+
+          </div>
+
+          <!--<label for="colorpicker">Light Color:</label>
+   <input type="color" id="colorpicker" value="#ffffff" oninput="callUI('checkColor', 'IDOFDEVICE', 'POSOFDEVICE');return true;"></input>-->
+
+                  <f7-button id="openDiscover" onclick="callApp('findNewDevicesRequest');return true;" href='/discover/' style="display: none;" outline>Really do discover</f7-button>
+
+                  <f7-button id="openInform" onclick="return true;" href='/inform/' style="display: none;" outline>Really do inform</f7-button>
+
+                  <f7-button id="openSettings" onclick="callApp('loadWifiRequest');return true;" href='/settings/' style="display: none;" outline>Really do settings</f7-button>
+
+
+        <!--<f7-card
+    content="This is a simple card with plain text, but cards can also contain their own header, footer, list view, image, or any other element.">
+    <f7-list form>
+          <f7-list-item>
+  <span>Batman</span>
+  <f7-toggle checked></f7-toggle>
+</f7-list-item>
+</f7-list>
+</f7-card>-->
+        </f7-page>
+      </f7-view>
+
+      <!-- Popup -->
+      <f7-popup id="verdelete">
+        <f7-view>
+          <f7-page>
+            <f7-navbar title="Confirm Device Deletion">
+              <f7-nav-right>
+                <f7-link popup-close>Close</f7-link>
+              </f7-nav-right>
+            </f7-navbar>
+            <f7-block>Are you sure you want to delete device?  This cannot be undone.  Unless it is active in another application it will be unusable and will need to be reset and resetup before it can be used again.</f7-block>
+            <f7-button class="col" popup-close outline>Nevermind, cancel</f7-button>
+            <f7-button class="col" popup-close outline>I'm not sure, cancel</f7-button>
+            <f7-button class="col" onclick="callUI('deleteDevice');return false;" outline>Yes, really do Delete Device</f7-button>
+          </f7-page>
+        </f7-view>
+      </f7-popup>
+
+      <f7-popup id="verclearold">
+        <f7-view>
+          <f7-page>
+            <f7-navbar title="Confirm Clear">
+              <f7-nav-right>
+                <f7-link popup-close>Close</f7-link>
+              </f7-nav-right>
+            </f7-navbar>
+            <f7-block>Are you sure you want to clear old device data?  This cannot be undone.  This clears old setup data for devices which have been deleted or reset, and will allow the resetup of devices which have been reset with new passwords and ids (needed if they have been compromised)</f7-block>
+            <f7-button class="col" popup-close outline>Nevermind, cancel</f7-button>
+            <f7-button class="col" onclick="callUI('clearOldData');return false;" outline>Yes, really do Clear Old Data</f7-button>
+          </f7-page>
+        </f7-view>
+      </f7-popup>
+
+      <f7-popup id="veracshare">
+        <f7-view>
+          <f7-page>
+            <f7-navbar title="Accept Shared Device">
+              <f7-nav-right>
+                <f7-link onclick="callUI('clearCx');return false;" popup-close>Close</f7-link>
+              </f7-nav-right>
+            </f7-navbar>
+            <f7-block>Are you sure you want to accept a shared device?  Only accepted trusted devices from trusted sources.</f7-block>
+            <f7-button class="col" onclick="callUI('clearCx');return false;" popup-close outline>Nevermind, cancel</f7-button>
+            <f7-button class="col" onclick="callUI('acceptShare');return false;" outline>Yes, accept shared device</f7-button>
+          </f7-page>
+        </f7-view>
+      </f7-popup>
+
+      <f7-popup id="qrshare">
+        <f7-view>
+          <f7-page>
+            <f7-navbar title="Share your Device">
+              <f7-nav-right>
+                <f7-link onclick="callUI('clearQrShare');return false;" popup-close>Close</f7-link>
+              </f7-nav-right>
+            </f7-navbar>
+            <f7-block>Sharing your device will allow the receiver to control the device (turn it on or off, etc).  Admin share also lets them administrate and reset the device.  To proceed assure CasNic is installed on the receiver's phone, click below to show a code, and have them open the QR code via their camera application.</f7-block>
+            <f7-button class="col" onclick="callUI('showQrShare', false);return false;" outline>Show Share Code</f7-button>
+            <f7-button class="col" onclick="callUI('showQrShare', true);return false;" outline>Show Admin Share Code</f7-button>
+            <div id="qrsharediv" style="margin: 30px 0 0 30px;"></div>
+          </f7-page>
+        </f7-view>
+      </f7-popup>
+
+      <f7-popup id="verreset">
+        <f7-view>
+          <f7-page>
+            <f7-navbar title="Confirm Device Reset">
+              <f7-nav-right>
+                <f7-link popup-close>Close</f7-link>
+              </f7-nav-right>
+            </f7-navbar>
+            <f7-block>Are you sure you want to reset device?  This cannot be undone.  Device will be restored to initial state and must be resetup before it can be used again.  Existing application entries for this device will no longer work.</f7-block>
+            <f7-button class="col" popup-close outline>Nevermind, cancel</f7-button>
+            <f7-button class="col" popup-close outline>I'm not sure, cancel</f7-button>
+            <f7-button class="col" onclick="callUI('resetDevice');return false;" outline>Yes, really do Reset Device</f7-button>
+          </f7-page>
+        </f7-view>
+      </f7-popup>
+
+      <f7-popup id="settlewifi">
+        <f7-view>
+          <f7-page>
+            <f7-navbar title="Connect Device to Wifi Network">
+              <!--<f7-nav-right>
+                <f7-link popup-close>Close</f7-link>
+              </f7-nav-right>-->
+            </f7-navbar>
+            <f7-block>Please choose the wifi network to connect your device to and provide the network password.  This will be used automatically for future deivce setups when the network is found.</f7-block>
+            <div id="wifisholder"></div>
+
+            <f7-block>
+                <f7-list form>
+                <f7-list-item>Network Password</f7-list-item>
+                  <f7-list-input
+                    input-id="pwsnetname"
+                  type="password"
+                  placeholder=""
+                ></f7-list-input><f7-button onclick="callUI('togglePwnet');return false;" id="pwsnetshow" icon-f7='eye_fill'></f7-button></f7-list-item>
+                </f7-list>
+                </f7-block>
+              <f7-row tag="p">
+            <f7-button id="wifiGivenButton" class="col" onclick="callUI('wifiGiven');return false;" outline>Connect device</f7-button>
+            </f7-row>
+            <f7-row tag="p">
+            <f7-button class="col" id="givupSetup" onclick="location.reload();return false;" href='/' outline>Cancel Setup</f7-button>
+            </f7-row>
+            <f7-button id="wifiGivenClose" class="col" popup-close style="display: none">Hidme</f7-button>
+            <div id="giveWifiTxt" style="display: none;">You must choose a network and provide a password to proceed.</div>
+          </f7-page>
+        </f7-view>
+      </f7-popup>
+
+      <!-- Login Screen -->
+      <f7-login-screen id="login-screen">
+        <f7-view>
+          <f7-page login-screen>
+            <f7-login-screen-title></f7-login-screen-title>
+            <f7-list form>
+              <f7-list-input
+                input-id="accountName"
+                label="Username"
+                name="username"
+                placeholder="Username"
+                type="text"
+              ></f7-list-input>
+              <f7-list-input
+                input-id="accountPass"
+                label="Password"
+                name="password"
+                type="password"
+                placeholder="Password"
+              ></f7-list-input>
+            </f7-list>
+             <input type="hidden" id="sessionName" value=""/>
+            <f7-list>
+              <f7-list-item checkbox name="stayLoggedIn" value="check_1" checked title="Stay Logged In" ></f7-list-item>
+              <f7-list-button title="Login" onclick="callUI('login');return true;" login-screen-close></f7-list-button>
+              <f7-list-button title="Logout" onclick="callUI('logout');return true;"></f7-list-button>
+              <f7-block-footer>
+                <p></p>
+              </f7-block-footer>
+            </f7-list>
+          </f7-page>
+        </f7-view>
+      </f7-login-screen>
+    </f7-app>
+  </div>
+
+  <!-- About Page Template -->
+  <template id="page-about">
+    <f7-page>
+      <f7-navbar title="About" back-link="Back"></f7-navbar>
+      <f7-block-title>About Bitsii Notebook</f7-block-title>
+    </f7-page>
+  </template>
+
+  <!-- Discover Template -->
+  <template id="page-discover">
+    <f7-page>
+      <f7-navbar title="Setup A Device" back-link="Back"></f7-navbar>
+      <f7-block>
+                <f7-list form>
+                <input type="hidden" id="disDevType" value=""/>
+                <f7-list-item>Device Name</f7-list-item>
+                  <f7-list-input
+                    input-id="disDevName"
+                  type="text"
+                  placeholder=""
+                ></f7-list-input></f7-list-item>
+                <f7-list-item>Type of Device</f7-list-item>
+                  <f7-list-input
+                    input-id="disDevTypeFriendly"
+                  type="text"
+                  placeholder=""
+                ></f7-list-input></f7-list-item>
+                <f7-list-item>Setup Code</f7-list-item>
+                  <f7-list-input
+                    input-id="disDevPin"
+                  type="text"
+                  placeholder=""
+                ></f7-list-input></f7-list-item>
+                </f7-list>
+              <f7-row tag="p">
+                  <f7-button class="col" onclick="callUI('startDeviceSetup');return false;" outline>Setup Device</f7-button>
+                </f7-row>
+                <f7-row tag="p">
+                  <f7-button class="col" onclick="callUI('startDeviceReset');return false;" outline>Reset Device</f7-button>
+                </f7-row>
+                <f7-button id="showDeviceButton" class="col" onclick="callApp('displayNextDeviceRequest', document.getElementById('disDevSsid').value);return false;" outline>Show Next Discovered Device</f7-button>
+
+                <f7-button id="settleWifiButton" icon-f7='cloud_download' popup-open="#settlewifi" style="display: none;"></f7-button>
+
+              <f7-row tag="p">
+              <div id="discoTxt" style="display: none;">To setup your device - power it up, go to your phone's Settings, click Wifi, connect to the network that begins with OCasnic and includes your device type.  Then return to this app and device details will soon populate.</div>
+            <!-- The password for the network is the set of letters in the network name following ICasnic, between the first set of hyphens (-). -->
+            <div id="siscoTxt" style="display: none;">To setup your device - power it up and in a short while device details will populate.</div>
+            <div id="foundiTxt" style="display: none;">A device has been found - give the device a name if you wish and click Setup Device.</div>
+            <div id="foundaTxt" style="display: none;">A device has been found - give the device a name if you wish and click Setup Device, then Connect when prompted.</div>
+            <div id="doingSetup" style="display: none;">Setting up device</div>
+            </f7-row>
+            <f7-row tag="p">
+            <div id="doingSetupSpin" style="display: none;">
+            <f7-preloader />
+          </div>
+             </f7-row>
+        </f7-block>
+        <div style="display: none;">
+                <f7-button id="disBackButton" class="col" outline back>Back</f7-button>
+                </div>
+
+    </f7-page>
+  </template>
+
+  <!-- Inform Template -->
+  <template id="page-inform">
+    <f7-page>
+      <f7-navbar title="Something's up"></f7-navbar>
+      <f7-block>
+             <div id="informMessageDiv"></div>
+             <f7-button id="goHome" onclick="location.reload();return false;" href='/' outline>Return to Home Base</f7-button>
+        </f7-block>
+    </f7-page>
+  </template>
+
+  <!-- Settings Template -->
+  <template id="page-settings">
+    <f7-page>
+      <f7-navbar title="Settings" back-link="Back"></f7-navbar>
+              <f7-block>
+                <f7-row tag="p">
+          <f7-button class="col" onclick="callUI('openAbout');return false;" outline back>Help and About</f7-button>
+        </f7-row>
+        </f7-block>
+      <f7-block>
+                <f7-list form>
+                <f7-list-item>Device Configuration</f7-list-item>
+                <input type="hidden" id="devType" value=""/>
+                <f7-list-item>Name</f7-list-item>
+                  <f7-list-input
+                    input-id="devName"
+                  type="text"
+                  placeholder=""
+                ></f7-list-input></f7-list-item>
+                <f7-list-item>Type</f7-list-item>
+                  <f7-list-input
+                    input-id="devTypeFriendly"
+                  type="text"
+                  placeholder=""
+                ></f7-list-input></f7-list-item>
+                </f7-list>
+                <f7-row tag="p">
+                  <f7-button id="nextDevButton" class="col" onclick="callUI('showDeviceConfig');return false;" outline>Next</f7-button>
+                </f7-row>
+                <f7-row tag="p">
+                  <f7-button class="col" popup-open="#qrshare" outline>Share</f7-button>
+                </f7-row>
+              <f7-row tag="p">
+                  <f7-button class="col" onclick="callUI('saveDevice');return false;" outline>Save</f7-button>
+                </f7-row>
+              <f7-row tag="p">
+                  <f7-button class="col" popup-open="#verdelete" outline>Delete</f7-button>
+                </f7-row>
+                <f7-row tag="p">
+                  <f7-button class="col" popup-open="#verreset" outline>Reset</f7-button>
+                </f7-row>
+                <f7-row tag="p">
+                  <f7-button class="col" onclick="callUI('toggleDevDetails');return false;" outline>Details</f7-button>
+                </f7-row>
+
+                <div id="divDevDetails" style="display: none;">
+                <f7-list form>
+                <f7-list-item>App Device Id</f7-list-item>
+                  <f7-list-input
+                    input-id="devId"
+                  type="text"
+                  placeholder=""
+                ></f7-list-input></f7-list-item>
+                <f7-list-item>On Device Id</f7-list-item>
+                  <f7-list-input
+                    input-id="onDevId"
+                  type="text"
+                  placeholder=""
+                ></f7-list-input></f7-list-item>
+                <f7-list-item>Admin Password</f7-list-item>
+                <f7-list-input
+                    input-id="devPass"
+                  type="text"
+                  placeholder=""
+                ></f7-list-input>
+                <f7-list-item>State Password</f7-list-item>
+                <f7-list-input
+                    input-id="devSpass"
+                  type="text"
+                  placeholder=""
+                ></f7-list-input>
+                <f7-list-item>Device Address</f7-list-item>
+                <f7-list-input
+                    input-id="devIp"
+                  type="text"
+                  placeholder=""
+                ></f7-list-input>
+                </f7-list>
+                </div>
+         <f7-row tag="p">
+          <f7-button id="advancedButton" class="col" onclick="callUI('toggleAdvanced');return false;" outline>Advanced Settings</f7-button>
+        </f7-row>
+        </f7-block>
+        <div id="divAdvanced" style="display: none;">
+                <f7-list form>
+                <f7-list-item>Wifi Network Name</f7-list-item>
+                  <f7-list-input
+                    input-id="wifiSsid"
+                  type="text"
+                  placeholder=""
+                ></f7-list-input></f7-list-item>
+                <f7-list-item>Wifi Password</f7-list-item>
+                <f7-list-input
+                    input-id="wifiSec"
+                  type="password"
+                  placeholder=""
+                ></f7-list-input>
+                </f7-list>
+              <f7-row tag="p">
+                  <f7-button class="col" onclick="callUI('saveWifi');return false;" outline>Save Wifi</f7-button>
+                </f7-row>
+         <f7-list form>
+          <f7-list-item>Send device Command</f7-list-item>
+            <f7-list-input
+              input-id="devSendCmd"
+            type="text"
+            placeholder=""
+          ></f7-list-input></f7-list-item>
+            </f7-list>
+            <f7-row tag="p">
+            <f7-button id="sendCmdButton" class="col" onclick="callUI('sendDeviceCommand');return false;" outline>Send Command</f7-button>
+          </f7-row>
+            <f7-list form>
+          <f7-list-item>View Command Response</f7-list-item>
+            <f7-list-input
+              input-id="devSeeRes"
+            type="text"
+            placeholder=""
+          ></f7-list-input></f7-list-item>
+          <f7-list-item>Sharing Blob</f7-list-item>
+            <f7-list-input
+              input-id="shBlob"
+            type="text"
+            placeholder=""
+          ></f7-list-input></f7-list-item>
+            </f7-list>
+        <f7-block>
+         <f7-row tag="p">
+          <f7-button id="genShareButton" class="col" onclick="callUI('genDeviceShare', false);return false;" outline>Generate Device Share</f7-button>
+        </f7-row>
+        <f7-row tag="p">
+          <f7-button id="genShareButton" class="col" onclick="callUI('genDeviceShare', true);return false;" outline>Generate Admin Device Share</f7-button>
+        </f7-row>
+        <f7-row tag="p">
+          <f7-button id="adsButton" class="col" popup-open="#veracshare" outline>Accept Device Share</f7-button>
+        </f7-row>
+        <f7-row tag="p">
+          <f7-button class="col" onclick="callUI('rectlDevice');return false;" outline>Reload Controls For Device</f7-button>
+        </f7-row>
+        <f7-row tag="p">
+          <f7-button class="col" popup-open="#verclearold" outline>Clear Old Device Data</f7-button>
+        </f7-row>
+        </f7-block>
+            <f7-list form>
+        <f7-list-item>MQTT Broker</f7-list-item>
+          <f7-list-input
+            input-id="mqttBroker"
+          type="text"
+          placeholder="192.168.10.200"
+        ></f7-list-input></f7-list-item>
+        <f7-list-item>MQTT User</f7-list-item>
+          <f7-list-input
+            input-id="mqttUser"
+          type="text"
+          placeholder=""
+        ></f7-list-input></f7-list-item>
+        <f7-list-item>MQTT Password</f7-list-item>
+        <f7-list-input
+            input-id="mqttPass"
+          type="password"
+          placeholder=""
+        ></f7-list-input>
+        </f7-list>
+      <f7-row tag="p">
+          <f7-button class="col" onclick="callUI('saveMqtt');return false;" outline>Save MQTT</f7-button>
+        </f7-row>
+        </div>
+        <f7-list form>
+          <f7-list-item>
+          <f7-list-input
+            input-id="verBlurb"
+            label="Casnic Version"
+            type="text"
+            value="13"
+            readonly
+          ></f7-list-input></f7-list-item>
+        </f7-list>
+    </f7-page>
+  </template>
+
+  <!-- Dynamic Routing Page Template -->
+  <template id="page-dynamic-routing">
+    <f7-page>
+      <f7-navbar title="Dynamic Route" back-link="Back"></f7-navbar>
+      <f7-block strong>
+        <ul>
+          <li><b>Url:</b> {{$f7route.url}}</li>
+          <li><b>Path:</b> {{$f7route.path}}</li>
+          <li><b>Hash:</b> {{$f7route.hash}}</li>
+          <li><b>Params:</b>
+            <ul>
+              <li v-for="(value, key) in $f7route.params" :key="key"><b>{{key}}:</b> {{value}}</li>
+            </ul>
+          </li>
+          <li><b>Query:</b>
+            <ul>
+              <li v-for="(value, key) in $f7route.query" :key="key"><b>{{key}}:</b> {{value}}</li>
+            </ul>
+          </li>
+          <li><b>Route:</b> {{$f7route.route}}</li>
+        </ul>
+      </f7-block>
+      <f7-block strong>
+        <f7-link @click="$f7router.back()">Go back via Router API</f7-link>
+      </f7-block>
+    </f7-page>
+  </template>
+
+  <!-- Page Not Found Template -->
+  <template id="page-not-found">
+    <f7-page>
+      <f7-navbar title="Hit a Snag"></f7-navbar>
+      <f7-block strong>
+        <p>Sorry</p>
+        <f7-button id="goHome" onclick="location.reload();return false;" href='/' outline>Return to Home Base</f7-button>
+      </f7-block>
+    </f7-page>
+  </template>
+
+  <!-- Cordova -->
+  <!--
+  <script src="cordova.js"></script>
+  -->
+
+  <!-- Framework7 library -->
+  <script src="libs/framework7/js/framework7.bundle.min.js"></script>
+
+  <!-- Vue -->
+  <script src="libs/vue/vue.min.js"></script>
+
+  <!-- Framework7-Vue plugin -->
+  <script src="libs/framework7-vue/framework7-vue.bundle.min.js"></script>
+
+  <!-- Your custom app scripts -->
+  <script src="js/app.js"></script>
+  
+  <script type="text/javascript" src="BEX_E.js"></script>
+
+</body>
+</html>

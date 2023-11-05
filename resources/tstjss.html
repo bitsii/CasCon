@@ -1,0 +1,51 @@
+     <html>
+     <head>
+       <script>
+       var ajaxSubmit = function(formid) {
+         console.log("in ajaxSubmit");
+         //if (false) {
+         var form = document.getElementById(formid);
+         var fs = "/";
+         if (form.length > 0) {
+         for (i = 0; i < form.length; i++) {
+            console.log("looping");
+            var qp;
+            if (i == 0) { qp = "?"; } else { qp = "&"; }
+            if (form.elements[i].name) {
+            fs = fs + qp;
+            fs = fs + encodeURIComponent(form.elements[i].name) + "=" + encodeURIComponent(form.elements[i].value);
+          }
+          }
+          }
+          console.log("submitting this");
+          console.log(fs);
+          var req;
+          if (window.XMLHttpRequest) {
+            req = new XMLHttpRequest();
+          } else if (window.ActiveXObject) {
+            try {
+              req = new ActiveXObject("Msxml2.XMLHTTP");
+            } 
+            catch (e) {
+              try {
+                req = new ActiveXObject("Microsoft.XMLHTTP");
+              } 
+              catch (e) {}
+            }
+          }
+          req.open('GET', fs, true);
+          req.send();
+          console.log("submitted");
+          //}
+       }
+       </script>
+     </head>
+     <body>
+     <form id="wififormid" action="/" method="get" onsubmit="ajaxSubmit('wififormid');return false;"><input type="hidden" name="wifiform" id="wifiform" value="wifiform"/><label for="fname">SSID:</label><input type="text" id="ssid" name="ssid"><br>
+     <br><label for="lname">Secret:</label><input type="text" id="sec" name="sec"><br>
+     <br><input type="submit" value="Setup Wifi"></form>
+     <form action="/" method="get"><input type="hidden" name="iatset" id="iatset" value="iatset"/><label for="fname">Itsii Addr:</label><input type="text" id="iataddr" name="iataddr"><br>
+     <br><label for="lname">Itsii Port:</label><input type="text" id="iatport" name="iatport"><br>
+     <br><label for="lname">Itsii Secret:</label><input type="text" id="iatsec" name="iatsec"><br>
+     <br><input type="submit" value="Setup Itsii"></form>
+     </body></html>

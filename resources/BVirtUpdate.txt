@@ -1,0 +1,12 @@
+{
+"updateScript_linux": "https://github.com/bitsii/Bitsii/releases/download/v2/BAMUpdateScriptLinux.txt",
+"updateScript_macos": "https://github.com/bitsii/Bitsii/releases/download/v2/BAMUpdateScriptMacOS.txt",
+"updateScript_mswin": "https://github.com/bitsii/Bitsii/releases/download/v2/BAMUpdateScriptMSWin.txt",
+"downloadUrl_linux": "https://github.com/bitsii/Bitsii/releases/download/v2/BP-BAM-Linux.zip",
+"downloadUrl_macos": "https://github.com/bitsii/Bitsii/releases/download/v2/BP-BAM-MacOS.zip",
+"downloadUrl_mswin": "https://github.com/bitsii/Bitsii/releases/download/v2/BP-BAM-MSWin.zip",
+"downloadFile_linux": "BP-BAM-Linux.zip",
+"downloadFile_macos": "BP-BAM-MacOS.zip",
+"downloadFile_mswin": "BP-BAM-MSWin.zip",
+"build": 8
+}

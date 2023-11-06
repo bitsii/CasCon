@@ -1405,7 +1405,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map mcmd = setDeviceSwMcmd(rhan, rpos, rstate);
      if (sendDeviceMcmd(mcmd)!) {
        if (def(request)) {
-         return(getDevicesRequest(request));
+         //return(getDevicesRequest(request));
+         return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
        }
      }
      return(null);
@@ -1468,7 +1469,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map mcmd = setDeviceRgbMcmd(rhanpos, rgb);
      if (sendDeviceMcmd(mcmd)!) {
        if (def(request)) {
-         return(getDevicesRequest(request));
+         //return(getDevicesRequest(request));
+         return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
        }
      }
 
@@ -1542,7 +1544,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map mcmd = setDeviceLvlMcmd(rhanpos, rstate);
      if (sendDeviceMcmd(mcmd)!) {
        if (def(request)) {
-         return(getDevicesRequest(request));
+         //return(getDevicesRequest(request));
+         return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
        }
      }
      return(null);

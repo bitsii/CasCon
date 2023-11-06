@@ -866,11 +866,16 @@ use class IUHub:Eui {
        </div>
        ''';
        HD.getElementById("hadsList").innerHTML = ih;
+       HD.getEle("devErr").display = "none";
      }
    }
    
    hideSaveBusy() {
      HD.getElementById("saveBusy").display = "none";
+   }
+
+   showDevErrorResponse() {
+     HD.getEle("devErr").display = "block";
    }
    
    openAbout() {

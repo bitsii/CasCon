@@ -1406,7 +1406,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (sendDeviceMcmd(mcmd)!) {
        if (def(request)) {
          //return(getDevicesRequest(request));
-         return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
+         //return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
+         return(CallBackUI.showDevErrorResponse());
        }
      }
      return(null);
@@ -1456,7 +1457,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        hasw.put(rhan + "-" + rpos, rstate);
      } else {
        if (def(request)) {
-        return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
+        //return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
+         return(CallBackUI.showDevErrorResponse());
        }
      }
      if (def(request)) {
@@ -1473,7 +1475,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (sendDeviceMcmd(mcmd)!) {
        if (def(request)) {
          //return(getDevicesRequest(request));
-         return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
+         //return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
+         return(CallBackUI.showDevErrorResponse());
        }
      }
 
@@ -1548,7 +1551,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (sendDeviceMcmd(mcmd)!) {
        if (def(request)) {
          //return(getDevicesRequest(request));
-         return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
+         //return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
+         return(CallBackUI.showDevErrorResponse());
        }
      }
      return(null);
@@ -1608,7 +1612,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        hasw.put(rhanpos, "on");
      } else {
        if (def(request)) {
-        return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
+        //return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
+         return(CallBackUI.showDevErrorResponse());
        }
      }
      if (def(request)) {

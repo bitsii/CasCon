@@ -1962,7 +1962,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        return(CallBackUI.getDevWifisResponse(count, tries, wait));
      }
 
-     if (visnetsFails > 5) {
+     if (visnetsFails > 3) {
        log.log("visnetsFails overmuch");
        if (TS.notEmpty(ssid) && TS.notEmpty(sec)) {
          log.log("have ssid sec giving it a go, is old device");
@@ -2294,7 +2294,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          String controlDef = cres;
          auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
          hactls.put(disDevId, controlDef);
-         alStep = "setname";
+         alStep = "setwifi";
        }
      } elseIf (alStep == "setname") {
        if (TS.notEmpty(cres) && cres.has("configs set")) {

@@ -468,16 +468,21 @@ use class IUHub:Eui {
    clearQrShare() {
      log.log("clearQrShare");
      HD.getEle("qrsharediv").innerHTML = "";
+     HD.getEle("qrerr").display = "none";
    }
 
    showQrShare(Bool admin) {
      genDeviceShare(admin);
-     String qrsh = "cascon://?cx=" + HD.getElementById("shBlob").value;
      clearQrShare();
-     emit(js) {
-       """
-       new QRCode("qrsharediv", bevl_qrsh.bems_toJsString());
-       """
+     if (TS.notEmpty(HD.getElementById("shBlob").value)) {
+      String qrsh = "cascon://?cx=" + HD.getElementById("shBlob").value;
+      emit(js) {
+        """
+        new QRCode("qrsharediv", bevl_qrsh.bems_toJsString());
+        """
+      }
+     } else {
+       HD.getEle("qrerr").display = "block";
      }
    }
 
@@ -488,6 +493,10 @@ use class IUHub:Eui {
      String devName = HD.getElementById("devName").value;
      String devPass = HD.getElementById("devPass").value;
      String devSpass = HD.getElementById("devSpass").value;
+     if (TS.isEmpty(onDevId) || TS.isEmpty(devSpass)) {
+      HD.getElementById("shBlob").value = "";
+      return(null);
+     }
      Map conf = Map.new();
      conf["type"] = devType;
      //conf["id"] = devId;

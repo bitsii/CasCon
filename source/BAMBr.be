@@ -300,6 +300,9 @@ use class IUHub:Eui {
            }
            netch += "</fieldset>";
            wfd.innerHTML = netch;
+         } elseIf (def(visnets)  && visnets.isEmpty && TS.isEmpty(wfd.innerHTML)) {
+           //inform("Device cannot find any suitable Wifi networks.  Make sure a 2.4Ghz Wifi Network access point is in range of the device");
+           HD.getEle("noWifiTxt").display = "block";
          }
        }
        return(self);

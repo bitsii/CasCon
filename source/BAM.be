@@ -1962,7 +1962,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        return(CallBackUI.getDevWifisResponse(count, tries, wait));
      }
 
-     if (count >= tries || visnetsFails > 15 || visnetsDone) {
+     if (visnetsFails > 15) {
+       log.log("visnetsFails overmuch");
+       if (TS.notEmpty(ssid) && TS.notEmpty(sec)) {
+         log.log("have ssid sec giving it a go, is old device");
+         count.setValue(tries);
+         return(CallBackUI.getDevWifisResponse(count, tries, wait));
+       } else {
+         return(CallBackUI.informResponse("Older device and no known Wifi config.  Under Settings / Advanced Settings configure a 2.4Ghz Wifi Network Name (ssid) and password and then retry device setup"));
+       }
+     } elseIf (count >= tries || visnetsDone) {
        log.log("doing settle wifi");
        return(CallBackUI.settleWifiResponse(visnets, ssid, sec));
      }

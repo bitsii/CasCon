@@ -1869,7 +1869,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      ifEmit(jvad) {
        emit(jv) {
          """
-         System.out.println("ma.getLastCx()");
+         //System.out.println("ma.getLastCx()");
      casnic.control.MainActivity ma = (casnic.control.MainActivity) be.BEC_3_2_4_10_UIJvAdWebBrowser.MainActivity.mainActivity;
      String cx = ma.getLastCx();
      if (cx != null) {

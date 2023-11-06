@@ -1962,7 +1962,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        return(CallBackUI.getDevWifisResponse(count, tries, wait));
      }
 
-     if (visnetsFails > 15) {
+     if (visnetsFails > 5) {
        log.log("visnetsFails overmuch");
        if (TS.notEmpty(ssid) && TS.notEmpty(sec)) {
          log.log("have ssid sec giving it a go, is old device");

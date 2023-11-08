@@ -79,7 +79,13 @@ class CasNic:CasProt {
         """
         }
       }
-      System:Thread.new(System:Invocation.new(self, "sendJvadCmds", Lists.from(kdaddr, cmds))).start();
+      if (def(mcmd["runSync"]) && mcmd["runSync"]) {
+        sendJvadCmds(kdaddr, cmds);
+        mcmd["cres"] = jvadCmdsRes;
+        jvadCmdsRes = null;
+      } else {
+        System:Thread.new(System:Invocation.new(self, "sendJvadCmds", Lists.from(kdaddr, cmds))).start();
+      }
       return(null);
    }
 

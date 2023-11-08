@@ -41,6 +41,9 @@ use System:Thread:ObjectLocker as OLocker;
 
 use System:Parameters;
 use Encode:Hex as Hex;
+use Time:Interval;
+
+use App:Mqtt;
 
 use class BA:EDevPlugin {
 
@@ -196,6 +199,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           Map cmdQueues = Map.new();
           CasProt prot = CasProt.new();
         }
+        ifEmit(wajv) {
+          fields {
+            Mqtt mqtt;
+          }
+        }
         super.new();
         log = IO:Logs.get(self);
         IO:Logs.turnOnAll();
@@ -224,8 +232,193 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         app.pluginsByName.get("Auth").authedUrlsConfigKey = "bridgeAuthedUrls";
       }
 
+      ifEmit(wajv) {
+        System:Thread.new(System:Invocation.new(self, "keepMqttUp", List.new())).start();
+      }
+
       initializeDiscoveryListener();
 
+      ifEmit(wajv) {
+        checkStartMqtt();
+      }
+
+    }
+
+    keepMqttUp() {
+      ifEmit(wajv) {
+        while (true) {
+          Time:Sleep.sleepSeconds(15);
+          try {
+            checkStartMqtt();
+          } catch (any e) {
+            log.elog("except in keepMqttUp");
+          }
+        }
+      }
+    }
+
+    checkStartMqtt() {
+      ifEmit(wajv) {
+        if (undef(mqtt) || mqtt.isOpen!) {
+          if (def(mqtt)) {
+            "closing mqtt".print();
+            auto mqtt2 = mqtt;
+            mqtt = null;
+            mqtt2.close();
+          }
+          String mqttBroker = app.configManager.get("mqtt.broker");
+          String mqttUser = app.configManager.get("mqtt.user");
+          String mqttPass = app.configManager.get("mqtt.pass");
+          if (TS.notEmpty(mqttBroker) && TS.notEmpty(mqttUser) && TS.notEmpty(mqttPass)) {
+            initializeMqtt(mqttBroker, mqttUser, mqttPass);
+          }
+        }
+      }
+    }
+
+    initializeMqtt(String mqttBroker, String mqttUser, String mqttPass) {
+      ifEmit(wajv) {
+       log.log("initializing mqtt");
+       mqtt = Mqtt.new();
+       mqtt.broker = mqttBroker;
+       mqtt.user = mqttUser;
+       mqtt.pass = mqttPass;
+       mqtt.messageHandler = self;
+       mqtt.open();
+       if (mqtt.isOpen) {
+        log.log("mqtt opened");
+        mqtt.subscribe("homeassistant/status");
+        setupMqttDevices();
+       } else {
+         if (TS.notEmpty(mqtt.lastError)) {
+           lastError = "Mqtt Error: " + mqtt.lastError;
+         }
+        mqtt.close();
+        mqtt = null;
+       }
+       //mqtt.subscribe("test");
+       //mqtt.publish("test", "hi from casnic");
+      }
+    }
+
+    setupMqttDevices() {
+      ifEmit(wajv) {
+        auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+        auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+        auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+        auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+        Map devices = Map.new();
+        Map ctls = Map.new();
+        Map topubs = Map.new();
+        for (any kv in hadevs.getMap()) {
+          String did = kv.key;
+          String confs = kv.value;
+          Map conf = Json:Unmarshaller.unmarshall(confs);
+          devices.put(did, confs);
+          String ctl = hactls.get(did);
+          if (TS.notEmpty(ctl)) {
+            ctls.put(did, ctl);
+            auto ctll = ctl.split(",");
+            log.log("got ctl " + ctl);
+            for (Int i = 1;i < ctll.size;i++=) {
+              String itype = ctll.get(i);
+              log.log("got ctled itype " + itype + " pos " + i);
+              if (itype == "sw") {
+                //mosquitto_pub -r -h 127.0.0.1 -p 1883 -t "homeassistant/switch/irrigation/config" -m '{"name": "garden", "command_topic": "homeassistant/switch/irrigation/set", "state_topic": "homeassistant/switch/irrigation/state"}'
+                String tpp = "homeassistant/switch/" + did + "-" + i;
+                Map cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i);
+                String cfs = Json:Marshaller.marshall(cf);
+                log.log("will set discovery tpp " + tpp + " cfs " + cfs);
+                mqtt.subscribe(tpp + "/set");
+                mqtt.publish(tpp + "/config", cfs);
+                String st = hasw.get(did + "-" + i);
+                if (TS.notEmpty(st)) {
+                  topubs.put(tpp + "/state", st.upper());
+                } else {
+                  topubs.put(tpp + "/state", "OFF");
+                }
+              } elseIf(itype == "dim") {
+                tpp = "homeassistant/light/" + did + "-" + i;
+                cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i, "schema", "json", "brightness", true, "brightness_scale", 255);
+                //optimistic, false
+                cfs = Json:Marshaller.marshall(cf);
+                log.log("will set discovery tpp " + tpp + " cfs " + cfs);
+                mqtt.subscribe(tpp + "/set");
+                mqtt.publish(tpp + "/config", cfs);
+                st = hasw.get(did + "-" + i);
+                Map dps = Map.new();
+                if (TS.notEmpty(st)) {
+                  dps.put("state", st.upper());
+                } else {
+                  dps.put("state", "OFF");
+                }
+                String lv = halv.get(did + "-" + i);
+                if (TS.notEmpty(lv)) {
+                  //log.log("got lv " + lv);
+                  dps.put("brightness", Int.new(lv));
+                }
+                topubs.put(tpp + "/state", Json:Marshaller.marshall(dps));
+              }
+            }
+          }
+        }
+        Time:Sleep.sleepMilliseconds(200);
+        for (any pkv in topubs) {
+          mqtt.publish(pkv.key, pkv.value);
+        }
+      }
+    }
+
+    handleMessage(String topic, String payload) {
+      ifEmit(wajv) {
+        log.log("in bam handlemessage for " + topic + " " + payload);
+        if (TS.notEmpty(topic) && TS.notEmpty(payload)) {
+          if (topic == "homeassistant/status" && payload == "online") {
+            log.log("ha startedup");
+            mqtt.close();
+            mqtt = null;
+            checkStartMqtt();
+          } elseIf (topic.begins("homeassistant/switch/") && topic.ends("/set")) {
+            log.log("ha switched");
+            auto ll = topic.split("/");
+            String didpos = ll[2];
+            log.log("ha got didpos " + didpos);
+            auto dp = didpos.split("-");
+            Map mcmd = setDeviceSwMcmd(dp[0], dp[1], payload.lower());
+            mcmd["runSync"] = true;
+            processDeviceMcmd(mcmd);
+            if (mcmd.has("cb")) {
+              self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+            }
+            stDiffed = true;
+          } elseIf (topic.begins("homeassistant/light/") && topic.ends("/set")) {
+            log.log("ha light switched");
+            ll = topic.split("/");
+            didpos = ll[2];
+            log.log("ha got didpos " + didpos);
+            dp = didpos.split("-");
+            Map incmd = Json:Unmarshaller.unmarshall(payload);
+            //if has brightness, do brightness
+            //else state
+            if (incmd.has("brightness")) {
+              mcmd = setDeviceLvlMcmd(dp[0] + "-" + dp[1], incmd.get("brightness").toString());
+              mcmd["runSync"] = true;
+              processDeviceMcmd(mcmd);
+              if (mcmd.has("cb")) {
+                self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+              }
+            } elseIf (incmd.has("state")) {
+              mcmd = setDeviceSwMcmd(dp[0], dp[1], incmd.get("state").lower());
+              mcmd["runSync"] = true;
+              processDeviceMcmd(mcmd);
+              if (mcmd.has("cb")) {
+                self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+              }
+            }
+            stDiffed = true;
+          }
+        }
+      }
     }
 
     handleWeb(request) this {
@@ -754,6 +947,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       app.configManager.delete("mqtt.pass");
       log.log("cleared mqtt");
      }
+     ifEmit(wajv) {
+      if (def(mqtt)) {
+        mqtt.close();
+        mqtt = null;
+      }
+      checkStartMqtt();
+     }
      return(CallBackUI.reloadResponse());
    }
    
@@ -814,7 +1014,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      lastDevices = devices;
      howManyDevices = devices.size.copy();
-     return(CallBackUI.getDevicesResponse(devices, ctls, states, levels, rgbs));
+     if (def(nextInform)) {
+       Int nsecs = nextInform.seconds;
+     } else {
+       nsecs = 0;
+     }
+     return(CallBackUI.getDevicesResponse(devices, ctls, states, levels, rgbs, nsecs));
    }
 
    getLastEventsRequest(String did, request) {
@@ -1103,6 +1308,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
       }
       return(null);
+   }
+
+   didInformRequest(request) Map {
+     slots {
+       Interval nextInform = Interval.now().addSeconds(75);
+     }
+     return(null);
    }
 
    manageStateUpdatesRequest(request) {
@@ -1455,6 +1667,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      if (TS.notEmpty(cres) && cres.has("ok")) {
        hasw.put(rhan + "-" + rpos, rstate);
+       ifEmit(wajv) {
+        if (def(mqtt)) {
+          if (TS.notEmpty(itype) && itype == "sw") {
+            String stpp = "homeassistant/switch/" + rhan + "-" + rpos + "/state";
+            mqtt.publish(stpp, rstate.upper());
+          } elseIf (TS.notEmpty(itype) && itype == "dim") {
+            Map dps = Map.new();
+            dps.put("state", rstate.upper());
+            stpp = "homeassistant/light/" + rhan + "-" + rpos + "/state";
+            mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+          }
+        }
+       }
      } else {
        if (def(request)) {
         //return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
@@ -1610,6 +1835,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(cres) && cres.has("ok")) {
        halv.put(rhanpos, rstate);
        hasw.put(rhanpos, "on");
+       ifEmit(wajv) {
+        if (def(mqtt)) {
+          if (TS.notEmpty(itype) && itype == "dim") {
+            Map dps = Map.new();
+            dps.put("state", "ON");
+            dps.put("brightness", Int.new(rstate));
+            String stpp = "homeassistant/light/" + rhanpos + "/state";
+            mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+          }
+        }
+       }
      } else {
        if (def(request)) {
         //return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
@@ -2336,10 +2572,27 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 """
               }
           }
+          ifEmit(wajv) {
+            if (def(mqtt) && mqtt.isOpen) {
+              System:Thread.new(System:Invocation.new(self, "waitCloseMqtt", List.new())).start();
+            }
+          }
           return(CallBackUI.reloadResponse());
         }
      }
      return(null);
+   }
+
+   waitCloseMqtt() {
+     ifEmit(wajv) {
+       log.log("waiting to close");
+       Time:Sleep.sleepSeconds(5);
+       if (def(mqtt)) {
+         log.log("closing mqtt");
+         mqtt.close();
+         mqtt = null;
+       }
+     }
    }
 
    displayNextDeviceRequest(String ssidn, request) Map {

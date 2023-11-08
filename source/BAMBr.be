@@ -18,6 +18,8 @@ use UI:HtmlDom:Document as HD;
 use UI:HtmlDom:Element as HE;
 use UI:HtmlDom:Call as HC;
 
+use Time:Interval;
+
 use class IUHub:Eui {
 
   new() self {
@@ -681,10 +683,13 @@ use class IUHub:Eui {
      }
    }
    
-   getDevicesResponse(Map devices, Map ctls, Map states, Map levels, Map rgbs) {
+   getDevicesResponse(Map devices, Map ctls, Map states, Map levels, Map rgbs, Int nsecs) {
      log.log("in getDevicesResponse");
      slots {
        Map devCtls = ctls;
+     }
+     if (nsecs > 0) {
+       nextInform = Interval.new(nsecs, 0);
      }
      HD.getEle("hider").display = "none";
      if (def(devices) && devices.size > 0) {
@@ -930,6 +935,14 @@ use class IUHub:Eui {
    }
    
    inform(String r) {
+     slots {
+       Time:Interval nextInform;
+     }
+     if (def(nextInform) && nextInform > Time:Interval.now()) {
+       log.log("not been long enough on inform, not informing");
+       return(null);
+     }
+     nextInform = Time:Interval.now().addSeconds(75);
      if (TS.notEmpty(r)) {
       //HD.getElementById("informMessageDiv").innerHTML = r;
       //HD.getElementById("informDiv").display = "block";
@@ -943,6 +956,7 @@ use class IUHub:Eui {
          log.log(r);
        }
      }
+     HC.callApp(Lists.from("didInformRequest"));
    }
    
    hideInform() {

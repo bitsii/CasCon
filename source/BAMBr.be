@@ -150,10 +150,18 @@ use class IUHub:Eui {
 
    toggleAdvanced() {
      any da = HD.getEle("divAdvanced");
+     any dma = HD.getEle("divMqttAdvanced");
      if (da.display == "block") {
        da.display = "none";
      } else {
        da.display = "block";
+     }
+     ifEmit(wajv) {
+      if (dma.display == "block") {
+        dma.display = "none";
+      } else {
+        dma.display = "block";
+      }
      }
    }
    

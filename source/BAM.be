@@ -725,6 +725,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     haowns.delete(uhex + "." + did);
     hadevs.delete(did);
+    pdevices = null;
 
     String ctl = hactls.get(did);
     if (TS.notEmpty(ctl)) {
@@ -884,6 +885,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      hadevs.put(did, confs);
      haowns.put(uhex + "." + did, did);
+     pdevices = null;
      
      return(CallBackUI.reloadResponse());
    }
@@ -959,15 +961,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    
    getDevicesRequest(request) Map {
      log.log("in getDevicesRequest");
-     slots {
-       Bool stDiffed = false;
-       Set pendingStateUpdates;
-       Map lastDevices;
-       Int howManyDevices;
-     }
-     if (undef(pendingStateUpdates)) {
-       pendingStateUpdates = Set.new();
-     }
      Account account = request.context.get("account");
      auto uhex = Hex.encode(account.user);
      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
@@ -1012,8 +1005,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
        }
      }
-     lastDevices = devices;
-     howManyDevices = devices.size.copy();
      if (def(nextInform)) {
        Int nsecs = nextInform.seconds;
      } else {
@@ -1022,20 +1013,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(CallBackUI.getDevicesResponse(devices, ctls, states, levels, rgbs, nsecs));
    }
 
-   getLastEventsRequest(String did, request) {
-     log.log("in getLastEventsRequest " + did);
+   getLastEvents(String confs, Bool runSync) {
+     log.log("in getLastEvents");
 
-     //not checking user rn
-     Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
-
-     String confs = hadevs.get(did);
      try {
-     Map conf = Json:Unmarshaller.unmarshall(confs);
+       Map conf = Json:Unmarshaller.unmarshall(confs);
      } catch (any e) {
        log.elog("error in gle", e);
        return(null);
@@ -1048,12 +1030,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String kdaddr = getAddrDis(kdname);
      //String kdaddr = getCashedAddr(kdname);
 
-     //tcpjv edition
-
-     //cmds += "\r\n";
-
      if (def(kdaddr)) {
-       Map mcmd = Maps.from("cb", "getLastEventsCb", "did", did, "kdaddr", kdaddr, "pwt", 0, "pw", "", "cmds", cmds);
+       Map mcmd = Maps.from("cb", "getLastEventsCb", "did", conf["id"], "kdaddr", kdaddr, "pwt", 0, "pw", "", "cmds", cmds);
 
        sendDeviceMcmd(mcmd, 3);
 
@@ -1069,15 +1047,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String leid = mcmd["did"];
      if (TS.notEmpty(cres)) {
         log.log("getlastevents cres |" + cres + "|");
-        //for (Int ji = 0;ji < cres.size;ji++=) {
-        //  log.log("gle ji " + cres.getCode(ji));
-        //}
         if (TS.notEmpty(cres)) {
               String ores = currentEvents.get(leid);
               if (TS.notEmpty(ores)) {
-                //log.log("ores ne comparing");
                 if (cres != ores) {
-                  //log.log("cres ores unequal");
                   auto ol = ores.split(";");
                   auto cl = cres.split(";");
                   if (ol.size == cl.size) {
@@ -1111,7 +1084,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                       psu = de.get(0) + "," + leid + "," + pos;
                       pendingStateUpdates += psu;
                     }
-                    //log.log("done with new events " + ci);
                   }
                 }
               }
@@ -1125,16 +1097,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
-   updateSwStateRequest(String did, Int dp, String cname, request) {
-     log.log("in updateSwStateRequest " + did + " " + dp);
+   updateSwState(String did, Int dp, String cname) {
+     log.log("in updateSwState " + did + " " + dp);
 
-     //not checking user rn
-     Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -1182,16 +1148,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
-   updateRgbStateRequest(String did, Int dp, String cname, request) {
-     log.log("in updateRgbStateRequest " + did + " " + dp);
+   updateRgbState(String did, Int dp, String cname) {
+     log.log("in updateRgbState " + did + " " + dp);
 
-     //not checking user rn
-     Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -1204,10 +1164,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
      String kdaddr = getCashedAddr(kdname);
-
-     //tcpjv edition
-
-     //cmds += "\r\n";
 
      if (def(kdaddr)) {
        Map mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "cname", cname, "cmds", cmds);
@@ -1238,16 +1194,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
-   updateLvlStateRequest(String did, Int dp, String cname, request) {
-     log.log("in updateLvlStateRequest " + did + " " + dp);
+   updateLvlState(String did, Int dp, String cname) {
+     log.log("in updateLvlState " + did + " " + dp);
 
-     //not checking user rn
-     Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -1260,10 +1210,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
      String kdaddr = getCashedAddr(kdname);
-
-     //tcpjv edition
-
-     //cmds += "\r\n";
 
      if (def(kdaddr)) {
        Map mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "cname", cname, "cmds", cmds);
@@ -1339,6 +1285,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      //checkdiffed
      if (def(stDiffed) && stDiffed) {
+       stDiffed = false;
        return(getDevicesRequest(request));
      }
 
@@ -1346,56 +1293,57 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (def(mres)) {
        return(mres);
      }
+     pulseDevices(false);
+     //log.log("done w manageStateUpdatesRequest");
+     return(null);
+   }
 
+   pulseDevices(Bool runSync) {
+     //called every 250msish
      slots {
-       Int msuc;
+       Bool stDiffed;
+       Set pendingStateUpdates;
        Map currentEvents;
-       Set lastEventsToGet;
+       Int pcount;
+       Map pdevices; //hadevs cpy
+       Map pdcount; //id to last getlastevents count
      }
-     if (undef(msuc)) {
-       msuc = 0;
-     } elseIf (msuc > 9999) {
-       msuc = 0;
-     } else {
-       msuc++=;
+     if (undef(pcount) || pcount > 9999) {
+       pcount = 0;
+       pdcount = null;
+     }
+     pcount++=;
+     if (undef(pendingStateUpdates)) {
+       pendingStateUpdates = Set.new();
      }
      if (undef(currentEvents)) {
        currentEvents = Map.new();
      }
-
-     //each dev per 5 sec le, 2 sec psu - 10/hmd 4/hmd, 10 sec 20, 16 for 8, 32 for 16, at 500ms per, at 250
-     //1 dev = 10
-     //2 dev = 5
-     //3 dev = 3
-     if (def(howManyDevices) && howManyDevices > 0) {
-       Int lefreq = 64 / howManyDevices;
-       Int psfreq = 8 / howManyDevices;
-       if (lefreq < 4) { lefreq = 4; }
-       if (psfreq < 4) { psfreq = 4; }
-     } else {
-       lefreq = 10;
-       psfreq = 4;
+     if (undef(pdcount)) {
+       pdcount = Map.new();
+     }
+     if (undef(pdevices)) {
+       auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+       pdevices = hadevs.getMap();
      }
 
-     if (msuc % psfreq == 0) {
-      //updateStates
       Set toDel = Set.new();
       if (def(pendingStateUpdates)) {
         for (any k in pendingStateUpdates) {
             if (TS.notEmpty(k)) {
               try {
-                log.log("doing updateXStateRequest for " + k);
+                log.log("doing updateXState for " + k);
                 auto ks = k.split(",");
                 if (ks[0] == "sw") {
-                  updateSwStateRequest(ks[1], Int.new(ks[2]), ks[0], request);
+                  updateSwState(ks[1], Int.new(ks[2]), ks[0]);
                 } elseIf (ks[0] == "dim") {
-                  updateSwStateRequest(ks[1], Int.new(ks[2]), ks[0], request);
-                  updateLvlStateRequest(ks[1], Int.new(ks[2]), ks[0], request);
+                  updateSwState(ks[1], Int.new(ks[2]), ks[0]);
+                  updateLvlState(ks[1], Int.new(ks[2]), ks[0]);
                 } elseIf (ks[0] == "pwm") {
-                  updateLvlStateRequest(ks[1], Int.new(ks[2]), ks[0], request);
+                  updateLvlState(ks[1], Int.new(ks[2]), ks[0]);
                 } elseIf (ks[0] == "rgb") {
-                  updateSwStateRequest(ks[1], Int.new(ks[2]), ks[0], request);
-                  updateRgbStateRequest(ks[1], Int.new(ks[2]), ks[0], request);
+                  updateSwState(ks[1], Int.new(ks[2]), ks[0]);
+                  updateRgbState(ks[1], Int.new(ks[2]), ks[0]);
                 }
               } catch (any e) {
                 log.elog("Error updating device states", e);
@@ -1411,34 +1359,21 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (toDel.notEmpty) {
           return(null);
         }
-     }
 
-     //check for update event times and add to pendingstateupdates
-     if (msuc % lefreq == 0) {
-      //lastDevices
-      //check against existing values, if present and different, update for the different ones by putting in
-      //  involves parsing and checking values
-      //pendingStateUpdates
-      //log.log("!!! doing lastDevices");
-      if (def(lastDevices)) {
-        //log.log("lastDevices def");
-        if (undef(lastEventsToGet) || lastEventsToGet.isEmpty) {
-          lastEventsToGet = Set.new();
-          for (auto kvld in lastDevices) {
-            lastEventsToGet += kvld.key;
+
+      Map lpd = pdevices;
+      Map lpc = pdcount;
+      if (def(lpd) && def (lpc)) {
+        for (auto pdc in pdevices) {
+          Int dc = pdcount.get(pdc.key);
+          if (undef(dc) || dc < pcount) {
+            dc = pcount + 16 + System:Random.getIntMax(16); //(secs * 4)
+            pdcount.put(pdc.key, dc);
+            getLastEvents(pdc.value, runSync);
+            break;
           }
         }
-        for (auto leid in lastEventsToGet) {
-            getLastEventsRequest(leid, request);
-            break;
-        }
-        if (TS.notEmpty(leid)) {
-            lastEventsToGet.delete(leid);
-        }
       }
-     }
-     //log.log("done w manageStateUpdatesRequest");
-     return(null);
    }
 
    initializeDiscoveryListener() {
@@ -2026,6 +1961,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    sendDeviceMcmd(Map mcmd) Bool {
+     //only use for interactive cases where latest should trump
      return(sendDeviceMcmd(mcmd, 0));
    }
 
@@ -2041,9 +1977,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         Bool replaced = false;
         for (auto i = cmdQueue.iterator;i.hasNext;;) {
          Map mc = i.next;
-         if (mc["kdaddr"] == mcmd["kdaddr"]) {
+         if (priority == 0) {
+          if (mc["kdaddr"] == mcmd["kdaddr"]) {
+            replaced = true;
+          }
+         } else {
+          if (mc["kdaddr"] == mcmd["kdaddr"] && mc["cmds"] == mcmd["cmds"]) {
+            replaced = true;
+          }
+         }
+         if (replaced) {
            i.current = mc;
-           replaced = true;
            log.log("replaced in cmdQueue");
            return(true);
          }

@@ -1103,6 +1103,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateSwState(String did, Int dp, String cname) {
      log.log("in updateSwState " + did + " " + dp);
 
+     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     String ctl = hactls.get(did);
+     auto ctll = ctl.split(",");
+     String itype = ctll.get(dp);
+
      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
      String confs = hadevs.get(did);
@@ -1122,7 +1127,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //cmds += "\r\n";
 
      if (def(kdaddr)) {
-       Map mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "cname", cname, "cmds", cmds);
+       Map mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
 
        sendDeviceMcmd(mcmd, 2);
 
@@ -1136,6 +1141,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateSwStateCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String did = mcmd["did"];
+     String itype = mcmd["itype"];
      Int dp = mcmd["dp"];
      auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      if (TS.notEmpty(cres)) {
@@ -1145,6 +1151,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           if (TS.isEmpty(cset) || cset != cres) {
             hasw.put(did + "-" + dp, cres);
             stDiffed = true;
+            ifEmit(wajv) {
+              if (def(mqtt)) {
+                if (TS.notEmpty(itype) && itype == "sw") {
+                  String stpp = "homeassistant/switch/" + did + "-" + dp + "/state";
+                  mqtt.publish(stpp, cres.upper());
+                } elseIf (TS.notEmpty(itype) && itype == "dim") {
+                  Map dps = Map.new();
+                  dps.put("state", cres.upper());
+                  stpp = "homeassistant/light/" + did + "-" + dp + "/state";
+                  mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+                }
+              }
+            }
           }
         }
       }
@@ -1204,6 +1223,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateLvlState(String did, Int dp, String cname) {
      log.log("in updateLvlState " + did + " " + dp);
 
+     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     String ctl = hactls.get(did);
+     auto ctll = ctl.split(",");
+     String itype = ctll.get(dp);
+
      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
      String confs = hadevs.get(did);
@@ -1219,7 +1243,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String kdaddr = getCashedAddr(kdname);
 
      if (def(kdaddr)) {
-       Map mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "cname", cname, "cmds", cmds);
+       Map mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
 
        sendDeviceMcmd(mcmd, 1);
 
@@ -1234,6 +1258,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String cres = mcmd["cres"];
      String did = mcmd["did"];
      Int dp = mcmd["dp"];
+     String itype = mcmd["itype"];
      auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
      if (TS.notEmpty(cres)) {
         log.log("got getlvl " + cres);
@@ -1257,6 +1282,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           } else {
             halv.put(did + "-" + dp, cresi.toString());
             stDiffed = true;
+          }
+          ifEmit(wajv) {
+            if (def(mqtt)) {
+              if (TS.notEmpty(itype) && itype == "dim") {
+                Map dps = Map.new();
+                dps.put("state", "ON");
+                dps.put("brightness", cresi);
+                String stpp = "homeassistant/light/" + did + "-" + dp + "/state";
+                mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+              }
+            }
           }
         }
       }

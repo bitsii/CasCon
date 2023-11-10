@@ -261,7 +261,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       ifEmit(wajv) {
         if (undef(mqtt) || mqtt.isOpen!) {
           if (def(mqtt)) {
-            "closing mqtt".print();
+            log.log("closing mqtt");
             auto mqtt2 = mqtt;
             mqtt = null;
             mqtt2.close();
@@ -272,6 +272,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           if (TS.notEmpty(mqttBroker) && TS.notEmpty(mqttUser) && TS.notEmpty(mqttPass)) {
             initializeMqtt(mqttBroker, mqttUser, mqttPass);
           }
+        } else {
+          mqtt.publish("casnic/ktlo", "yo");
         }
       }
     }
@@ -288,6 +290,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        if (mqtt.isOpen) {
         log.log("mqtt opened");
         mqtt.subscribe("homeassistant/status");
+        mqtt.subscribe("casnic/ktlo");
         setupMqttDevices();
        } else {
          if (TS.notEmpty(mqtt.lastError)) {

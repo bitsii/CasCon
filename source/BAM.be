@@ -1186,8 +1186,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         log.log("got getrgb " + cres);
         unless (cres.has("undefined")) {
           if (cres.has(",")) {
-            //log.log("saving rgb");
-            hargb.put(did + "-" + dp, cres);
+            String cset = hargb.get(did + "-" + dp);
+            if (TS.isEmpty(cset) || cset.has(",")! || cset != cres) {
+              log.log("got rgb update");
+              hargb.put(did + "-" + dp, cres);
+              stDiffed = true;
+            }
           }
         }
       }

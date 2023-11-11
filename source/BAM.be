@@ -1422,7 +1422,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        pdevices = hadevs.getMap();
      }
 
-     if (pdcount % 2 == 0) {
+     if (pcount % 2 == 0) {
       Set toDel = Set.new();
       if (def(pendingStateUpdates)) {
         for (any k in pendingStateUpdates) {

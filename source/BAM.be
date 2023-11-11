@@ -1383,7 +1383,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    runPulseDevices() {
       ifEmit(wajv) {
         while (true) {
-          Time:Sleep.sleepMilliseconds(250);
+          Time:Sleep.sleepMilliseconds(500);
           try {
             pulseDevices();
           } catch (any e) {
@@ -1394,7 +1394,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
    pulseDevices() {
-     //called every 250msish
+     //called every 500msish
      slots {
        Bool stDiffed;
        Set pendingStateUpdates;
@@ -1422,6 +1422,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        pdevices = hadevs.getMap();
      }
 
+     if (pdcount % 2 == 0) {
       Set toDel = Set.new();
       if (def(pendingStateUpdates)) {
         for (any k in pendingStateUpdates) {
@@ -1454,7 +1455,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (toDel.notEmpty) {
           return(null);
         }
-
+     }
 
       Map lpd = pdevices;
       Map lpc = pdcount;
@@ -1462,7 +1463,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         for (auto pdc in pdevices) {
           Int dc = pdcount.get(pdc.key);
           if (undef(dc) || dc < pcount) {
-            dc = pcount + 16 + System:Random.getIntMax(16); //(secs * 4)
+            dc = pcount + 20 + System:Random.getIntMax(20); //(secs * 4)
             pdcount.put(pdc.key, dc);
             getLastEvents(pdc.value);
             break;

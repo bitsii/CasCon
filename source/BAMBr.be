@@ -60,7 +60,7 @@ use class IUHub:Eui {
       }
       HC.pollUI(List.new().addValue("checkCx"), 1500);
       HC.pollUI(List.new().addValue("checkNexts"), 1000);
-      HC.pollApp(List.new().addValue("manageStateUpdatesRequest"), 250);
+      HC.pollApp(List.new().addValue("manageStateUpdatesRequest"), 500);
    }
 
    checkCx() {

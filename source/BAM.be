@@ -234,6 +234,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       ifEmit(wajv) {
         System:Thread.new(System:Invocation.new(self, "keepMqttUp", List.new())).start();
+        System:Thread.new(System:Invocation.new(self, "runPulseDevices", List.new())).start();
       }
 
       initializeDiscoveryListener();
@@ -1016,7 +1017,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(CallBackUI.getDevicesResponse(devices, ctls, states, levels, rgbs, nsecs));
    }
 
-   getLastEvents(String confs, Bool runSync) {
+   getLastEvents(String confs) {
      log.log("in getLastEvents");
 
      try {
@@ -1036,7 +1037,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (def(kdaddr)) {
        Map mcmd = Maps.from("cb", "getLastEventsCb", "did", conf["id"], "kdaddr", kdaddr, "pwt", 0, "pw", "", "cmds", cmds);
 
-       sendDeviceMcmd(mcmd, 3);
+       ifEmit(wajv) {
+        mcmd["runSync"] = true;
+        processDeviceMcmd(mcmd);
+        if (mcmd.has("cb")) {
+          self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+        }
+       }
+       ifNotEmit(wajv) {
+        sendDeviceMcmd(mcmd, 3);
+       }
 
      } else {
       log.log("getlastevents kdaddr empty");
@@ -1129,7 +1139,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (def(kdaddr)) {
        Map mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
 
-       sendDeviceMcmd(mcmd, 2);
+       ifEmit(wajv) {
+        mcmd["runSync"] = true;
+        processDeviceMcmd(mcmd);
+        if (mcmd.has("cb")) {
+          self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+        }
+       }
+       ifNotEmit(wajv) {
+        sendDeviceMcmd(mcmd, 2);
+       }
 
      } else {
       log.log("getsw kdaddr empty");
@@ -1190,7 +1209,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (def(kdaddr)) {
        Map mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "cname", cname, "cmds", cmds);
 
-       sendDeviceMcmd(mcmd, 1);
+       ifEmit(wajv) {
+        mcmd["runSync"] = true;
+        processDeviceMcmd(mcmd);
+        if (mcmd.has("cb")) {
+          self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+        }
+       }
+       ifNotEmit(wajv) {
+        sendDeviceMcmd(mcmd, 1);
+       }
 
      } else {
       log.log("getlvl kdaddr empty");
@@ -1245,7 +1273,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (def(kdaddr)) {
        Map mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
 
-       sendDeviceMcmd(mcmd, 1);
+       ifEmit(wajv) {
+        mcmd["runSync"] = true;
+        processDeviceMcmd(mcmd);
+        if (mcmd.has("cb")) {
+          self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+        }
+       }
+       ifNotEmit(wajv) {
+        sendDeviceMcmd(mcmd, 1);
+       }
 
      } else {
       log.log("getlvl kdaddr empty");
@@ -1287,7 +1324,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             if (def(mqtt)) {
               if (TS.notEmpty(itype) && itype == "dim") {
                 Map dps = Map.new();
-                dps.put("state", "ON");
+                //dps.put("state", "ON");
                 dps.put("brightness", cresi);
                 String stpp = "homeassistant/light/" + did + "-" + dp + "/state";
                 mqtt.publish(stpp, Json:Marshaller.marshall(dps));
@@ -1336,12 +1373,27 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (def(mres)) {
        return(mres);
      }
-     pulseDevices(false);
+     ifNotEmit(wajv) {
+      pulseDevices();
+     }
      //log.log("done w manageStateUpdatesRequest");
      return(null);
    }
 
-   pulseDevices(Bool runSync) {
+   runPulseDevices() {
+      ifEmit(wajv) {
+        while (true) {
+          Time:Sleep.sleepMilliseconds(250);
+          try {
+            pulseDevices();
+          } catch (any e) {
+            log.elog("except in keepMqttUp");
+          }
+        }
+      }
+    }
+
+   pulseDevices() {
      //called every 250msish
      slots {
        Bool stDiffed;
@@ -1412,7 +1464,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           if (undef(dc) || dc < pcount) {
             dc = pcount + 16 + System:Random.getIntMax(16); //(secs * 4)
             pdcount.put(pdc.key, dc);
-            getLastEvents(pdc.value, runSync);
+            getLastEvents(pdc.value);
             break;
           }
         }

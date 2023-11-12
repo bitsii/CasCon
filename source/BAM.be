@@ -1017,6 +1017,62 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(CallBackUI.getDevicesResponse(devices, ctls, states, levels, rgbs, nsecs));
    }
 
+   updateSpec(String did) {
+     log.log("in updateSpec " + did);
+
+     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+
+     String confs = hadevs.get(did);
+     Map conf = Json:Unmarshaller.unmarshall(confs);
+
+     String cmds = "doswspec " + conf["spass"] + " e";
+     log.log("cmds " + cmds);
+
+     //getting the name
+     String kdname = "CasNic" + conf["ondid"];
+     String kdaddr = getCashedAddr(kdname);
+
+     if (def(kdaddr)) {
+       Map mcmd = Maps.from("cb", "updateSpecCb", "did", did, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "cmds", cmds);
+
+       ifEmit(wajv) {
+        mcmd["runSync"] = true;
+        processDeviceMcmd(mcmd);
+        if (mcmd.has("cb")) {
+          self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+        }
+       }
+       ifNotEmit(wajv) {
+        sendDeviceMcmd(mcmd, 2);
+       }
+
+     } else {
+      log.log("updateSpec kdaddr empty");
+     }
+
+     return(null);
+   }
+
+   updateSpecCb(Map mcmd, request) Map {
+     String cres = mcmd["cres"];
+     String did = mcmd["did"];
+     auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+     if (TS.notEmpty(cres)) {
+        log.log("got dospec " + cres);
+        if (cres.begins("controldef")) {
+          log.log("pre swspec");
+          haspecs.put(did, "1,p2.gsh.4");
+        } elseIf (cres.has("p2.")) {
+          log.log("got swspec");
+          haspecs.put(did, cres);
+        } else {
+          log.log("swspec got nonsense, doing default");
+          haspecs.put(did, "1,p2.gsh.4");
+        }
+      }
+      return(null);
+   }
+
    getLastEvents(String confs) {
      log.log("in getLastEvents");
 
@@ -1060,50 +1116,54 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String leid = mcmd["did"];
      if (TS.notEmpty(cres)) {
         log.log("getlastevents cres |" + cres + "|");
-        if (TS.notEmpty(cres)) {
-              String ores = currentEvents.get(leid);
-              if (TS.notEmpty(ores)) {
-                if (cres != ores) {
-                  auto ol = ores.split(";");
-                  auto cl = cres.split(";");
-                  if (ol.size == cl.size) {
-                    for (Int i = 0;i < cl.size;i++=) {
-                      String ci = cl.get(i);
-                      String oi = ol.get(i);
-                      if (TS.notEmpty(ci) && TS.notEmpty(oi) && ci != oi) {
-                        log.log("found diffed events " + ci + " " + oi);
-                        auto de = ci.split(",");
-                        if (def(pendingStateUpdates)) {
-                          Int pos = Int.new(de.get(1));
-                          pos++=;
-                          String psu = de.get(0) + "," + leid + "," + pos;
-                          pendingStateUpdates += psu;
-                        }
-                      }
-                    }
-                  }
-                }
-              } else {
-               log.log("not found in currentEvents, getting all states");
-                cl = cres.split(";");
-                for (i = 0;i < cl.size;i++=) {
-                  ci = cl.get(i);
-                  if (TS.notEmpty(ci)) {
-                    log.log("found new events " + ci);
-                    de = ci.split(",");
-                    if (def(pendingStateUpdates)) {
-                      pos = Int.new(de.get(1));
-                      pos++=;
-                      psu = de.get(0) + "," + leid + "," + pos;
-                      pendingStateUpdates += psu;
-                    }
+        String ores = currentEvents.get(leid);
+        if (TS.notEmpty(ores)) {
+          if (cres != ores) {
+            auto ol = ores.split(";");
+            auto cl = cres.split(";");
+            if (ol.size == cl.size) {
+              for (Int i = 0;i < cl.size;i++=) {
+                String ci = cl.get(i);
+                String oi = ol.get(i);
+                if (TS.notEmpty(ci) && TS.notEmpty(oi) && ci != oi) {
+                  log.log("found diffed events " + ci + " " + oi);
+                  auto de = ci.split(",");
+                  if (def(pendingStateUpdates)) {
+                    Int pos = Int.new(de.get(1));
+                    pos++=;
+                    String psu = de.get(0) + "," + leid + "," + pos;
+                    pendingStateUpdates += psu;
                   }
                 }
               }
-              currentEvents.put(leid, cres);
-            } else {
-              log.log("cres empty");
             }
+          }
+        } else {
+          log.log("not found in currentEvents, getting all states");
+          cl = cres.split(";");
+          for (i = 0;i < cl.size;i++=) {
+            ci = cl.get(i);
+            if (TS.notEmpty(ci)) {
+              log.log("found new events " + ci);
+              de = ci.split(",");
+              if (def(pendingStateUpdates)) {
+                pos = Int.new(de.get(1));
+                pos++=;
+                psu = de.get(0) + "," + leid + "," + pos;
+                pendingStateUpdates += psu;
+              }
+            }
+          }
+        }
+        currentEvents.put(leid, cres);
+        auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+        //haspecs.delete(leid);
+        unless (haspecs.has(leid)) {
+          pendingSpecs.put(leid);
+          //log.log("no have haspec");
+        } //else {
+          //log.log("have haspec " + haspecs.get(leid));
+        //}
       } else {
         log.log("getlastevents cres empty");
       }
@@ -1398,6 +1458,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      slots {
        Bool stDiffed;
        Set pendingStateUpdates;
+       Set pendingSpecs;
        Map currentEvents;
        Int pcount;
        Map pdevices; //hadevs cpy
@@ -1410,6 +1471,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      pcount++=;
      if (undef(pendingStateUpdates)) {
        pendingStateUpdates = Set.new();
+     }
+     if (undef(pendingSpecs)) {
+       pendingSpecs = Set.new();
      }
      if (undef(currentEvents)) {
        currentEvents = Map.new();
@@ -1455,6 +1519,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (toDel.notEmpty) {
           return(null);
         }
+     }
+     if (pcount % 6 == 0 && pendingSpecs.notEmpty) {
+       Set spToDel = Set.new();
+       for (String spdid in pendingSpecs) {
+          updateSpec(spdid);
+          spToDel += spdid;
+          break;
+       }
+       for (String spk in spToDel) {
+         pendingSpecs.delete(spk);
+       }
      }
 
       Map lpd = pdevices;

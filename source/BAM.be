@@ -1185,8 +1185,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //dostate eek setsw on e
      Int dpd = dp--;
-     String cmds = "dostate " + conf["spass"] + " " + dpd + " getsw e";
-     log.log("cmds " + cmds);
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -1197,7 +1195,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //cmds += "\r\n";
 
      if (def(kdaddr)) {
-       Map mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+
+       auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+       String sws = haspecs.get(did);
+       if (TS.notEmpty(sws) && sws.has("q,")) {
+         cmds = "dostate Q " + dpd + " getsw e";
+         log.log("cmds " + cmds);
+         mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
+       } else {
+         String cmds = "dostate " + conf["spass"] + " " + dpd + " getsw e";
+         log.log("cmds " + cmds);
+         Map mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+       }
 
        ifEmit(wajv) {
         mcmd["runSync"] = true;
@@ -1259,15 +1268,24 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //dostate eek setsw on e
      Int dpd = dp--;
-     String cmds = "dostate " + conf["spass"] + " " + dpd + " getrgb e";
-     log.log("cmds " + cmds);
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
      String kdaddr = getCashedAddr(kdname);
 
      if (def(kdaddr)) {
-       Map mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "cname", cname, "cmds", cmds);
+
+       auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+       String sws = haspecs.get(did);
+       if (TS.notEmpty(sws) && sws.has("q,")) {
+         cmds = "dostate Q " + dpd + " getrgb e";
+         log.log("cmds " + cmds);
+         mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 0, "pw", "", "cname", cname, "cmds", cmds);
+       } else {
+         String cmds = "dostate " + conf["spass"] + " " + dpd + " getrgb e";
+         log.log("cmds " + cmds);
+         Map mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "cname", cname, "cmds", cmds);
+       }
 
        ifEmit(wajv) {
         mcmd["runSync"] = true;
@@ -1323,15 +1341,24 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //dostate eek setsw on e
      Int dpd = dp--;
-     String cmds = "dostate " + conf["spass"] + " " + dpd + " getlvl e";
-     log.log("cmds " + cmds);
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
      String kdaddr = getCashedAddr(kdname);
 
      if (def(kdaddr)) {
-       Map mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+
+       auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+       String sws = haspecs.get(did);
+       if (TS.notEmpty(sws) && sws.has("q,")) {
+         cmds = "dostate Q " + dpd + " getlvl e";
+         log.log("cmds " + cmds);
+         mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 0, "pw", "", "itype", itype, "itype", itype, "cname", cname, "cmds", cmds);
+       } else {
+         String cmds = "dostate " + conf["spass"] + " " + dpd + " getlvl e";
+         log.log("cmds " + cmds);
+         Map mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+       }
 
        ifEmit(wajv) {
         mcmd["runSync"] = true;
@@ -1529,6 +1556,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        }
        for (String spk in spToDel) {
          pendingSpecs.delete(spk);
+         return(null);
        }
      }
 
@@ -1538,7 +1566,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         for (auto pdc in pdevices) {
           Int dc = pdcount.get(pdc.key);
           if (undef(dc) || dc < pcount) {
-            dc = pcount + 20 + System:Random.getIntMax(20); //(secs * 4)
+            dc = pcount + 8 + System:Random.getIntMax(8); //(secs * 2)
             pdcount.put(pdc.key, dc);
             getLastEvents(pdc.value);
             break;

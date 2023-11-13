@@ -135,15 +135,7 @@
                   <f7-button id="openSettings" onclick="callApp('loadWifiRequest');return true;" href='/settings/' style="display: none;" outline>Really do settings</f7-button>
 
 
-        <!--<f7-card
-    content="This is a simple card with plain text, but cards can also contain their own header, footer, list view, image, or any other element.">
-    <f7-list form>
-          <f7-list-item>
-  <span>Batman</span>
-  <f7-toggle checked></f7-toggle>
-</f7-list-item>
-</f7-list>
-</f7-card>-->
+       
         </f7-page>
       </f7-view>
 
@@ -239,7 +231,7 @@
             <div id="wifisholder"></div>
 
             <f7-block>
-                <f7-list form>
+                <f7-list>
                 <f7-list-item>Network Password</f7-list-item>
                   <f7-list-input
                     input-id="pwsnetname"
@@ -310,7 +302,7 @@
     <f7-page>
       <f7-navbar title="Setup A Device" back-link="Back"></f7-navbar>
       <f7-block>
-                <f7-list form>
+                <f7-list>
                 <input type="hidden" id="disDevType" value=""/>
                 <f7-list-item>Device Name</f7-list-item>
                   <f7-list-input
@@ -383,7 +375,7 @@
         </f7-row>
         </f7-block>
       <f7-block>
-                <f7-list form>
+                <f7-list>
                 <f7-list-item>Device Configuration</f7-list-item>
                 <input type="hidden" id="devType" value=""/>
                 <f7-list-item>Name</f7-list-item>
@@ -419,7 +411,7 @@
                 </f7-row>
 
                 <div id="divDevDetails" style="display: none;">
-                <f7-list form>
+                <f7-list>
                 <f7-list-item>App Device Id</f7-list-item>
                   <f7-list-input
                     input-id="devId"
@@ -457,7 +449,7 @@
         </f7-row>
         </f7-block>
         <div id="divAdvanced" style="display: none;">
-                <f7-list form>
+                <f7-list>
                 <f7-list-item>Wifi Network Name</f7-list-item>
                   <f7-list-input
                     input-id="wifiSsid"
@@ -474,7 +466,7 @@
               <f7-row tag="p">
                   <f7-button class="col" onclick="callUI('saveWifi');return false;" outline>Save Wifi</f7-button>
                 </f7-row>
-         <f7-list form>
+         <f7-list>
           <f7-list-item>Send device Command</f7-list-item>
             <f7-list-input
               input-id="devSendCmd"
@@ -485,7 +477,7 @@
             <f7-row tag="p">
             <f7-button id="sendCmdButton" class="col" onclick="callUI('sendDeviceCommand');return false;" outline>Send Command</f7-button>
           </f7-row>
-            <f7-list form>
+            <f7-list>
           <f7-list-item>View Command Response</f7-list-item>
             <f7-list-input
               input-id="devSeeRes"
@@ -518,7 +510,7 @@
         </f7-block>
         </div>
         <div id="divMqttAdvanced" style="display: none;">
-        <f7-list form>
+        <f7-list>
         <f7-list-item>MQTT Broker</f7-list-item>
           <f7-list-input
             input-id="mqttBroker"
@@ -542,7 +534,7 @@
           <f7-button class="col" onclick="callUI('saveMqtt');return false;" outline>Save MQTT</f7-button>
         </f7-row>
         </div>
-        <f7-list form>
+        <f7-list>
           <f7-list-item>
           <f7-list-input
             input-id="verBlurb"

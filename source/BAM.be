@@ -2069,7 +2069,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          return(self.invoke(mcmd["cb"], Lists.from(mcmd, request)));
        }
      } elseIf (undef(currCmds)) {
-       for (Int i = 0;i < 4;i++=) {
+       for (Int i = 0;i < 10;i++=) {
          Container:LinkedList cmdQueue = cmdQueues.get(i);
          if (def(cmdQueue)) {
           Map mcmd = cmdQueue.get(0);
@@ -2138,16 +2138,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        return(null);
      }
 
-     if (TS.notEmpty(kdaddr) && def(kac)) {
-        String kdn = kac.get(kdaddr);
-        if (TS.notEmpty(kdn)) {
-          String kda = knc.get(kdn);
-          if (TS.notEmpty(kda)) {
-            knc.delete(kdn);
-            auto haknc = app.kvdbs.get("HAKNC"); //kdname to addr
-            haknc.delete(kdn);
+     if (TS.notEmpty(kdaddr)) {
+      log.log("SHOULD NOW EJECT " + kdaddr);
+      if (def(kac)) {
+          String kdn = kac.get(kdaddr);
+          if (TS.notEmpty(kdn)) {
+            String kda = knc.get(kdn);
+            if (TS.notEmpty(kda)) {
+              knc.delete(kdn);
+              auto haknc = app.kvdbs.get("HAKNC"); //kdname to addr
+              haknc.delete(kdn);
+            }
+            kac.delete(kdaddr);
           }
-          kac.delete(kdaddr);
         }
       }
       startDiscovery();

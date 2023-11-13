@@ -1814,7 +1814,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        }
      } else {
        if (def(request)) {
-         //return(CallBackUI.showDevErrorResponse());
+         return(getDevicesRequest(request));
        }
      }
      if (def(request)) {
@@ -1889,7 +1889,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        hasw.put(rhanpos, "on");
      } else {
        if (def(request)) {
-          //return(CallBackUI.showDevErrorResponse());
+          //return(getDevicesRequest(request));
           return(CallBackUI.reloadResponse());
         }
      }
@@ -1977,7 +1977,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        }
      } else {
        if (def(request)) {
-         //return(CallBackUI.showDevErrorResponse());
+         return(getDevicesRequest(request));
        }
      }
      if (def(request)) {

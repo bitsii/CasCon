@@ -60,7 +60,7 @@ use class IUHub:Eui {
       }
       HC.pollUI(List.new().addValue("checkCx"), 1500);
       HC.pollUI(List.new().addValue("checkNexts"), 1000);
-      HC.pollApp(List.new().addValue("manageStateUpdatesRequest"), 500);
+      HC.pollApp(List.new().addValue("manageStateUpdatesRequest"), 250);
    }
 
    checkCx() {
@@ -174,6 +174,7 @@ use class IUHub:Eui {
      } else {
        state = "off";
      }
+     HD.getEle("devErr").display = "none";
      HC.callApp(Lists.from("setDeviceSwRequest", dname, pos, state));
    }
 
@@ -182,8 +183,7 @@ use class IUHub:Eui {
      Int statet = HD.getEle("sli" + dname + "-" + pos).value;
      log.log("slidState " + statet);
      HD.getEle("hat" + dname + "-" + pos).checked = true;
-     //slvls.put(dname + "-" + pos, statet.toString());
-     //HC.callApp(Lists.from("setDeviceLvlRequest", kv.key, kv.value));
+     HD.getEle("devErr").display = "none";
      HC.callApp(Lists.from("setDeviceLvlRequest", dname + "-" + pos, statet.toString()));
    }
 
@@ -253,6 +253,7 @@ use class IUHub:Eui {
      String rgb = rhi.toString() + "," + ghi.toString() + "," + bhi.toString();
      log.log("checkColor r,g,b " + rgb);
 
+     HD.getEle("devErr").display = "none";
      HC.callApp(Lists.from("setDeviceRgbRequest", dname + "-" + pos, rgb));
 
    }
@@ -261,9 +262,7 @@ use class IUHub:Eui {
      log.log("checkBrt " + dname + " " + pos);
      Int statet = HD.getEle("brt" + dname + "-" + pos).value;
      log.log("slidState " + statet);
-     //HD.getEle("hat" + dname + "-" + pos).checked = true;
-     //slvls.put(dname + "-" + pos, statet.toString());
-     //HC.callApp(Lists.from("setDeviceLvlRequest", kv.key, kv.value));
+     HD.getEle("devErr").display = "none";
      HC.callApp(Lists.from("setDeviceRgbcwRequest", dname + "-" + pos, "brt", statet.toString()));
    }
 
@@ -271,9 +270,7 @@ use class IUHub:Eui {
      log.log("checkTemp " + dname + " " + pos);
      Int statet = HD.getEle("temp" + dname + "-" + pos).value;
      log.log("slidState " + statet);
-     //HD.getEle("hat" + dname + "-" + pos).checked = true;
-     //slvls.put(dname + "-" + pos, statet.toString());
-     //HC.callApp(Lists.from("setDeviceLvlRequest", kv.key, kv.value));
+     HD.getEle("devErr").display = "none";
      HC.callApp(Lists.from("setDeviceRgbcwRequest", dname + "-" + pos, "temp", statet.toString()));
    }
 

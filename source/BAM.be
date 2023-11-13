@@ -772,7 +772,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      Map mcmd = Maps.from("cb", "resetDeviceCb", "did", did, "kdaddr", kdaddr, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
 
-     sendDeviceMcmd(mcmd);
+     sendDeviceMcmd(mcmd, 1);
 
      return(null);
 
@@ -858,7 +858,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      Map mcmd = Maps.from("cb", "sendDeviceCommandCb", "kdaddr", kdaddr, "pwt", pt, "pw", tp, "cmds", cmds);
 
-     sendDeviceMcmd(mcmd);
+     sendDeviceMcmd(mcmd, 1);
 
      return(null);
 
@@ -1101,7 +1101,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
        }
        ifNotEmit(wajv) {
-        sendDeviceMcmd(mcmd, 3);
+        sendDeviceMcmd(mcmd, 5);
        }
 
      } else {
@@ -1216,7 +1216,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
        }
        ifNotEmit(wajv) {
-        sendDeviceMcmd(mcmd, 2);
+        sendDeviceMcmd(mcmd, 4);
        }
 
      } else {
@@ -1295,7 +1295,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
        }
        ifNotEmit(wajv) {
-        sendDeviceMcmd(mcmd, 1);
+        sendDeviceMcmd(mcmd, 4);
        }
 
      } else {
@@ -1368,7 +1368,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
        }
        ifNotEmit(wajv) {
-        sendDeviceMcmd(mcmd, 1);
+        sendDeviceMcmd(mcmd, 4);
        }
 
      } else {
@@ -1470,7 +1470,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    runPulseDevices() {
       ifEmit(wajv) {
         while (true) {
-          Time:Sleep.sleepMilliseconds(500);
+          Time:Sleep.sleepMilliseconds(250);
           try {
             pulseDevices();
           } catch (any e) {
@@ -1481,7 +1481,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
    pulseDevices() {
-     //called every 500msish
+     //called every 250msish
      slots {
        Bool stDiffed;
        Set pendingStateUpdates;
@@ -1566,7 +1566,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         for (auto pdc in pdevices) {
           Int dc = pdcount.get(pdc.key);
           if (undef(dc) || dc < pcount) {
-            dc = pcount + 8 + System:Random.getIntMax(8); //(secs * 2)
+            dc = pcount + 12 + System:Random.getIntMax(12); //(secs * 4)
             pdcount.put(pdc.key, dc);
             getLastEvents(pdc.value);
             break;
@@ -1723,7 +1723,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //cmds += "\r\n";
 
      Map mcmd = Maps.from("cb", "rectlDeviceCb", "did", conf["id"], "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "cmds", cmds);
-     sendDeviceMcmd(mcmd);
+     sendDeviceMcmd(mcmd, 2);
 
      return(null);
    }
@@ -1749,10 +1749,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //not checking user rn
      Map mcmd = setDeviceSwMcmd(rhan, rpos, rstate);
-     if (sendDeviceMcmd(mcmd)!) {
+     if (sendDeviceMcmd(mcmd, 0)!) {
        if (def(request)) {
-         //return(getDevicesRequest(request));
-         //return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
          return(CallBackUI.showDevErrorResponse());
        }
      }
@@ -1816,12 +1814,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        }
      } else {
        if (def(request)) {
-        //return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
-         return(CallBackUI.showDevErrorResponse());
+         //return(CallBackUI.showDevErrorResponse());
        }
      }
      if (def(request)) {
-      return(getDevicesRequest(request));
+      //return(getDevicesRequest(request));
      }
      return(null);
    }
@@ -1831,11 +1828,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //not checking user rn
      Map mcmd = setDeviceRgbMcmd(rhanpos, rgb);
-     if (sendDeviceMcmd(mcmd)!) {
+     if (sendDeviceMcmd(mcmd, 0)!) {
        if (def(request)) {
-         //return(getDevicesRequest(request));
-         //return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
-         return(CallBackUI.showDevErrorResponse());
+         //return(CallBackUI.showDevErrorResponse());
+         return(CallBackUI.reloadResponse());
        }
      }
 
@@ -1893,11 +1889,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        hasw.put(rhanpos, "on");
      } else {
        if (def(request)) {
+          //return(CallBackUI.showDevErrorResponse());
           return(CallBackUI.reloadResponse());
         }
      }
      if (def(request)) {
-      return(getDevicesRequest(request));
+      //return(getDevicesRequest(request));
      }
      return(null);
    }
@@ -1907,10 +1904,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //not checking user rn
      Map mcmd = setDeviceLvlMcmd(rhanpos, rstate);
-     if (sendDeviceMcmd(mcmd)!) {
+     if (sendDeviceMcmd(mcmd, 0)!) {
        if (def(request)) {
-         //return(getDevicesRequest(request));
-         //return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
          return(CallBackUI.showDevErrorResponse());
        }
      }
@@ -1982,12 +1977,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        }
      } else {
        if (def(request)) {
-        //return(CallBackUI.informResponse("Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?"));
-         return(CallBackUI.showDevErrorResponse());
+         //return(CallBackUI.showDevErrorResponse());
        }
      }
      if (def(request)) {
-      return(getDevicesRequest(request));
+      //return(getDevicesRequest(request));
      }
      return(null);
    }
@@ -2080,11 +2074,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          if (def(cmdQueue)) {
           Map mcmd = cmdQueue.get(0);
           if (def(mcmd)) {
+            auto n = cmdQueue.getNode(0);
+            n.delete();
             currCmds = mcmd;
             cmdsRes = null;
             aptrs = null;
-            auto n = cmdQueue.getNode(0);
-            n.delete();
             processDeviceMcmd(mcmd);
             break;
           }
@@ -2159,48 +2153,45 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       startDiscovery();
    }
 
-   sendDeviceMcmd(Map mcmd) Bool {
-     //only use for interactive cases where latest should trump
-     return(sendDeviceMcmd(mcmd, 0));
-   }
-
    sendDeviceMcmd(Map mcmd, Int priority) Bool {
       if (def(mcmd) && TS.notEmpty(mcmd["kdaddr"])) {
         Container:LinkedList cmdQueue = cmdQueues.get(priority);
-        if (undef(cmdQueue)) {
-          cmdQueue = Container:LinkedList.new();
-          cmdQueues.put(priority, cmdQueue);
-        }
-        //log.log("adding to cmdQueue");
-        //if (true) { throw(Alert.new("hi")); }
-        Bool replaced = false;
-        for (auto i = cmdQueue.iterator;i.hasNext;;) {
-         Map mc = i.next;
-         if (priority == 0) {
-          if (mc["kdaddr"] == mcmd["kdaddr"]) {
-            replaced = true;
+        Container:LinkedList newQueue = Container:LinkedList.new();
+        if (def(cmdQueue)) {
+          //delete any equivalents first
+          List ncmdl = mcmd["cmds"].split(" ");
+          for (auto i = cmdQueue.iterator;i.hasNext;;) {
+            Map mc = i.next;
+            if (priority == 0) {
+              //0-3, only want last of same cmd type for same pos
+              if (mc["kdaddr"] == mcmd["kdaddr"]) {
+                List ecmdl = mc["cmds"].split(" ");
+                if (ncmdl.size > 3 && ecmdl.size > 3) {
+                  Bool same = true;
+                  for (Int j = 0;j < 4;j++=) {
+                    if (ncmdl[j] != ecmdl[j]) {
+                      same = false;
+                    }
+                  }
+                  unless (same) {
+                    log.log("not same");
+                    newQueue += mc;
+                  } else {
+                    log.log("got same");
+                  }
+                }
+              }
+            } else {
+              unless (mc["kdaddr"] == mcmd["kdaddr"] && mc["cmds"] == mcmd["cmds"]) {
+                newQueue += mc;
+              }
+            }
           }
-         } else {
-          if (mc["kdaddr"] == mcmd["kdaddr"] && mc["cmds"] == mcmd["cmds"]) {
-            replaced = true;
-          }
-         }
-         if (replaced) {
-           i.current = mc;
-           log.log("replaced in cmdQueue");
-           return(true);
-         }
         }
-        unless (replaced) {
-          cmdQueue += mcmd;
-          log.log("added to cmdQueue");
-          return(true);
-        }
-        /*if (cmdQueue.size < 10) {
-          cmdQueue += mcmd;
-        } else {
-          throw(Alert.new("Not handling request, command queue is full.  Is device unavailable or offline?"));
-        }*/
+        newQueue += mcmd;
+        cmdQueues.put(priority, newQueue);
+        log.log("added to cmdQueue");
+        return(true);
       }
       return(false);
    }
@@ -2357,7 +2348,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      String cmds = "previsnets " + visnetsPos + " e";
      Map mcmd = Maps.from("cb", "previsnetsCb", "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-     sendDeviceMcmd(mcmd);
+     sendDeviceMcmd(mcmd, 1);
      return(CallBackUI.getDevWifisResponse(count, tries, wait));
    }
 
@@ -2523,7 +2514,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     String cmds = "resetbypin " + devPin + " e";
     Map mcmd = Maps.from("cb", "resetDeviceCb", "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-    sendDeviceMcmd(mcmd);
+    sendDeviceMcmd(mcmd, 1);
 
    }
 
@@ -2615,26 +2606,26 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           saveDeviceRequest(conf["id"], confs, request);
           hapinid.put(uhex + "." + devPin, conf["id"]);
 
-          sendDeviceMcmd(mcmd);
+          sendDeviceMcmd(mcmd, 1);
         } elseIf (alStep == "getcontroldef") {
           cmds = "getcontroldef " + devSpass + " e";
           mcmd = Maps.from("cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-          sendDeviceMcmd(mcmd);
+          sendDeviceMcmd(mcmd, 1);
         } elseIf (alStep == "setname") {
           cmds = "putconfigs " + devPass + " vhex fc.dname " + Hex.encode(devName) + " e";
           mcmd = Maps.from("cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-          sendDeviceMcmd(mcmd);
+          sendDeviceMcmd(mcmd, 1);
         } elseIf (alStep == "setmqtt") {
           String mqttBroker = app.configManager.get("mqtt.broker");
           String mqttUser = app.configManager.get("mqtt.user");
           String mqttPass = app.configManager.get("mqtt.pass");
           cmds = "putconfigs " + devPass + " vhex fc.mqhost " + Hex.encode(mqttBroker) + " fc.mquser " + Hex.encode(mqttUser) + " fc.mqpass " + Hex.encode(mqttPass) + " e";
           mcmd = Maps.from("cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-          sendDeviceMcmd(mcmd);
+          sendDeviceMcmd(mcmd, 1);
         } elseIf (alStep == "setwifi") {
           cmds = "setwifi " + devPass + " hex " + devSsid + " " + devSec + " e";
           mcmd = Maps.from("cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-          sendDeviceMcmd(mcmd);
+          sendDeviceMcmd(mcmd, 1);
         } elseIf (alStep == "restart") {
           cmds = "restart " + devPass + " e";
           mcmd = Maps.from("cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
@@ -2647,7 +2638,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             """
           }
           }
-          sendDeviceMcmd(mcmd);
+          sendDeviceMcmd(mcmd, 1);
         }
       } else {
         alStep = "allset";
@@ -2755,7 +2746,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //log.log("in displayNextDeviceCmdRequest");
     String cmds = "getapssid e";
     Map mcmd = Maps.from("cb", "displayNextDeviceCmdCb", "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-    sendDeviceMcmd(mcmd);
+    sendDeviceMcmd(mcmd, 1);
     return(null);
    }
 

@@ -202,6 +202,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         ifEmit(wajv) {
           fields {
             Mqtt mqtt;
+            Bool backgroundPulse = true;
           }
         }
         super.new();
@@ -234,7 +235,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       ifEmit(wajv) {
         System:Thread.new(System:Invocation.new(self, "keepMqttUp", List.new())).start();
-        System:Thread.new(System:Invocation.new(self, "runPulseDevices", List.new())).start();
+        if (backgroundPulse) {
+          System:Thread.new(System:Invocation.new(self, "runPulseDevices", List.new())).start();
+        }
       }
 
       initializeDiscoveryListener();
@@ -1036,10 +1039,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        Map mcmd = Maps.from("cb", "updateSpecCb", "did", did, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "cmds", cmds);
 
        ifEmit(wajv) {
-        mcmd["runSync"] = true;
-        processDeviceMcmd(mcmd);
-        if (mcmd.has("cb")) {
-          self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+        if (backgroundPulse) {
+          mcmd["runSync"] = true;
+          processDeviceMcmd(mcmd);
+          if (mcmd.has("cb")) {
+            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+          }
+        } else {
+          sendDeviceMcmd(mcmd, 2);
         }
        }
        ifNotEmit(wajv) {
@@ -1094,11 +1101,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        Map mcmd = Maps.from("cb", "getLastEventsCb", "did", conf["id"], "kdaddr", kdaddr, "pwt", 0, "pw", "", "cmds", cmds);
 
        ifEmit(wajv) {
-        mcmd["runSync"] = true;
-        processDeviceMcmd(mcmd);
-        if (mcmd.has("cb")) {
-          self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-        }
+         if (backgroundPulse) {
+          mcmd["runSync"] = true;
+          processDeviceMcmd(mcmd);
+          if (mcmd.has("cb")) {
+            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+          }
+         } else {
+           sendDeviceMcmd(mcmd, 5);
+         }
        }
        ifNotEmit(wajv) {
         sendDeviceMcmd(mcmd, 5);
@@ -1209,11 +1220,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        }
 
        ifEmit(wajv) {
-        mcmd["runSync"] = true;
-        processDeviceMcmd(mcmd);
-        if (mcmd.has("cb")) {
-          self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-        }
+         if (backgroundPulse) {
+          mcmd["runSync"] = true;
+          processDeviceMcmd(mcmd);
+          if (mcmd.has("cb")) {
+            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+          }
+         } else {
+           sendDeviceMcmd(mcmd, 4);
+         }
        }
        ifNotEmit(wajv) {
         sendDeviceMcmd(mcmd, 4);
@@ -1288,11 +1303,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        }
 
        ifEmit(wajv) {
-        mcmd["runSync"] = true;
-        processDeviceMcmd(mcmd);
-        if (mcmd.has("cb")) {
-          self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-        }
+         if (backgroundPulse) {
+          mcmd["runSync"] = true;
+          processDeviceMcmd(mcmd);
+          if (mcmd.has("cb")) {
+            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+          }
+         } else {
+           sendDeviceMcmd(mcmd, 4);
+         }
        }
        ifNotEmit(wajv) {
         sendDeviceMcmd(mcmd, 4);
@@ -1361,10 +1380,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        }
 
        ifEmit(wajv) {
-        mcmd["runSync"] = true;
-        processDeviceMcmd(mcmd);
-        if (mcmd.has("cb")) {
-          self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+         if (backgroundPulse) {
+          mcmd["runSync"] = true;
+          processDeviceMcmd(mcmd);
+          if (mcmd.has("cb")) {
+            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+          }
+        } else {
+          sendDeviceMcmd(mcmd, 4);
         }
        }
        ifNotEmit(wajv) {
@@ -1459,6 +1482,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map mres = processCmdsRequest(request);
      if (def(mres)) {
        return(mres);
+     }
+     ifEmit(wajv) {
+       unless (backgroundPulse) {
+         pulseDevices();
+       }
      }
      ifNotEmit(wajv) {
       pulseDevices();

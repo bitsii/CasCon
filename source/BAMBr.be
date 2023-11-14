@@ -360,18 +360,15 @@ use class IUHub:Eui {
        if (TS.notEmpty(lastCx)) {
          HD.getElementById("shBlob").value = lastCx;
          HD.getElementById("adsButton").click();
+       } elseIf (TS.notEmpty(wantSettingsFor)) {
+          log.log("have wantsettingsfor, doing that");
+          String lwsf = wantSettingsFor;
+          wantSettingsFor = null;
+          HC.callApp(Lists.from("showDeviceConfigRequest", lwsf));
+          return(self);
        } elseIf (TS.isEmpty(ddf.value)) {
-        //HD.getEle("mqttSetup").display = "block";
-         if (TS.notEmpty(wantSettingsFor)) {
-           log.log("have wantsettingsfor, doing that");
-           String lwsf = wantSettingsFor;
-           wantSettingsFor = null;
-           HC.callApp(Lists.from("showDeviceConfigRequest", lwsf));
-           return(self);
-         } else {
-          log.log("checkNexts gonna click next device");
-          ndb.click();
-         }
+        log.log("checkNexts gonna click next device");
+        ndb.click();
        }
      }
 

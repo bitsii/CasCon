@@ -362,8 +362,16 @@ use class IUHub:Eui {
          HD.getElementById("adsButton").click();
        } elseIf (TS.isEmpty(ddf.value)) {
         //HD.getEle("mqttSetup").display = "block";
-        log.log("checkNexts gonna click next device");
-        ndb.click();
+         if (TS.notEmpty(wantSettingsFor)) {
+           log.log("have wantsettingsfor, doing that");
+           String lwsf = wantSettingsFor;
+           wantSettingsFor = null;
+           HC.callApp(Lists.from("showDeviceConfigRequest", lwsf));
+           return(self);
+         } else {
+          log.log("checkNexts gonna click next device");
+          ndb.click();
+         }
        }
      }
 
@@ -389,7 +397,7 @@ use class IUHub:Eui {
      fields {
        String lastDeviceId;
      }
-     HC.callApp(Lists.from("showDeviceConfigRequest", lastDeviceId));
+     HC.callApp(Lists.from("showNextDeviceConfigRequest", lastDeviceId));
    }
 
    discover() {
@@ -539,19 +547,7 @@ use class IUHub:Eui {
      lastCx = "";
    }
 
-   startDeviceReset() {
-     slots {
-       Bool reallyResetting = true;
-     }
-     startDeviceROS();
-   }
-
    startDeviceSetup() {
-     reallyResetting = false;
-     startDeviceROS();
-   }
-
-   startDeviceROS() {
      slots {
        String disDevName;
        String disDevType;
@@ -599,11 +595,7 @@ use class IUHub:Eui {
        HC.callAppLater(Lists.from("getOnWifiRequest", count, disDevPin, disDevSsid), wait);
      } else {
        count.setValue(0);
-       if (reallyResetting) {
-        HC.callAppLater(Lists.from("resetByPinRequest", count, disDevPin), 3000);
-       } else {
-         HC.callAppLater(Lists.from("getDevWifisRequest", count, true), 3000);
-       }
+       HC.callAppLater(Lists.from("getDevWifisRequest", count, true), 3000);
      }
    }
 
@@ -687,6 +679,13 @@ use class IUHub:Eui {
       HD.getEle("disDevName").value = disDevName;
      }
    }
+
+   wantSettings(String did) {
+     log.log("want settings for " + did);
+     slots {
+       String wantSettingsFor = did;
+     }
+   }
    
    getDevicesResponse(Map devices, Map ctls, Map states, Map levels, Map rgbs, Int nsecs) {
      log.log("in getDevicesResponse");
@@ -703,7 +702,7 @@ use class IUHub:Eui {
        String li = '''
        <li class="item-content">
          <div class="item-inner">
-           <div class="item-title">NAMEOFDEVICE</div>
+           <div class="item-title"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
            DIMMERSLIDE
            <div class="item-after" TOGSTYLE>
              <label class="toggle">
@@ -737,7 +736,7 @@ use class IUHub:Eui {
       String coli = '''
        <li class="item-content">
          <div class="item-inner">
-           <div class="item-title">NAMEOFDEVICE</div>
+           <div class="item-title"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
            <div class="item-after">
              <label for="coliIDOFDEVICE-POSOFDEVICE">Color</label>&nbsp;&nbsp;
                <input type="color" id="coliIDOFDEVICE-POSOFDEVICE" value="#HEXCOLOR" oninput="callUI('checkColor', 'IDOFDEVICE', 'POSOFDEVICE');return true;"></input>
@@ -748,8 +747,7 @@ use class IUHub:Eui {
                <span class="toggle-icon"></span>
              </label>
            </div>
-
-                      </div>
+         </div>
        </li>
        ''';
        }
@@ -758,7 +756,7 @@ use class IUHub:Eui {
        String coli = '''
        <li class="item-content">
          <div class="item-inner">
-           <div class="item-title">NAMEOFDEVICE</div>
+           <div class="item-title"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
            <div class="item-after">
              <label for="coliIDOFDEVICE-POSOFDEVICE">Color</label>&nbsp;&nbsp;
                <input type="color" id="coliIDOFDEVICE-POSOFDEVICE" value="#HEXCOLOR" onclick="callUI('openPicker', 'IDOFDEVICE', 'POSOFDEVICE');return false;"></input>
@@ -769,8 +767,7 @@ use class IUHub:Eui {
                <span class="toggle-icon"></span>
              </label>
            </div>
-
-                      </div>
+         </div>
        </li>
        ''';
        }

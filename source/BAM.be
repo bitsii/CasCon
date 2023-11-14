@@ -484,9 +484,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
       return(true);
     }
-    
-    showDeviceConfigRequest(String lastDid, request) Map {
+
+    showDeviceConfigRequest(String did, request) Map {
       log.log("in showDeviceConfigRequest ");
+
+      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+      String confs = hadevs.get(did);
+      return(CallBackUI.showDeviceConfigResponse(addFtype(confs), getCachedIp(confs)));
+
+    }
+    
+    showNextDeviceConfigRequest(String lastDid, request) Map {
+      log.log("in showNextDeviceConfigRequest ");
       if (TS.notEmpty(lastDid)) {
         log.log("lastDid " + lastDid);
         Bool retnext = false;

@@ -326,9 +326,6 @@
               <f7-row tag="p">
                   <f7-button class="col" onclick="callUI('startDeviceSetup');return false;" outline>Setup Device</f7-button>
                 </f7-row>
-                <f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('startDeviceReset');return false;" outline>Reset Device</f7-button>
-                </f7-row>
                 <f7-button id="showDeviceButton" class="col" onclick="callApp('displayNextDeviceRequest', document.getElementById('disDevSsid').value);return false;" outline>Show Next Discovered Device</f7-button>
 
                 <f7-button id="settleWifiButton" icon-f7='cloud_download' popup-open="#settlewifi" style="display: none;"></f7-button>
@@ -392,22 +389,13 @@
                 ></f7-list-input></f7-list-item>
                 </f7-list>
                 <f7-row tag="p">
-                  <f7-button id="nextDevButton" class="col" onclick="callUI('showDeviceConfig');return false;" outline>Next</f7-button>
-                </f7-row>
-                <f7-row tag="p">
                   <f7-button class="col" popup-open="#qrshare" outline>Share</f7-button>
                 </f7-row>
               <f7-row tag="p">
                   <f7-button class="col" onclick="callUI('saveDevice');return false;" outline>Save</f7-button>
                 </f7-row>
-              <f7-row tag="p">
-                  <f7-button class="col" popup-open="#verdelete" outline>Delete</f7-button>
-                </f7-row>
                 <f7-row tag="p">
-                  <f7-button class="col" popup-open="#verreset" outline>Reset</f7-button>
-                </f7-row>
-                <f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('toggleDevDetails');return false;" outline>Details</f7-button>
+                  <f7-button class="col" onclick="callUI('toggleDevDetails');return false;" outline>More...</f7-button>
                 </f7-row>
 
                 <div id="divDevDetails" style="display: none;">
@@ -443,6 +431,15 @@
                   placeholder=""
                 ></f7-list-input>
                 </f7-list>
+                <f7-row tag="p">
+                <f7-button id="nextDevButton" class="col" onclick="callUI('showDeviceConfig');return false;" outline>Next</f7-button>
+                </f7-row>
+                <f7-row tag="p">
+                  <f7-button class="col" popup-open="#verreset" outline>Reset</f7-button>
+                </f7-row>
+                <f7-row tag="p">
+                  <f7-button class="col" popup-open="#verdelete" outline>Delete</f7-button>
+                </f7-row>
                 </div>
          <f7-row tag="p">
           <f7-button id="advancedButton" class="col" onclick="callUI('toggleAdvanced');return false;" outline>Advanced Settings</f7-button>

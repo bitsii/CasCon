@@ -202,7 +202,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         ifEmit(wajv) {
           fields {
             Mqtt mqtt;
-            Bool backgroundPulse = true;
+            Bool backgroundPulse = false;
           }
         }
         super.new();
@@ -1518,7 +1518,21 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        Int pcount;
        Map pdevices; //hadevs cpy
        Map pdcount; //id to last getlastevents count
+       Int lastRun;
      }
+
+     Int ns = Time:Interval.now().seconds;
+
+     if (undef(lastRun) || ns - lastRun > 20) {
+       log.log("lastRun a while ago clearing events and reloading");
+       stDiffed = true;
+       pendingStateUpdates = null;
+       currentEvents = null;
+       pdevices = null;
+       pdcount = null;
+     }
+     lastRun = ns;
+
      if (undef(pcount) || pcount > 9999) {
        pcount = 0;
        pdcount = null;

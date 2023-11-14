@@ -254,6 +254,7 @@ use class IUHub:Eui {
      log.log("checkColor r,g,b " + rgb);
 
      HD.getEle("devErr").display = "none";
+     HD.getEle("hat" + dname + "-" + pos).checked = true;
      HC.callApp(Lists.from("setDeviceRgbRequest", dname + "-" + pos, rgb));
 
    }

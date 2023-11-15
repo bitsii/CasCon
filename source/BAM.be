@@ -2560,18 +2560,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(ret);
    }
 
-   resetByPinRequest(Int count, String devPin, request) {
-
-    Int tries = 200;
-    Int wait = 1000;
-    count++=;
-
-    String cmds = "resetbypin " + devPin + " e";
-    Map mcmd = Maps.from("cb", "resetDeviceCb", "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-    sendDeviceMcmd(mcmd, 1);
-
-   }
-
    allsetRequest(Int count, String devName, String devType, String devPin, String disDevSsid, String disDevId, String devPass, String devSpass, String devDid, String devSsid, String devSec, request) {
       Int tries = 200;
       Int wait = 1000;

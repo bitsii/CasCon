@@ -715,7 +715,7 @@ use class IUHub:Eui {
        String dli = '''
        <div class="item-after">
                       <div class="slider">
-<input type="range" min="RANGEMIN" max="RANGEMAX" oninput="callUI('checkSlid', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="sliIDOFDEVICE-POSOFDEVICE" DIMLVL>
+<input type="range" min="RANGEMIN" max="RANGEMAX" oninput="callUI('checkSlid', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="sliIDOFDEVICE-POSOFDEVICE" DIMLVL/>
 </div>
            </div>
 
@@ -774,7 +774,7 @@ use class IUHub:Eui {
        <li class="item-content">
          <div class="item-inner">
 
-           <div class="item-after"><label for="brtIDOFDEVICE-POSOFDEVICE">Cool White</label>&nbsp;<div class="slider"><input type="range" min="1" max="255" oninput="callUI('checkBrt', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="brtIDOFDEVICE-POSOFDEVICE">
+           <div class="item-after"><label for="brtIDOFDEVICE-POSOFDEVICE">Cool White</label>&nbsp;<div class="slider"><input type="range" min="1" max="255" oninput="callUI('checkBrt', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="brtIDOFDEVICE-POSOFDEVICE"/>
 </div></div>
 
 
@@ -785,7 +785,7 @@ use class IUHub:Eui {
        <li class="item-content">
          <div class="item-inner">
 
-           <div class="item-after"><label for="brtIDOFDEVICE-POSOFDEVICE">Warm White</label>&nbsp;<div class="slider"><input type="range" min="0" max="255" oninput="callUI('checkTemp', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="tempIDOFDEVICE-POSOFDEVICE">
+           <div class="item-after"><label for="brtIDOFDEVICE-POSOFDEVICE">Warm White</label>&nbsp;<div class="slider"><input type="range" min="0" max="255" oninput="callUI('checkTemp', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="tempIDOFDEVICE-POSOFDEVICE"/>
 </div></div>
 
          </div>

@@ -701,7 +701,6 @@ use class IUHub:Eui {
        <li class="item-content">
          <div class="item-inner">
            <div class="item-title"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
-           DIMMERSLIDE
            <div class="item-after" TOGSTYLE>
              <label class="toggle">
                <input type="checkbox" onclick="callUI('checkToggled', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
@@ -710,17 +709,39 @@ use class IUHub:Eui {
            </div>
          </div>
        </li>
+       DIMMERSLIDE
        ''';
 
        String dli = '''
+
+       <li class="item-content">
+         <div class="item-inner">
+           <div class="item-title"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
+<div class="item-after">
+                      <div class="slider">
+<input type="range" min="RANGEMIN" max="RANGEMAX" oninput="callUI('checkSlid', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="sliIDOFDEVICE-POSOFDEVICE" DIMLVL/>
+</div>
+           </div>
+         </div>
+       </li>
+
+       ''';
+
+       /*String dliORG = '''
        <div class="item-after">
                       <div class="slider">
 <input type="range" min="RANGEMIN" max="RANGEMAX" oninput="callUI('checkSlid', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="sliIDOFDEVICE-POSOFDEVICE" DIMLVL/>
 </div>
            </div>
-
-
        ''';
+
+       String dliFSLID = '''
+       <div class="item-cell flex-shrink-3">
+        <div class="range-slider range-slider-init" data-label="true">
+          <input type="range" min="1" max="255" step="1" value="DIMLVL">
+        </div>
+      </div>
+      ''';*/
      
        String ih = '''
            <div class="list">
@@ -816,6 +837,7 @@ use class IUHub:Eui {
               }
               if (itype == "pwm" || itype == "dim") {
                 String dlig = dli.swap("IDOFDEVICE", conf["id"]);
+                dlig = dlig.swap("NAMEOFDEVICE", conf["name"]);
                 dlig = dlig.swap("POSOFDEVICE", i.toString());
                 if (itype == "dim") {
                   dlig = dlig.swap("RANGEMIN", "1");

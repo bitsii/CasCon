@@ -684,6 +684,10 @@ use class IUHub:Eui {
        String wantSettingsFor = did;
      }
    }
+
+   brightChanged(String id, Int value) {
+     log.log("bright changed " + id + " " + value);
+   }
    
    getDevicesResponse(Map devices, Map ctls, Map states, Map levels, Map rgbs, Int nsecs) {
      log.log("in getDevicesResponse");

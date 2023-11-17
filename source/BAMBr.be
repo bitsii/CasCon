@@ -853,7 +853,8 @@ use class IUHub:Eui {
                 } else {
                   dlig = dlig.swap("DIMLVL", "");
                 }
-                lin = lin.swap("DIMMERSLIDE", dlig);
+                //lin = lin.swap("DIMMERSLIDE", dlig);
+                lin = lin.swap("DIMMERSLIDE", "");
               } else {
                 lin = lin.swap("DIMMERSLIDE", "");
                 lin = lin.swap("TOGSTYLE", "");

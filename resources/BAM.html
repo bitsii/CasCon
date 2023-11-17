@@ -26,6 +26,17 @@
   <link rel="stylesheet" href="dist/color-picker.css"/>
   <script type="text/javascript" src="dist/color-picker.js"></script>
   <script type="text/javascript" src="dist/qrcode.js"></script>
+  <script type="text/javascript">
+  var onBrightChanged = function(range) {
+     console.log("bright change");
+     //console.log(range);
+     //console.log(range.currentTarget);
+     //console.log(range.detail);
+     console.log(range.detail.inputEl.id);
+     console.log(range.detail.value);
+  }
+  </script>
+
 </head>
 <body>
 <div id="hider" style="position: fixed; height: 100%; width: 100%; top:0; left: 0; background: #FFFFFF; z-index:9999;"></div>
@@ -118,7 +129,6 @@
         </div>
       </div>-->
 
-      <div class="block-title">Brightness</div>
 <div class="list simple-list">
   <ul>
     <li>
@@ -128,8 +138,8 @@
       </div>
       <div class="item-cell flex-shrink-3">
         <!-- range slider, enable labels -->
-        <div class="range-slider range-slider-init" data-label="true">
-          <input type="range" min="0" max="100" step="1" value="50">
+        <div class="range-slider range-slider-init" @range:changed="onBrightChanged" data-label="true">
+          <input id="trymeid" type="range" min="1" max="255" step="1" value="50">
         </div>
       </div>
       <div class="item-cell width-auto flex-shrink-0">
@@ -139,6 +149,9 @@
     </li>
   </ul>
 </div>
+
+
+
 
           <f7-row tag="p">
               <div id="devErr" style="display: none;">Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?</div>

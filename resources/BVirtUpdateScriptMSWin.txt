@@ -1,7 +1,0 @@
-
-TIMEOUT /T 1 > nul 2>&1
-cd App > nul 2>&1
-..\..\gw\bin\unzip -o ..\BP-BAM-MSWin.zip > nul 2>&1
-cd .. > nul 2>&1
-TIMEOUT /T 2 > nul 2>&1
-type nul >>upgradeDone_BAM.txt

@@ -2,29 +2,22 @@
 
 export PATH=$PATH:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin:.
 
-echo "Getting required additional application software"
-cp App/BBridge/javax.servlet-api-*.jar App/BAM
-cp App/BBridge/jetty-all-*-uber.jar App/BAM
-
 export OSTYPE=`uname`
 
-if [ "$OSTYPE" == "Darwin" ]; then
-  echo "macos"
-  #interactive instructions - sudo
-  #brew install virtualbox
-  #brew install vagrant
-fi
+echo "Getting required additional application software"
+cp App/BBridge/javax.servlet-api-*.jar App/CasCon
+cp App/BBridge/jetty-all-*-uber.jar App/CasCon
+
+cd App/CasCon
+unzip -o extlibs.zip
+cd ../..
 
 if [ "$OSTYPE" == "Linux" ]; then
-  echo "linux"
-  #sudo snap install multipass
-  echo "Installing required additional system software"
-  sudo apt -qq --assume-yes update
-  sudo apt -qq --assume-yes install virtualbox vagrant
+  
+  echo "Is Linux"
+
 fi
 
-#vagrant plugin install vagrant-scp
-
-echo "Done with bpinstall for BAM"
+echo "Done with bpinstall for CasCon"
 
 echo ""

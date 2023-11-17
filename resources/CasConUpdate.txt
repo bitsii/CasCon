@@ -1,0 +1,6 @@
+{
+"updateScript_linux": "https://github.com/bitsii/Bitsii/releases/download/v2/CasConUpdateScriptLinux.txt",
+"downloadUrl_linux": "https://github.com/bitsii/Bitsii/releases/download/v2/BP-CasCon-Linux.zip",
+"downloadFile_linux": "BP-CasCon-Linux.zip",
+"build": 7
+}

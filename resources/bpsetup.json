@@ -1,7 +1,7 @@
 {
-"proxy":{"appPortConf": "webApp.BAM.app.port", "delay": 30},
-"name": "BAM", "displayName": "BAutoMan",
-"updateUrl": "https://github.com/bitsii/Bitsii/releases/download/v2/BAMUpdate.txt",
-"build": 8,
-"description": "Creates a virtual Linux system on Mac and Windows - <b>prerequisite to install some applications, including Wordpress and Nextcloud.</b>  Install first to enable installation of those dependent applications.  On windows you must separately download and install <a href=\"https://www.virtualbox.org/wiki/Downloads\" target=\"_blank\">Virtualbox</a> and <a href=\"https://www.vagrantup.com/downloads\" target=\"_blank\">Vagrant</a> before installing the BAutoMan Compatibility App for it to function.  <a href=\"https://gitlab.com/bitsii/Bitsii/-/wikis/bvirt\" target=\"_blank\">Instructions for BAutoMan</a>"
+"proxy":{"appPortConf": "webApp.CasCon.app.port", "authenticate", true, "delay": 35},
+"name": "CasCon", "displayName": "Casnic Controller",
+"updateUrl": "https://github.com/bitsii/Bitsii/releases/download/v2/CasConUpdate.txt",
+"build": 7,
+"description": "An application for controlling beEmb devices"
 }

@@ -178,15 +178,6 @@ use class IUHub:Eui {
      HC.callApp(Lists.from("setDeviceSwRequest", dname, pos, state));
    }
 
-   checkSlid(String dname, String pos) {
-     log.log("checkSlid " + dname + " " + pos);
-     Int statet = HD.getEle("sli" + dname + "-" + pos).value;
-     log.log("slidState " + statet);
-     HD.getEle("hat" + dname + "-" + pos).checked = true;
-     HD.getEle("devErr").display = "none";
-     HC.callApp(Lists.from("setDeviceLvlRequest", dname + "-" + pos, statet.toString()));
-   }
-
    openPicker(String dname, String pos) {
      slots {
        String pickerDname = dname;
@@ -375,10 +366,10 @@ use class IUHub:Eui {
 
      auto bs = HD.getEle("setBrightSlide");
      if (bs.exists) {
-       if (def(setCurrLvl) && TS.notEmpty(currLvl) && setCurrLvl) {
+       if (def(setCurrLvl) && setCurrLvl && def(currLvl)) {
          log.log("setting currLvl");
          setCurrLvl = false;
-         Int crli = Int.new(currLvl);
+         Int crli = currLvl;
          emit(js) {
            """
            /*-attr- -noreplace-*/
@@ -708,8 +699,25 @@ use class IUHub:Eui {
      }
    }
 
-   brightChanged(String id, Int value) {
-     log.log("bright changed " + id + " " + value);
+   /*checkSlid(String dname, String pos) {
+     log.log("checkSlid " + dname + " " + pos);
+     Int statet = HD.getEle("sli" + dname + "-" + pos).value;
+     log.log("slidState " + statet);
+     HD.getEle("hat" + dname + "-" + pos).checked = true;
+     HD.getEle("devErr").display = "none";
+     HC.callApp(Lists.from("setDeviceLvlRequest", dname + "-" + pos, statet.toString()));
+   }*/
+
+   brightChanged(Int value) {
+     log.log("bright changed " + value);
+     if (def(currLvl) && currLvl == value) {
+       "not really is curr lvl".print();
+     } else {
+       currLvl = value;
+       HD.getEle("hat" + setBrightDid + "-" + setBrightPos).checked = true;
+       HD.getEle("devErr").display = "none";
+       HC.callApp(Lists.from("setDeviceLvlRequest", setBrightDid + "-" + setBrightPos, currLvl.toString()));
+     }
    }
 
    setForDim(String did, String pos) {
@@ -722,8 +730,10 @@ use class IUHub:Eui {
        lvl = "255";
      }
      slots {
-        String currLvl = lvl;
+        Int currLvl = Int.new(lvl);
         Bool setCurrLvl = true;
+        String setBrightDid = did;
+        String setBrightPos = pos;
      }
    }
    

@@ -689,10 +689,11 @@ use class IUHub:Eui {
      log.log("bright changed " + id + " " + value);
    }
    
-   getDevicesResponse(Map devices, Map ctls, Map states, Map levels, Map rgbs, Int nsecs) {
+   getDevicesResponse(Map devices, Map ctls, Map states, Map _levels, Map rgbs, Int nsecs) {
      log.log("in getDevicesResponse");
      slots {
        Map devCtls = ctls;
+       Map levels = _levels;
      }
      if (nsecs > 0) {
        nextInform = Interval.new(nsecs, 0);
@@ -705,9 +706,7 @@ use class IUHub:Eui {
        <li class="item-content">
          <div class="item-inner">
            <div class="item-title"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
-           <div class="item-after">
-           <a href="#" data-popup="#setbright" onclick="console.log('HI');return true;" class="col button popup-open"><i class="icon f7-icons">eye_fill</i></a>
-           </div>
+           FORDIM
            <div class="item-after">
              <label class="toggle">
                <input type="checkbox" onclick="callUI('checkToggled', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
@@ -717,6 +716,12 @@ use class IUHub:Eui {
          </div>
        </li>
        ''';
+
+       String fordim = '''
+       <div class="item-after">
+           <a href="#" data-popup="#setbright" onclick="callUI('setForDim', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">bulb</i></a>
+           </div>
+      ''';
      
        String ih = '''
            <div class="list">
@@ -786,13 +791,12 @@ use class IUHub:Eui {
                 lin = lin.swap("DEVICESTATETOG", "");
               }
               if (itype == "dim") {
-                //String dlig = dli.swap("IDOFDEVICE", conf["id"]);
-                //dlig = dlig.swap("NAMEOFDEVICE", conf["name"]);
-                //dlig = dlig.swap("POSOFDEVICE", i.toString());
-                //dlig = dlig.swap("DIMLVL", "value=\"" + levels.get(conf["id"] + "-" + i) + "\"");
-                //lin = lin.swap("DIMMERSLIDE", "");
+                String fdg = fordim.swap("IDOFDEVICE", conf["id"]);
+                fdg = fdg.swap("POSOFDEVICE", i.toString());
+                //fdg = fdg.swap("DIMLVL", "value=\"" + levels.get(conf["id"] + "-" + i) + "\"");
+                lin = lin.swap("FORDIM", fdg);
               } else {
-                //lin = lin.swap("DIMMERSLIDE", "");
+                lin = lin.swap("FORDIM", "");
               }
               ih += lin;
             } elseIf (itype == "rgb") {

@@ -25,7 +25,7 @@ Vue.component('page-not-found', {
 });
 
 // Init App
-new Vue({
+var vapp = new Vue({
   el: '#app',
   data: function () {
     return {

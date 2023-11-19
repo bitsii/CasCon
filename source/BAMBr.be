@@ -373,6 +373,29 @@ use class IUHub:Eui {
        }
      }
 
+     auto bs = HD.getEle("setBrightSlide");
+     if (bs.exists) {
+       if (def(setCurrLvl) && TS.notEmpty(currLvl) && setCurrLvl) {
+         log.log("setting currLvl");
+         setCurrLvl = false;
+         Int crli = Int.new(currLvl);
+         emit(js) {
+           """
+           /*-attr- -noreplace-*/
+           //console.log(vapp);
+           //console.log(vapp.$f7);
+           //var range = vapp.$f7.range.get('.range-slider');
+           var range = vapp.$f7.range.get('#bsideRange');
+           //console.log("rv");
+           //console.log(range.value);
+           //console.log(range.setValue(5));
+           //console.log(range.getValue());
+           range.setValue(bevl_crli.bevi_int);
+           """
+         }
+       }
+     }
+
      unless (ndb.exists || sde.exists) {
        if (TS.notEmpty(lastCx)) {
          HD.getEle("openSettings").click();
@@ -688,6 +711,21 @@ use class IUHub:Eui {
    brightChanged(String id, Int value) {
      log.log("bright changed " + id + " " + value);
    }
+
+   setForDim(String did, String pos) {
+     log.log("in setForDim " + did + " " + pos);
+     String lvl = levels.get(did + "-" + pos);
+     if (TS.notEmpty(lvl)) {
+       log.log("lvl " + lvl);
+     } else {
+       log.log("no lvl");
+       lvl = "255";
+     }
+     slots {
+        String currLvl = lvl;
+        Bool setCurrLvl = true;
+     }
+   }
    
    getDevicesResponse(Map devices, Map ctls, Map states, Map _levels, Map rgbs, Int nsecs) {
      log.log("in getDevicesResponse");
@@ -793,7 +831,6 @@ use class IUHub:Eui {
               if (itype == "dim") {
                 String fdg = fordim.swap("IDOFDEVICE", conf["id"]);
                 fdg = fdg.swap("POSOFDEVICE", i.toString());
-                //fdg = fdg.swap("DIMLVL", "value=\"" + levels.get(conf["id"] + "-" + i) + "\"");
                 lin = lin.swap("FORDIM", fdg);
               } else {
                 lin = lin.swap("FORDIM", "");

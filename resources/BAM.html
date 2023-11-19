@@ -28,12 +28,10 @@
   <script type="text/javascript" src="dist/qrcode.js"></script>
   <script type="text/javascript">
   var onBrightChanged = function(range) {
-     console.log("bright change");
+     //console.log("bright change");
      //console.log(range);
-     //console.log(range.currentTarget);
-     //console.log(range.detail);
-     console.log(range.detail.inputEl.id);
-     console.log(range.detail.value);
+     //console.log(range.detail.inputEl.id);
+     //console.log(range.detail.value);
      callUI('brightChanged', range.detail.inputEl.id, range.detail.value);
   }
   </script>
@@ -155,7 +153,7 @@
           <f7-page>
             <f7-navbar title="Set Brightness">
               <f7-nav-right>
-                <f7-link popup-close>Close</f7-link>
+                <f7-link popup-close>Done</f7-link>
               </f7-nav-right>
             </f7-navbar>
       <div class="list simple-list">
@@ -167,7 +165,7 @@
       </div>
       <div class="item-cell flex-shrink-3">
         <!-- range slider, enable labels -->
-        <div class="range-slider range-slider-init" @range:changed="onBrightChanged" data-label="true">
+        <div id="bsideRange" class="range-slider range-slider-init" @range:changed="onBrightChanged" data-label="true">
           <input id="setBrightSlide" type="range" min="1" max="255" step="1" value="50">
         </div>
       </div>

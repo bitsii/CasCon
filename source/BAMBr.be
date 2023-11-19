@@ -705,7 +705,10 @@ use class IUHub:Eui {
        <li class="item-content">
          <div class="item-inner">
            <div class="item-title"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
-           <div class="item-after" TOGSTYLE>
+           <div class="item-after">
+           <a href="#" data-popup="#setbright" onclick="console.log('HI');return true;" class="col button popup-open"><i class="icon f7-icons">eye_fill</i></a>
+           </div>
+           <div class="item-after">
              <label class="toggle">
                <input type="checkbox" onclick="callUI('checkToggled', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
                <span class="toggle-icon"></span>
@@ -713,47 +716,12 @@ use class IUHub:Eui {
            </div>
          </div>
        </li>
-       DIMMERSLIDE
        ''';
-
-       String dli = '''
-
-       <li class="item-content">
-         <div class="item-inner">
-           <div class="item-title"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
-<div class="item-after">
-                      <div class="slider">
-<input type="range" min="RANGEMIN" max="RANGEMAX" oninput="callUI('checkSlid', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="sliIDOFDEVICE-POSOFDEVICE" DIMLVL/>
-</div>
-           </div>
-         </div>
-       </li>
-
-       ''';
-
-       /*String dliORG = '''
-       <div class="item-after">
-                      <div class="slider">
-<input type="range" min="RANGEMIN" max="RANGEMAX" oninput="callUI('checkSlid', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="sliIDOFDEVICE-POSOFDEVICE" DIMLVL/>
-</div>
-           </div>
-       ''';
-
-       String dliFSLID = '''
-       <div class="item-cell flex-shrink-3">
-        <div class="range-slider range-slider-init" data-label="true">
-          <input type="range" min="1" max="255" step="1" value="DIMLVL">
-        </div>
-      </div>
-      ''';*/
      
        String ih = '''
            <div class="list">
         <ul>
         ''';
-
-//<input type="color" id="coliIDOFDEVICE-POSOFDEVICE" value="#HEXCOLOR" oninput="callUI('checkColor', 'IDOFDEVICE', 'POSOFDEVICE');return true;"></input>
-//<input type="color" id="coliIDOFDEVICE-POSOFDEVICE" value="#HEXCOLOR" onclick="callUI('openPicker', 'IDOFDEVICE', 'POSOFDEVICE');return false;"></input>
 
       ifEmit(apwk) {
       String coli = '''
@@ -795,28 +763,6 @@ use class IUHub:Eui {
        ''';
        }
 
-       String wcli = '''
-       <li class="item-content">
-         <div class="item-inner">
-
-           <div class="item-after"><label for="brtIDOFDEVICE-POSOFDEVICE">Cool White</label>&nbsp;<div class="slider"><input type="range" min="1" max="255" oninput="callUI('checkBrt', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="brtIDOFDEVICE-POSOFDEVICE"/>
-</div></div>
-
-
-
-           </div>
-       </li>
-
-       <li class="item-content">
-         <div class="item-inner">
-
-           <div class="item-after"><label for="brtIDOFDEVICE-POSOFDEVICE">Warm White</label>&nbsp;<div class="slider"><input type="range" min="0" max="255" oninput="callUI('checkTemp', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="tempIDOFDEVICE-POSOFDEVICE"/>
-</div></div>
-
-         </div>
-       </li>
-       ''';
-
        for (any ds in devices) {
 
          String ctl = ctls.get(ds.key);
@@ -829,7 +775,7 @@ use class IUHub:Eui {
             log.log("got dev " + ds.key + " " + ds.value);
             Map conf = Json:Unmarshaller.unmarshall(ds.value);
 
-            if (itype == "pwm" || itype == "dim" || itype == "sw") {
+            if (itype == "dim" || itype == "sw") {
               String lin = li.swap("NAMEOFDEVICE", conf["name"]);
               lin = lin.swap("IDOFDEVICE", conf["id"]);
               lin = lin.swap("POSOFDEVICE", i.toString());
@@ -839,29 +785,14 @@ use class IUHub:Eui {
               } else {
                 lin = lin.swap("DEVICESTATETOG", "");
               }
-              if (itype == "pwm" || itype == "dim") {
-                String dlig = dli.swap("IDOFDEVICE", conf["id"]);
-                dlig = dlig.swap("NAMEOFDEVICE", conf["name"]);
-                dlig = dlig.swap("POSOFDEVICE", i.toString());
-                if (itype == "dim") {
-                  dlig = dlig.swap("RANGEMIN", "1");
-                  dlig = dlig.swap("RANGEMAX", "255");
-                  lin = lin.swap("TOGSTYLE", "");
-                } else {
-                  dlig = dlig.swap("RANGEMIN", "0");
-                  dlig = dlig.swap("RANGEMAX", "255");
-                  lin = lin.swap("TOGSTYLE", "style=\"display: none;\"");
-                }
-                if (levels.has(conf["id"] + "-" + i)) {
-                  dlig = dlig.swap("DIMLVL", "value=\"" + levels.get(conf["id"] + "-" + i) + "\"");
-                } else {
-                  dlig = dlig.swap("DIMLVL", "");
-                }
-                //lin = lin.swap("DIMMERSLIDE", dlig);
-                lin = lin.swap("DIMMERSLIDE", "");
+              if (itype == "dim") {
+                //String dlig = dli.swap("IDOFDEVICE", conf["id"]);
+                //dlig = dlig.swap("NAMEOFDEVICE", conf["name"]);
+                //dlig = dlig.swap("POSOFDEVICE", i.toString());
+                //dlig = dlig.swap("DIMLVL", "value=\"" + levels.get(conf["id"] + "-" + i) + "\"");
+                //lin = lin.swap("DIMMERSLIDE", "");
               } else {
-                lin = lin.swap("DIMMERSLIDE", "");
-                lin = lin.swap("TOGSTYLE", "");
+                //lin = lin.swap("DIMMERSLIDE", "");
               }
               ih += lin;
             } elseIf (itype == "rgb") {

@@ -63,9 +63,10 @@ class CasNic:CasProt {
        Int pwt = mcmd["pwt"];
        String pw = mcmd["pw"];
        String cmds = mcmd["cmds"];
+       String tesh = mcmd["tesh"];
 
        if (true && pwt > 0 && TS.notEmpty(pw)) {
-         cmds = secCmds(kdaddr, pwt, pw, cmds);
+         cmds = secCmds(kdaddr, pwt, pw, tesh, cmds);
        }
 
        cmds += "\r\n";
@@ -135,18 +136,26 @@ class CasNic:CasProt {
       }
    }
 
-   secCmds(String kdaddr, Int pwt, String pw, String cmds) String {
+   secCmds(String kdaddr, Int pwt, String pw, String tesh, String cmds) String {
       String myip = getMyOutIp(kdaddr);
        if (TS.notEmpty(myip)) {
          log.log("MY IP IS " + myip);
          //return(cmds);
          if (pwt == 1) {
-           String ncmd = "ap2";
+           String ncmd = "ap";
          } else {
-           ncmd = "sp2";
+           ncmd = "sp";
+         }
+         if (TS.isEmpty(tesh)) {
+           ncmd += "2";
+         } else {
+           ncmd += "3";
          }
          String iv = System:Random.getString(16);
          String insec = iv + "," + myip + "," + pw + ",";
+         if (TS.notEmpty(tesh)) {
+           insec += tesh += ",";
+         }
          auto cmdl = cmds.split(" ");
          cmdl[1] = "X";
          Int toc = cmdl.size - 1;
@@ -175,7 +184,11 @@ class CasNic:CasProt {
          //log.log("insec " + insec);
          //log.log("outsec " + outsec);
          String fcmds = Text:Strings.new().join(Text:Strings.new().space, cmdl);
-         String henres = ncmd + " " + iv + " " + outsec + " " + fcmds;
+         String henres = ncmd + " " + iv + " " + outsec + " ";
+         if (TS.notEmpty(tesh)) {
+           henres += tesh += " ";
+         }
+         henres += fcmds;
          log.log("secCmds " + henres);
          return(henres);
        } else {

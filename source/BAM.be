@@ -1835,7 +1835,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "setDeviceSwCb", "rhan", did, "rpos", iposs, "rstate", state, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("cb", "setDeviceSwCb", "did", conf["id"], "rhan", did, "rpos", iposs, "rstate", state, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
      return(mcmd);
 
    }
@@ -1921,7 +1921,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "setDeviceRgbCb", "rhanpos", rhanpos, "rgb", rgb, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("cb", "setDeviceRgbCb", "did", conf["id"], "rhanpos", rhanpos, "rgb", rgb, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
 
      return(mcmd);
    }
@@ -1999,7 +1999,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "setDeviceLvlCb", "rhanpos", rhanpos, "rstate", rstate, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("cb", "setDeviceLvlCb", "did", conf["id"], "rhanpos", rhanpos, "rstate", rstate, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
 
      return(mcmd);
    }
@@ -2279,6 +2279,21 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    processDeviceMcmd(Map mcmd) {
      //log.log("in processDeviceMcmd");
+
+     if (mcmd.has("did") && TS.notEmpty(mcmd["did"])) {
+      auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+      String sws = haspecs.get(mcmd["did"]);
+      if (TS.notEmpty(sws) && sws.has("p3,")) {
+        log.log("adding tesh in processDeviceMcmd");
+        Int teshi = Time:Interval.now().seconds;
+        //teshi -= 300;
+        mcmd["tesh"] = teshi.toString();
+      } else {
+        log.log("no p3 in  processDeviceMcmd");
+      }
+     } else {
+       log.log("no did in processDeviceMcmd");
+     }
 
      String kdaddr = mcmd["kdaddr"];
      prot.processDeviceMcmd(mcmd);

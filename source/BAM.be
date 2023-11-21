@@ -1750,14 +1750,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    rectlDeviceRequest(String did, request) Map {
      log.log("in rectlDeviceRequest " + did);
 
-     //not checking user rn
-     Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
 
+     if (def(pendingSpecs)) {
+       pendingSpecs.put(did);
+     }
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
@@ -1791,8 +1788,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
         hactls.put(did, controlDef);
       }
-
-      return(CallBackUI.reloadResponse());
+      if (def(request)) {
+        return(CallBackUI.reloadResponse());
+      }
+      return(null);
    }
 
    setDeviceSwRequest(String rhan, String rpos, String rstate, request) Map {

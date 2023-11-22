@@ -1880,7 +1880,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (sendDeviceMcmd(mcmd, 0)!) {
        if (def(request)) {
          //return(CallBackUI.showDevErrorResponse());
-         return(CallBackUI.reloadResponse());
+         //return(CallBackUI.reloadResponse());
        }
      }
 
@@ -1938,7 +1938,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        hasw.put(rhanpos, "on");
      } else {
        if (def(request)) {
-          return(CallBackUI.reloadResponse());
+          //return(CallBackUI.reloadResponse());
         }
      }
      stDiffed = true;

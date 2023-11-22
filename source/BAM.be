@@ -1126,6 +1126,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      } else {
       log.log("getlastevents kdaddr empty");
+      if (def(currentEvents)) {
+        currentEvents.delete(conf["id"]);
+      }
      }
 
      return(null);
@@ -2116,10 +2119,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           if (def(mcmd)) {
             auto n = cmdQueue.getNode(0);
             n.delete();
-            currCmds = mcmd;
             cmdsRes = null;
             aptrs = null;
-            processDeviceMcmd(mcmd);
+            if (TS.notEmpty(mcmd["kdaddr"])) {
+              currCmds = mcmd;
+              processDeviceMcmd(mcmd);
+            } else {
+              currCmds = null;
+            }
             break;
           }
         }
@@ -2165,7 +2172,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        cmdsFailMcmd = mcmd;
      }
 
-     if (TS.notEmpty(kdaddr) && addrsFailed.has(kdaddr)) {
+     /*if (TS.notEmpty(kdaddr) && addrsFailed.has(kdaddr)) {
        Int fails = addrsFailed.get(kdaddr);
        if (fails < 3) {
          fails++=;
@@ -2176,13 +2183,25 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      } elseIf (TS.notEmpty(kdaddr)) {
        addrsFailed.put(kdaddr, 1);
        return(null);
-     }
+     }*/
 
      if (TS.notEmpty(kdaddr)) {
       log.log("SHOULD NOW EJECT " + kdaddr);
       if (def(kac)) {
           String kdn = kac.get(kdaddr);
           if (TS.notEmpty(kdn)) {
+            //clear pending
+            for (auto kv in cmdQueues) {
+              Container:LinkedList cmdQueue = kv.value;
+              if (def(cmdQueue)) {
+                for (Map mcmdcl in cmdQueue) {
+                  if (TS.notEmpty(mcmdcl["kdaddr"]) && mcmdcl["kdaddr"] == kdaddr) {
+                    log.log("clearing kdaddr in cmdQueue");
+                    mcmdcl["kdaddr"] = "";
+                  }
+                }
+              }
+            }
             String kda = knc.get(kdn);
             if (TS.notEmpty(kda)) {
               knc.delete(kdn);

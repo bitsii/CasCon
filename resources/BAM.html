@@ -123,7 +123,7 @@
           <div id="hadsList"></div>
 
           <f7-row tag="p">
-              <div id="devErr" style="display: none;">Unable to reach device.  Is it powered on and is your phone on the same wifi network as the device?</div>
+              <div id="devErr" style="display: none;">Device is unreachable or is still processing requests. Is it powered on and are you on the same wifi network as the device?  Are prior requests still processing?</div>
               </f7-row>
 
           <div id="cpickercon" style="display: none;">
@@ -435,7 +435,7 @@
                   <f7-button class="col" onclick="callUI('saveDevice');return false;" outline>Save</f7-button>
                 </f7-row>
                 <f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('toggleDevDetails');return false;" outline>More...</f7-button>
+                  <f7-button class="col" onclick="callUI('toggleDevDetails');callUI('toggleAdvanced');return false;" outline>More...</f7-button>
                 </f7-row>
 
                 <div id="divDevDetails" style="display: none;">
@@ -481,9 +481,9 @@
                   <f7-button class="col" popup-open="#verdelete" outline>Delete</f7-button>
                 </f7-row>
                 </div>
-         <f7-row tag="p">
+         <!--<f7-row tag="p">
           <f7-button id="advancedButton" class="col" onclick="callUI('toggleAdvanced');return false;" outline>Advanced Settings</f7-button>
-        </f7-row>
+        </f7-row>-->
         </f7-block>
         <div id="divAdvanced" style="display: none;">
                 <f7-list>
@@ -577,7 +577,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="15"
+            value="16"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

@@ -1483,7 +1483,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
      }
      //checkdiffed
-     if (def(stDiffed) && stDiffed) {
+     if (undef(cmdQueues.get(0))) {
+       Bool qzempty = true;
+     } else {
+       qzempty = cmdQueues.get(0).isEmpty;
+     }
+     if (def(stDiffed) && stDiffed && qzempty && undef(currCmds)) {
        stDiffed = false;
        return(getDevicesRequest(request));
      }
@@ -1862,14 +1867,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
        }
-     } else {
-       if (def(request)) {
-         return(getDevicesRequest(request));
-       }
      }
-     if (def(request)) {
-      //return(getDevicesRequest(request));
-     }
+     stDiffed = true;
      return(null);
    }
 
@@ -1939,13 +1938,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        hasw.put(rhanpos, "on");
      } else {
        if (def(request)) {
-          //return(getDevicesRequest(request));
           return(CallBackUI.reloadResponse());
         }
      }
-     if (def(request)) {
-      //return(getDevicesRequest(request));
-     }
+     stDiffed = true;
      return(null);
    }
 
@@ -2025,14 +2021,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
        }
-     } else {
-       if (def(request)) {
-         return(getDevicesRequest(request));
-       }
      }
-     if (def(request)) {
-      //return(getDevicesRequest(request));
-     }
+     stDiffed = true;
      return(null);
    }
 
@@ -2209,40 +2199,23 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    sendDeviceMcmd(Map mcmd, Int priority) Bool {
       if (def(mcmd) && TS.notEmpty(mcmd["kdaddr"])) {
         Container:LinkedList cmdQueue = cmdQueues.get(priority);
-        Container:LinkedList newQueue = Container:LinkedList.new();
-        if (def(cmdQueue)) {
-          //delete any equivalents first
-          List ncmdl = mcmd["cmds"].split(" ");
-          for (auto i = cmdQueue.iterator;i.hasNext;;) {
-            Map mc = i.next;
-            if (priority == 0) {
-              //0-3, only want last of same cmd type for same pos
-              if (mc["kdaddr"] == mcmd["kdaddr"]) {
-                List ecmdl = mc["cmds"].split(" ");
-                if (ncmdl.size > 3 && ecmdl.size > 3) {
-                  Bool same = true;
-                  for (Int j = 0;j < 4;j++=) {
-                    if (ncmdl[j] != ecmdl[j]) {
-                      same = false;
-                    }
-                  }
-                  unless (same) {
-                    log.log("not same");
-                    newQueue += mc;
-                  } else {
-                    log.log("got same");
-                  }
-                }
-              }
-            } else {
-              unless (mc["kdaddr"] == mcmd["kdaddr"] && mc["cmds"] == mcmd["cmds"]) {
-                newQueue += mc;
-              }
+        if (undef(cmdQueue)) {
+          cmdQueue = Container:LinkedList.new();
+          cmdQueues.put(priority, cmdQueue);
+        }
+        //max waiting per kdaddr
+        Int wct = 0;
+        for (auto i = cmdQueue.iterator;i.hasNext;;) {
+          Map mc = i.next;
+          if (mc["kdaddr"] == mcmd["kdaddr"]) {
+            wct++=;
+            if (wct > 4) {
+              log.log("too many waiting no adding to cmdQueue");
+              return(false);
             }
           }
         }
-        newQueue += mcmd;
-        cmdQueues.put(priority, newQueue);
+        cmdQueue += mcmd;
         log.log("added to cmdQueue");
         return(true);
       }

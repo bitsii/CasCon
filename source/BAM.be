@@ -1535,12 +1535,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        Int pcount;
        Map pdevices; //hadevs cpy
        Map pdcount; //id to last getlastevents count
-       Int lastRun;
+       //Int lastRun;
      }
 
      Int ns = Time:Interval.now().seconds;
 
-     if (undef(lastRun) || ns - lastRun > 20) {
+     /*if (undef(lastRun) || ns - lastRun > 20) {
        log.log("lastRun a while ago clearing events and reloading");
        stDiffed = true;
        pendingStateUpdates = null;
@@ -1548,7 +1548,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        pdevices = null;
        pdcount = null;
      }
-     lastRun = ns;
+     lastRun = ns;*/
 
      if (undef(pcount) || pcount > 9999) {
        pcount = 0;
@@ -1625,7 +1625,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         for (auto pdc in pdevices) {
           Int dc = pdcount.get(pdc.key);
           if (undef(dc) || dc < pcount) {
-            dc = pcount + 12 + System:Random.getIntMax(12); //(secs * 4)
+            dc = pcount + 16 + System:Random.getIntMax(16); //(secs * 4), was 12
             pdcount.put(pdc.key, dc);
             getLastEvents(pdc.value);
             break;
@@ -2033,7 +2033,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      slots {
        String cmdsRes;
        Map currCmds;
-       Int aptrs; //12 for 3s
+       Int aptrs; //12 for 3s (was), 16 for 4s
      }
       if (undef(cmdsRes) && def(currCmds)) {
       if (undef(aptrs)) {
@@ -2041,7 +2041,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       } else {
         aptrs++=;
       }
-      if (aptrs > 12) {
+      if (aptrs > 16) {
         //timed out
         aptrs = 1;
         processCmdsFail();

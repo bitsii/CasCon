@@ -105,8 +105,8 @@ class CasNic:CasProt {
 
           ysocket = new Socket();
           ysocket.setKeepAlive(true);
-          ysocket.setSoTimeout(1000);
-          ysocket.connect(new java.net.InetSocketAddress(beva_kdaddr.bems_toJvString(), 6420), 1000);
+          ysocket.setSoTimeout(4000);
+          ysocket.connect(new java.net.InetSocketAddress(beva_kdaddr.bems_toJvString(), 6420), 4000);
 
           //System.out.println("Client Connected");
 

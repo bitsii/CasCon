@@ -147,7 +147,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     public static class InitializeResolveListener implements NsdManager.ResolveListener {
 
     public static java.util.Hashtable<String, String> knownDevices = new java.util.Hashtable<String, String>();
-    public static java.util.Hashtable<String, String> knownAddresses = new java.util.Hashtable<String, String>();
     public static java.util.Hashtable<String, NsdServiceInfo> resolving = new java.util.Hashtable<String, NsdServiceInfo>();
 
     @Override
@@ -173,7 +172,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       System.out.println("sname |" + sname + "| hip |" + hip + "|");
 
       knownDevices.put(sname, hip);
-      knownAddresses.put(hip, sname);
       resolving.remove(sname);
       if (!resolving.isEmpty()) {
         try {
@@ -606,6 +604,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             String kdaddr = InitializeResolveListener.knownDevices.get(beva_kdname.bems_toJvString());
             if (kdaddr != null) {
               bevl_kdaddr =  new $class/Text:String$(kdaddr.getBytes("UTF-8"));
+              InitializeResolveListener.knownDevices.remove(beva_kdname.bems_toJvString());
             }
             """
           }
@@ -2103,11 +2102,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        mcmd["cres"] = cmdsRes;
        cmdsRes = null;
        currCmds = null;
-       if (TS.notEmpty(mcmd["kdaddr"])) {
-         if (def(addrsFailed) && addrsFailed.has(mcmd["kdaddr"])) {
-           addrsFailed.delete(mcmd["kdaddr"]);
-         }
-       }
        if (mcmd.has("cb")) {
          return(self.invoke(mcmd["cb"], Lists.from(mcmd, request)));
        }
@@ -2143,47 +2137,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      aptrs = null;
      slots {
        Map cmdsFailMcmd;
-       Map addrsFailed;
-     }
-     if (undef(addrsFailed)) {
-       addrsFailed = Map.new();
      }
      //?failre / timeout callback?
      String kdaddr = mcmd["kdaddr"];
 
-     ifEmit(jvad) {
-         emit(jv) {
-          """
-            if (bevl_kdaddr != null) {
-          String kdn = InitializeResolveListener.knownAddresses.get(bevl_kdaddr.bems_toJvString());
-          if (kdn != null) {
-            String kda =  InitializeResolveListener.knownDevices.get(kdn);
-            if (kda != null) {
-              InitializeResolveListener.knownDevices.remove(kdn);
-            }
-            InitializeResolveListener.knownAddresses.remove(bevl_kdaddr.bems_toJvString());
-          }
-            }
-            """
-          }
-        }
-
      if (mcmd.has("cb")) {
        cmdsFailMcmd = mcmd;
      }
-
-     /*if (TS.notEmpty(kdaddr) && addrsFailed.has(kdaddr)) {
-       Int fails = addrsFailed.get(kdaddr);
-       if (fails < 3) {
-         fails++=;
-         return(null);
-       } else {
-         addrsFailed.delete(kdaddr); //enough fails, will now clear from cache
-       }
-     } elseIf (TS.notEmpty(kdaddr)) {
-       addrsFailed.put(kdaddr, 1);
-       return(null);
-     }*/
 
      if (TS.notEmpty(kdaddr)) {
       log.log("SHOULD NOW EJECT " + kdaddr);

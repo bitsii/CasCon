@@ -64,7 +64,7 @@ use class IUHub:Eui {
    }
 
    manageStateUpdates() {
-     slots {
+     /*slots {
        Int lastRun;
      }
      Int ns = Time:Interval.now().seconds;
@@ -73,7 +73,7 @@ use class IUHub:Eui {
        log.log("lastRun a while ago reloading");
        HD.reload();
      }
-     lastRun = ns;
+     lastRun = ns;*/
      HC.callApp(Lists.from("manageStateUpdatesRequest"));
    }
 

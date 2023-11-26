@@ -427,7 +427,8 @@ use class IUHub:Eui {
    }
 
    discover() {
-    HD.getEle("openDiscover").click();
+     //inform("Hey there");
+     HD.getEle("openDiscover").click();
    }
 
    getDiscoveredDeviceResponse() {

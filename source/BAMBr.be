@@ -80,9 +80,18 @@ use class IUHub:Eui {
    checkCx() {
      slots {
        String lastCx;
+       Int lctr;
+     }
+     if (undef(lctr)) {
+       lctr = 1;
+     } else {
+       lctr = lctr++;
+       if (lctr > 20000) {
+         lctr = 1;
+       }
      }
      ifEmit(apwk) {
-      String jspw = "getLastCx:";
+      String jspw = "getLastCx:" + lctr;
       emit(js) {
       """
       var jsres = prompt(bevl_jspw.bems_toJsString());

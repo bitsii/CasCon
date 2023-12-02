@@ -433,6 +433,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               if (mcmd.has("cb")) {
                 self.invoke(mcmd["cb"], Lists.from(mcmd, null));
               }
+            } elseIf (incmd.has("color")) {
+              Map rgb = incmd.get("color");
+              String rgbs = "" + rgb["r"] + "," + rgb["g"] + "," + rgb["b"];
+              mcmd = setDeviceRgbMcmd(dp[0] + "-" + dp[1], rgbs);
+              mcmd["runSync"] = true;
+              processDeviceMcmd(mcmd);
+              if (mcmd.has("cb")) {
+                self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+              }
             } elseIf (incmd.has("state")) {
               mcmd = setDeviceSwMcmd(dp[0], dp[1], incmd.get("state").lower());
               mcmd["runSync"] = true;

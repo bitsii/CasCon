@@ -679,6 +679,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      confs = Json:Marshaller.marshall(conf);
      saveDeviceRequest(conf["id"], confs, request);
      //rectlDeviceRequest(conf["id"], request);
+     ifEmit(wajv) {
+      if (def(mqtt)) {
+        mqtt.close();
+        mqtt = null;
+      }
+      checkStartMqtt();
+     }
      return(CallBackUI.reloadResponse());
      //return(null);
    }
@@ -1417,6 +1424,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String did = mcmd["did"];
      Int dp = mcmd["dp"];
      String itype = mcmd["itype"];
+     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
      if (TS.notEmpty(cres)) {
         log.log("got getlvl " + cres);
@@ -1445,6 +1453,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             if (def(mqtt)) {
               if (TS.notEmpty(itype) && itype == "dim") {
                 Map dps = Map.new();
+                String st = hasw.get(did + "-" + dp);
+                if (TS.notEmpty(st)) {
+                  dps.put("state", st.upper());
+                } else {
+                  dps.put("state", "OFF");
+                }
                 //dps.put("state", "ON");
                 dps.put("brightness", cresi);
                 String stpp = "homeassistant/light/" + did + "-" + dp + "/state";

@@ -363,6 +363,27 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   dps.put("brightness", Int.new(lv));
                 }
                 topubs.put(tpp + "/state", Json:Marshaller.marshall(dps));
+              } elseIf (itype == "rgb") {
+                tpp = "homeassistant/light/" + did + "-" + i;
+                cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i, "schema", "json", "brightness", false, "rgb", true, "color_temp", false);
+                //optimistic, false
+                cfs = Json:Marshaller.marshall(cf);
+                log.log("will set discovery tpp " + tpp + " cfs " + cfs);
+                mqtt.subscribe(tpp + "/set");
+                mqtt.publish(tpp + "/config", cfs);
+                st = hasw.get(did + "-" + i);
+                dps = Map.new();
+                if (TS.notEmpty(st)) {
+                  dps.put("state", st.upper());
+                } else {
+                  dps.put("state", "OFF");
+                }
+                //String lv = halv.get(did + "-" + i);
+                //if (TS.notEmpty(lv)) {
+                  //log.log("got lv " + lv);
+                //  dps.put("brightness", Int.new(lv));
+                //}
+                topubs.put(tpp + "/state", Json:Marshaller.marshall(dps));
               }
             }
           }
@@ -1282,6 +1303,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   dps.put("state", cres.upper());
                   stpp = "homeassistant/light/" + did + "-" + dp + "/state";
                   mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+                } elseIf (TS.notEmpty(itype) && itype == "rgb") {
+                  dps = Map.new();
+                  dps.put("state", cres.upper());
+                  stpp = "homeassistant/light/" + did + "-" + dp + "/state";
+                  mqtt.publish(stpp, Json:Marshaller.marshall(dps));
                 }
               }
             }
@@ -1877,6 +1903,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             mqtt.publish(stpp, rstate.upper());
           } elseIf (TS.notEmpty(itype) && itype == "dim") {
             Map dps = Map.new();
+            dps.put("state", rstate.upper());
+            stpp = "homeassistant/light/" + rhan + "-" + rpos + "/state";
+            mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+          } elseIf (TS.notEmpty(itype) && itype == "rgb") {
+            dps = Map.new();
             dps.put("state", rstate.upper());
             stpp = "homeassistant/light/" + rhan + "-" + rpos + "/state";
             mqtt.publish(stpp, Json:Marshaller.marshall(dps));

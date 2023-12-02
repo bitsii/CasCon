@@ -1992,6 +1992,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        log.log("hargb putting " + rhanpos + " " + rgb);
        hargb.put(rhanpos, rgb);
        hasw.put(rhanpos, "on");
+       ifEmit(wajv) {
+        if (def(mqtt)) {
+          if (TS.notEmpty(itype) && itype == "rgb") {
+            auto rgbl = rgb.split(",");
+            Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
+            Map dps = Map.new();
+            dps.put("state", "ON");
+            dps.put("color", rgbm);
+            String stpp = "homeassistant/light/" + rhanpos + "/state";
+            mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+          }
+        }
+       }
      } else {
        if (def(request)) {
           //return(CallBackUI.reloadResponse());

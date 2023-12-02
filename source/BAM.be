@@ -312,6 +312,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
         auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
         auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+        auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
         Map devices = Map.new();
         Map ctls = Map.new();
         Map topubs = Map.new();
@@ -378,11 +379,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 } else {
                   dps.put("state", "OFF");
                 }
-                //String lv = halv.get(did + "-" + i);
-                //if (TS.notEmpty(lv)) {
-                  //log.log("got lv " + lv);
-                //  dps.put("brightness", Int.new(lv));
-                //}
+                String rgb = hargb.get(did + "-" + i);
+                auto rgbl = rgb.split(",");
+                Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
+                dps.put("color", rgbm);
                 topubs.put(tpp + "/state", Json:Marshaller.marshall(dps));
               }
             }
@@ -1382,6 +1382,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String did = mcmd["did"];
      Int dp = mcmd["dp"];
      auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
+     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      if (TS.notEmpty(cres)) {
         log.log("got getrgb " + cres);
         unless (cres.has("undefined")) {
@@ -1391,6 +1392,22 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               log.log("got rgb update");
               hargb.put(did + "-" + dp, cres);
               stDiffed = true;
+            }
+            ifEmit(wajv) {
+              if (def(mqtt)) {
+                Map dps = Map.new();
+                String st = hasw.get(did + "-" + dp);
+                if (TS.notEmpty(st)) {
+                  dps.put("state", st.upper());
+                } else {
+                  dps.put("state", "OFF");
+                }
+                auto rgbl = cres.split(",");
+                Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
+                dps.put("color", rgbm);
+                String stpp = "homeassistant/light/" + did + "-" + dp + "/state";
+                mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+              }
             }
           }
         }

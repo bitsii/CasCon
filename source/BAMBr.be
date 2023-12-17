@@ -64,16 +64,17 @@ use class IUHub:Eui {
    }
 
    manageStateUpdates() {
-     /*slots {
+     slots {
        Int lastRun;
      }
      Int ns = Time:Interval.now().seconds;
-
+     /*
      if (def(lastRun) && ns - lastRun > 20) {
        log.log("lastRun a while ago reloading");
        HD.reload();
      }
      lastRun = ns;*/
+     //HD.getEle("hbeat").value = "" + ns;
      HC.callApp(Lists.from("manageStateUpdatesRequest"));
    }
 
@@ -976,7 +977,7 @@ use class IUHub:Eui {
        log.log("not been long enough on inform, not informing");
        return(null);
      }
-     nextInform = Time:Interval.now().addSeconds(75);
+     nextInform = Time:Interval.now().addSeconds(75); //comment to see all the informs
      if (TS.notEmpty(r)) {
       //HD.getElementById("informMessageDiv").innerHTML = r;
       //HD.getElementById("informDiv").display = "block";
@@ -985,6 +986,7 @@ use class IUHub:Eui {
          String mustInform;
        }
        mustInform = r;
+       //HD.getEle("lres").value = r;
        HD.getEle("openInform").click();
        if (def(r)) {
          log.log(r);

@@ -927,8 +927,13 @@ use class IUHub:Eui {
          </ul>
        </div>
        ''';
-       HD.getElementById("hadsList").innerHTML = ih;
-       HD.getEle("devErr").display = "none";
+       try {
+         HD.getElementById("hadsList").innerHTML = ih;
+         HD.getEle("devErr").display = "none";
+       } catch (any e) {
+         log.log("got except writing  hadsList");
+         HD.reload();
+       }
      }
    }
    

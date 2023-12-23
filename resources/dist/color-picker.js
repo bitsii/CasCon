@@ -496,7 +496,7 @@ function ColorPickerControl(conf) {
                         <canvas id="wheel-canvas" class="wheel-canvas"></canvas>
                         <div class="color-picker-wheel-control-thumb" style="top:50%; left: 50%;"></div>
                     </div>
-                    <div class="color-picker-brightness-control">
+                    <div class="color-picker-brightness-control" style="display: none;">
                         <canvas id="brightness-canvas" class="brightness-canvas"></canvas>
                         <div class="color-picker-brightness-control-thumb" style="bottom: 0; left: 50%;"></div>
                     </div>

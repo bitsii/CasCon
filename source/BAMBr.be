@@ -798,7 +798,7 @@ use class IUHub:Eui {
        String li = '''
        <li class="item-content">
          <div class="item-inner">
-           <div class="item-title"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
+           <div class="item-title" style="width:150px;"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
            FORDIM
            <div class="item-after">
              <label class="toggle">
@@ -821,7 +821,7 @@ use class IUHub:Eui {
         <ul>
         ''';
 
-      ifEmit(apwk) {
+      /*ifEmit(apwk) {
       String coli = '''
        <li class="item-content">
          <div class="item-inner">
@@ -839,16 +839,21 @@ use class IUHub:Eui {
          </div>
        </li>
        ''';
-       }
+       }*/
 
-       ifNotEmit(apwk) {
+       //ifNotEmit(apwk) {
        String coli = '''
        <li class="item-content">
          <div class="item-inner">
-           <div class="item-title"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
+           <div class="item-title" style="width:150px;"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
            <div class="item-after">
-             <label for="coliIDOFDEVICE-POSOFDEVICE">Color</label>&nbsp;&nbsp;
-               <input type="color" id="coliIDOFDEVICE-POSOFDEVICE" value="#HEXCOLOR" onclick="callUI('openPicker', 'IDOFDEVICE', 'POSOFDEVICE');return false;"></input>
+           <a href="#" data-popup="#setbright" onclick="callUI('setForDim', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">bulb</i></a>
+           </div>
+           <!--<div class="item-after">
+           <a href="#" onclick="callUI('openPicker', 'IDOFDEVICE', 'POSOFDEVICE');return false;"><i class="icon f7-icons">color_filter</i></a>
+           </div>-->
+           <div class="item-after" onclick="callUI('openPicker', 'IDOFDEVICE', 'POSOFDEVICE');return false;"><!--<label for="coliIDOFDEVICE-POSOFDEVICE">Color</label>&nbsp;&nbsp;-->
+<input MAYBEDISTYPE="color" id="coliIDOFDEVICE-POSOFDEVICE" value="#HEXCOLOR" onclick="callUI('openPicker', 'IDOFDEVICE', 'POSOFDEVICE');return false;"></input>
            </div>
             <div class="item-after">
              <label class="toggle">
@@ -859,7 +864,8 @@ use class IUHub:Eui {
          </div>
        </li>
        ''';
-       }
+       //}
+
 
        for (any ds in devices) {
 
@@ -893,6 +899,12 @@ use class IUHub:Eui {
               ih += lin;
             } elseIf (itype == "rgb") {
               lin = coli.swap("NAMEOFDEVICE", conf["name"]);
+              ifEmit(apwk) {
+                lin = lin.swap("MAYBEDISTYPE", "disabled type");
+              }
+              ifNotEmit(apwk) {
+                lin = lin.swap("MAYBEDISTYPE", "type");
+              }
               lin = lin.swap("IDOFDEVICE", conf["id"]);
               lin = lin.swap("POSOFDEVICE", i.toString());
               if (rgbs.has(conf["id"] + "-" + i)) {

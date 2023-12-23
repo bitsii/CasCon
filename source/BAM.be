@@ -1483,14 +1483,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         unless (cres.has("undefined")) {
           String cset = halv.get(did + "-" + dp);
           Int cresi = Int.new(cres);
-          if (mcmd["cname"] == "dim") {
-            Int lmax = 255;
-          } else {
-            lmax = 255;
-          }
-          if (mcmd["cname"] == "dim") {
-            cresi = lmax - cresi;
-          }
           if (TS.notEmpty(cset)) {
             Int cseti = Int.new(cset);
             if (cseti != cresi) {
@@ -2066,11 +2058,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
      //dostate eek setrlvl 255 e
-     if (itype == "dim") {
-      String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setrlvl " + rstate + " e";
-     } else {
-       cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setlvl " + rstate + " e";
-     }
+     String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setlvl " + rstate + " e";
      log.log("cmds " + cmds);
 
      //getting the name

@@ -812,7 +812,7 @@ use class IUHub:Eui {
 
        String fordim = '''
        <div class="item-after">
-           <a href="#" data-popup="#setbright" onclick="callUI('setForDim', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">sort</i></a>
+           <a href="#" data-popup="#setbright" onclick="callUI('setForDim', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">bulb</i></a>
            </div>
       ''';
      
@@ -847,7 +847,7 @@ use class IUHub:Eui {
          <div class="item-inner">
            <div class="item-title" style="width:150px;"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
            <div class="item-after">
-           <a href="#" data-popup="#setbright" onclick="callUI('setForDim', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">sort</i></a>
+           <a href="#" data-popup="#setbright" onclick="callUI('setForDim', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">bulb</i></a>
            </div>
            <!--<div class="item-after">
            <a href="#" onclick="callUI('openPicker', 'IDOFDEVICE', 'POSOFDEVICE');return false;"><i class="icon f7-icons">color_filter</i></a>

@@ -1390,7 +1390,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         log.log("got getrgb " + cres);
         unless (cres.has("undefined")) {
           if (cres.has(",")) {
-
+            Map tb = trueRgb(cres);
+            cres = "" + tb["r"] + "," + tb["g"] + "," + tb["b"];
             String cset = hargb.get(did + "-" + dp);
             if (TS.isEmpty(cset) || cset.has(",")! || cset != cres) {
               log.log("got rgb update");

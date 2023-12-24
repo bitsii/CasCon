@@ -11,6 +11,7 @@
 
 use IO:File:Path;
 use IO:File;
+use Math:Float;
 use System:Random;
 use UI:WebBrowser as WeBr;
 use Test:Assertions as Assert;
@@ -2093,6 +2094,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
      auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
 
      auto rhp = rhanpos.split("-");
      String rhan = rhp.get(0);
@@ -2111,21 +2113,86 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Int gamd = Int.new(rstate);
      gamd = gamma(gamd);
 
-     //dostate eek setrlvl 255 e
-     String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setlvl " + gamd + " e";
-     log.log("cmds " + cmds);
+     if (itype == "rgb") {
+       String rgb = hargb.get(rhanpos);
+       if (TS.notEmpty(rgb)) {
+         log.log("got rgb in setDeviceLvlMcmd " + rgb);
+       } else {
+         log.log("setting rgb to white in setDeviceLvlMcmd");
+         rgb = "255,255,255";
+       }
+       rgb = rgbForRgbLvl(rgb, rstate);
+       cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setrgb " + rgb + " e";
+     } else {
+      String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setlvl " + gamd + " e";
+      log.log("cmds " + cmds);
+     }
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
      String kdaddr = getAddrDis(kdname);
 
-     //tcpjv edition
-
-     //cmds += "\r\n";
-
      Map mcmd = Maps.from("cb", "setDeviceLvlCb", "did", conf["id"], "rhanpos", rhanpos, "rstate", rstate, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
 
      return(mcmd);
+   }
+
+   rgbForRgbLvl(String rgb, String lvl) {
+     //what would you multiply the max color by to get to 255 (IS 255/maxcolorval)
+     //multiply all 3 by this, that's the true rgb color
+     //multiply gamma adjusted dim level / 255 against all 3 to get their levels to send
+     log.log("in rgbForRgbLvl");
+     log.log("rgb " + rgb);
+     log.log("lvl " + lvl);
+     auto rgbl = rgb.split(",");
+     Int r = Int.new(rgbl[0]);
+     Int g = Int.new(rgbl[1]);
+     Int b = Int.new(rgbl[2]);
+     Int max = Math:Ints.max(r, Math:Ints.max(g, b));
+     if (max > 255 || max < 1) {
+       plyer = Float.intNew(1);
+     } else {
+      Float maxf = Float.intNew(max);
+      Float tff = Float.intNew(255);
+      Float plyer = tff / maxf;
+     }
+     Float rf = Float.intNew(r);
+     Float gf = Float.intNew(g);
+     Float bf = Float.intNew(b);
+     rf = rf * plyer;
+     gf = gf * plyer;
+     bf = bf * plyer;
+     r = rf.toInt();
+     g = gf.toInt();
+     b = bf.toInt();
+     log.log("true rgb " + r + "," + g + "," + b);
+     Int min = 0;
+     if (r > 0 && (min == 0 || r < min)) { min = r; }
+     if (g > 0 && (min == 0 || g < min)) { min = g; }
+     if (b > 0 && (min == 0 || b < min)) { min = b; }
+     // what times min will make min == 1, can't go below
+     // min * x = 1, 1 / min = x
+     Float minf = Float.intNew(min);
+     Float onef = Float.intNew(1);
+     Float mindplyer = onef / minf;
+     Int lvli = Int.new(lvl);
+     if (lvli < 0 || lvli > 255) {
+       lvli = 255;
+     }
+     Float lvlf = Float.intNew(lvli);
+     Float dplyer = lvlf / tff;
+     if (dplyer < mindplyer) {
+       log.log("dplyer too low floor at mindplyer");
+       dplyer = mindplyer;
+     }
+     rf = rf * dplyer;
+     gf = gf * dplyer;
+     bf = bf * dplyer;
+     r = rf.toInt();
+     g = gf.toInt();
+     b = bf.toInt();
+     log.log("adjusted rgb " + r + "," + g + "," + b);
+     return(r.toString() + "," + g.toString() + "," + b.toString());
    }
 
    setDeviceLvlCb(Map mcmd, request) Map {

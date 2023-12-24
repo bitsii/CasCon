@@ -1378,6 +1378,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
+
+
    updateRgbStateCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String did = mcmd["did"];
@@ -1388,6 +1390,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         log.log("got getrgb " + cres);
         unless (cres.has("undefined")) {
           if (cres.has(",")) {
+
             String cset = hargb.get(did + "-" + dp);
             if (TS.isEmpty(cset) || cset.has(",")! || cset != cres) {
               log.log("got rgb update");
@@ -2137,13 +2140,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(mcmd);
    }
 
-   rgbForRgbLvl(String rgb, String lvl) {
-     //what would you multiply the max color by to get to 255 (IS 255/maxcolorval)
-     //multiply all 3 by this, that's the true rgb color
-     //multiply gamma adjusted dim level / 255 against all 3 to get their levels to send
-     log.log("in rgbForRgbLvl");
+   //get the rgb value for the color at max brightness, so if largest were at 255
+   trueRgb(String rgb) Map {
+     log.log("in trueRgb");
      log.log("rgb " + rgb);
-     log.log("lvl " + lvl);
+     Float tff = Float.intNew(255);
      auto rgbl = rgb.split(",");
      Int r = Int.new(rgbl[0]);
      Int g = Int.new(rgbl[1]);
@@ -2153,7 +2154,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        plyer = Float.intNew(1);
      } else {
       Float maxf = Float.intNew(max);
-      Float tff = Float.intNew(255);
       Float plyer = tff / maxf;
      }
      Float rf = Float.intNew(r);
@@ -2166,6 +2166,24 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      g = gf.toInt();
      b = bf.toInt();
      log.log("true rgb " + r + "," + g + "," + b);
+     return(Maps.from("rf", rf, "gf", gf, "bf", bf, "r", r, "g", g, "b", b));
+   }
+
+   rgbForRgbLvl(String rgb, String lvl) {
+     //what would you multiply the max color by to get to 255 (IS 255/maxcolorval)
+     //multiply all 3 by this, that's the true rgb color
+     //multiply gamma adjusted dim level / 255 against all 3 to get their levels to send
+     log.log("in rgbForRgbLvl");
+     log.log("rgb " + rgb);
+     log.log("lvl " + lvl);
+     Float tff = Float.intNew(255);
+     Map tb = trueRgb(rgb);
+     Float rf = tb["rf"];
+     Float gf = tb["gf"];
+     Float bf = tb["bf"];
+     Int r = tb["r"];
+     Int g = tb["g"];
+     Int b = tb["b"];
      Int min = 0;
      if (r > 0 && (min == 0 || r < min)) { min = r; }
      if (g > 0 && (min == 0 || g < min)) { min = g; }

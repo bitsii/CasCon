@@ -1386,10 +1386,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Int dp = mcmd["dp"];
      auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
      auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+
      if (TS.notEmpty(cres)) {
         log.log("got getrgb " + cres);
         unless (cres.has("undefined")) {
           if (cres.has(",")) {
+            //get the lvl here and then set it
+            auto rgbl = cres.split(",");
+            String nlvl = Math:Ints.max(Int.new(rgbl[0]), Math:Ints.max(Int.new(rgbl[1]), Int.new(rgbl[2]))).toString();
+            String lv = halv.get(did + "-" + dp);
+            if (TS.isEmpty(lv) || lv != nlvl) {
+              log.log("setting lvl in rgbcb " + nlvl);
+              halv.put(did + "-" + dp, nlvl);
+            }
             Map tb = trueRgb(cres);
             cres = "" + tb["r"] + "," + tb["g"] + "," + tb["b"];
             String cset = hargb.get(did + "-" + dp);
@@ -1407,7 +1417,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 } else {
                   dps.put("state", "OFF");
                 }
-                auto rgbl = cres.split(",");
+                rgbl = cres.split(",");
                 Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
                 dps.put("color", rgbm);
                 String stpp = "homeassistant/light/" + did + "-" + dp + "/state";

@@ -1989,6 +1989,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String confs = hadevs.get(rhan);
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
+     String lv = halv.get(rhanpos);
+     if (TS.isEmpty(lv)) { lv = "255"; }
+     rgb = rgbForRgbLvl(rgb, lv);
+
      String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setrgb " + rgb + " e";
 
      log.log("cmds " + cmds);

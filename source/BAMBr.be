@@ -782,18 +782,21 @@ use class IUHub:Eui {
      }
    }
 
+   colorChanged() {
+     log.log("in colorChanged");
+   }
+
    setForColor(String did, String pos) {
-     log.log("in setForColor" + did + " " + pos);
-     /*String lvl = levels.get(did + "-" + pos);
-     if (TS.notEmpty(lvl)) {
-       log.log("lvl " + lvl);
+     log.log("in setForColor " + did + " " + pos);
+
+     String rgb = rgbs.get(did + "-" + pos);
+     if (TS.notEmpty(rgb)) {
+       log.log("rgb " + rgb);
      } else {
-       log.log("no lvl");
-       lvl = "255";
-     }*/
+       log.log("no rgb");
+       rgb = "255,255,255";
+     }
      slots {
-        //Int currLvl = Int.new(lvl);
-        //Bool setCurrLvl = true;
         String setColorDid = did;
         String setColorPos = pos;
         Bool wheelBeenMade;
@@ -807,12 +810,18 @@ use class IUHub:Eui {
       targetEl: '#demo-color-picker-wheel-value',
       targetElSetBackgroundColor: false,
       modules: ['wheel'],
+      on: {
+        change(cp, value) {
+          self.bevi_colorWheelValue = value;
+          callUI('colorChanged');
+        },
+      },
       //openIn: 'popover',
       //openIn: 'page',
       openIn: 'popup',//ok, consistent with dim
       //openIn: 'sheet',//bad
       value: {
-        hex: '#00ff00',
+        hex: '#ffffff',
       },
     });
       this.bevi_colorPickerWheel = colorPickerWheel;
@@ -820,18 +829,27 @@ use class IUHub:Eui {
      }
      wheelBeenMade = true;
      }
+
+     List csl = rgb.split(",");
+     String rhx = Int.new(csl[0]).toHexString();
+     String ghx = Int.new(csl[1]).toHexString();
+     String bhx = Int.new(csl[2]).toHexString();
+     String hexcol = "#" + rhx + ghx + bhx;
+
      emit(js) {
        """
+       this.bevi_colorPickerWheel.setValue({ hex: bevl_hexcol.bems_toJsString() });
        this.bevi_colorPickerWheel.open();
        """
      }
    }
    
-   getDevicesResponse(Map devices, Map ctls, Map states, Map _levels, Map rgbs, Int nsecs) {
+   getDevicesResponse(Map devices, Map ctls, Map states, Map _levels, Map _rgbs, Int nsecs) {
      log.log("in getDevicesResponse");
      slots {
        Map devCtls = ctls;
        Map levels = _levels;
+       Map rgbs = _rgbs;
      }
      if (nsecs > 0) {
        nextInform = Interval.new(nsecs, 0);

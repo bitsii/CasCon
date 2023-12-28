@@ -19,9 +19,6 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="msapplication-tap-highlight" content="no">
   <title>Casnic</title>
-  <style>
-  input[disabled] {pointer-events:none}
-  </style>
   <link rel="stylesheet" href="libs/framework7/css/framework7.bundle.min.css">
   <link rel="stylesheet" href="css/icons.css">
   <link rel="stylesheet" href="css/app.css">
@@ -124,6 +121,24 @@
 
           </f7-toolbar>
           <div id="hadsList"></div>
+
+  <div class="list no-hairlines-md">
+  <ul>
+  <li>
+    <li>
+      <div class="item-content item-input">
+        <div class="item-media">
+          <i class="icon demo-list-icon" id="demo-color-picker-wheel-value"></i>
+        </div>
+        <div class="item-inner">
+          <div class="item-input-wrap">
+            <input type="text" placeholder="Color" readonly="readonly" id="demo-color-picker-wheel"/>
+          </div>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
 
           <!--<f7-list form>
               <f7-list-input

@@ -781,6 +781,51 @@ use class IUHub:Eui {
         String setBrightPos = pos;
      }
    }
+
+   setForColor(String did, String pos) {
+     log.log("in setForColor" + did + " " + pos);
+     /*String lvl = levels.get(did + "-" + pos);
+     if (TS.notEmpty(lvl)) {
+       log.log("lvl " + lvl);
+     } else {
+       log.log("no lvl");
+       lvl = "255";
+     }*/
+     slots {
+        //Int currLvl = Int.new(lvl);
+        //Bool setCurrLvl = true;
+        String setColorDid = did;
+        String setColorPos = pos;
+        Bool wheelBeenMade;
+     }
+     unless (def(wheelBeenMade) && wheelBeenMade) {
+     emit(js) {
+       """
+      /*-attr- -noreplace-*/
+      var colorPickerWheel = vapp.$f7.colorPicker.create({
+      inputEl: '#demo-color-picker-wheel',
+      targetEl: '#demo-color-picker-wheel-value',
+      targetElSetBackgroundColor: true,
+      modules: ['wheel'],
+      //openIn: 'popover',//bad
+      //openIn: 'page',//bad
+      openIn: 'popup',//ok
+      //openIn: 'sheet',//bad
+      value: {
+        hex: '#00ff00',
+      },
+    });
+      this.bevi_colorPickerWheel = colorPickerWheel;
+       """
+     }
+     wheelBeenMade = true;
+     }
+     emit(js) {
+       """
+
+       """
+     }
+   }
    
    getDevicesResponse(Map devices, Map ctls, Map states, Map _levels, Map rgbs, Int nsecs) {
      log.log("in getDevicesResponse");
@@ -821,39 +866,12 @@ use class IUHub:Eui {
         <ul>
         ''';
 
-      /*ifEmit(apwk) {
-      String coli = '''
-       <li class="item-content">
-         <div class="item-inner">
-           <div class="item-title"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
-           <div class="item-after">
-             <label for="coliIDOFDEVICE-POSOFDEVICE">Color</label>&nbsp;&nbsp;
-               <input type="color" id="coliIDOFDEVICE-POSOFDEVICE" value="#HEXCOLOR" oninput="callUI('checkColor', 'IDOFDEVICE', 'POSOFDEVICE');return true;"></input>
-           </div>
-            <div class="item-after">
-             <label class="toggle">
-               <input type="checkbox" onclick="callUI('checkToggled', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
-               <span class="toggle-icon"></span>
-             </label>
-           </div>
-         </div>
-       </li>
-       ''';
-       }*/
-
-       //ifNotEmit(apwk) {
        String coli = '''
        <li class="item-content">
          <div class="item-inner">
            <div class="item-title" style="width:150px;"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
            <div class="item-after">
-           <a href="#" data-popup="#setbright" onclick="callUI('setForDim', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">bulb</i></a>
-           </div>
-           <!--<div class="item-after">
-           <a href="#" onclick="callUI('openPicker', 'IDOFDEVICE', 'POSOFDEVICE');return false;"><i class="icon f7-icons">color_filter</i></a>
-           </div>-->
-           <div class="item-after" onclick="callUI('openPicker', 'IDOFDEVICE', 'POSOFDEVICE');return false;"><!--<label for="coliIDOFDEVICE-POSOFDEVICE">Color</label>&nbsp;&nbsp;-->
-<input MAYBEDISTYPE="color" id="coliIDOFDEVICE-POSOFDEVICE" value="#HEXCOLOR" onclick="callUI('openPicker', 'IDOFDEVICE', 'POSOFDEVICE');return false;"></input>
+           <a href="#" onclick="callUI('setForColor', 'IDOFDEVICE', 'POSOFDEVICE');return false;" class="col button"><i class="icon f7-icons">color_filter</i></a>
            </div>
             <div class="item-after">
              <label class="toggle">
@@ -864,7 +882,6 @@ use class IUHub:Eui {
          </div>
        </li>
        ''';
-       //}
 
 
        for (any ds in devices) {
@@ -899,12 +916,6 @@ use class IUHub:Eui {
               ih += lin;
             } elseIf (itype == "rgb") {
               lin = coli.swap("NAMEOFDEVICE", conf["name"]);
-              ifEmit(apwk) {
-                lin = lin.swap("MAYBEDISTYPE", "disabled type");
-              }
-              ifNotEmit(apwk) {
-                lin = lin.swap("MAYBEDISTYPE", "type");
-              }
               lin = lin.swap("IDOFDEVICE", conf["id"]);
               lin = lin.swap("POSOFDEVICE", i.toString());
               if (rgbs.has(conf["id"] + "-" + i)) {

@@ -362,7 +362,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 String lv = halv.get(did + "-" + i);
                 if (TS.notEmpty(lv)) {
                   //log.log("got lv " + lv);
-                  dps.put("brightness", Int.new(lv));
+                  Int gamd = Int.new(lv);
+                  //gamd = degamma(gamd);
+                  dps.put("brightness", gamd);
                 }
                 topubs.put(tpp + "/state", Json:Marshaller.marshall(dps));
               } elseIf (itype == "rgb") {
@@ -1047,6 +1049,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String lv = halv.get(did + "-" + i);
           if (TS.notEmpty(lv)) {
             //log.log("got lv " + lv);
+            Int gamd = Int.new(lv);
+            //gamd = degamma(gamd);
+            if (undef(gamd)) {
+              log.log("got undef degamma for " + lv);
+            } else {
+              log.log("got " + gamd + " degamma for " + lv);
+            }
+            lv = gamd.toString();
             levels.put(did + "-" + i, lv);
           }
           log.log("getting rgb for " + did + "-" + i);
@@ -1392,16 +1402,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         log.log("got getrgb " + cres);
         unless (cres.has("undefined")) {
           if (cres.has(",")) {
-            //get the lvl here and then set it
-            auto rgbl = cres.split(",");
-            String nlvl = Math:Ints.max(Int.new(rgbl[0]), Math:Ints.max(Int.new(rgbl[1]), Int.new(rgbl[2]))).toString();
-            String lv = halv.get(did + "-" + dp);
-            if (TS.isEmpty(lv) || lv != nlvl) {
-              log.log("setting lvl in rgbcb " + nlvl);
-              halv.put(did + "-" + dp, nlvl);
-            }
-            Map tb = trueRgb(cres);
-            cres = "" + tb["r"] + "," + tb["g"] + "," + tb["b"];
             String cset = hargb.get(did + "-" + dp);
             if (TS.isEmpty(cset) || cset.has(",")! || cset != cres) {
               log.log("got rgb update");
@@ -1417,7 +1417,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 } else {
                   dps.put("state", "OFF");
                 }
-                rgbl = cres.split(",");
+                auto rgbl = cres.split(",");
                 Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
                 dps.put("color", rgbm);
                 String stpp = "homeassistant/light/" + did + "-" + dp + "/state";
@@ -1498,7 +1498,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         unless (cres.has("undefined")) {
           String cset = halv.get(did + "-" + dp);
           Int cresi = Int.new(cres);
-          cresi = degamma(cresi);
           if (TS.notEmpty(cset)) {
             Int cseti = Int.new(cset);
             if (cseti != cresi) {
@@ -1520,7 +1519,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   dps.put("state", "OFF");
                 }
                 //dps.put("state", "ON");
-                dps.put("brightness", cresi);
+                Int gamd = cresi;
+                //gamd = degamma(cresi);
+                dps.put("brightness", gamd);
                 String stpp = "homeassistant/light/" + did + "-" + dp + "/state";
                 mqtt.publish(stpp, Json:Marshaller.marshall(dps));
               }
@@ -1989,9 +1990,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String confs = hadevs.get(rhan);
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
-     String lv = halv.get(rhanpos);
-     if (TS.isEmpty(lv)) { lv = "255"; }
-     rgb = rgbForRgbLvl(rgb, lv);
+     //String lv = halv.get(rhanpos);
+     //if (TS.isEmpty(lv)) { lv = "255"; }
+     //rgb = rgbForRgbLvl(rgb, lv);
 
      String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setrgb " + rgb + " e";
 
@@ -2018,6 +2019,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
      auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      if (TS.notEmpty(cres) && cres.has("ok")) {
+       //Map tb = trueRgb(rgb);
+       //rgb = "" + tb["r"] + "," + tb["g"] + "," + tb["b"];
        log.log("hargb putting " + rhanpos + " " + rgb);
        hargb.put(rhanpos, rgb);
        hasw.put(rhanpos, "on");
@@ -2056,54 +2059,38 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
-   prepGammas() {
-     slots {
-       List gammas;
-       Map degammas;
-     }
-     if (undef(gammas)) {
-       gammas = Lists.from(0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-          0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,
-          1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,
-          2,  3,  3,  3,  3,  3,  3,  3,  4,  4,  4,  4,  4,  5,  5,  5,
-          5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9, 10,
-          10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
-          17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25,
-          25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
-          37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50,
-          51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
-          69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89,
-          90, 92, 93, 95, 96, 98, 99,101,102,104,105,107,109,110,112,114,
-          115,117,119,120,122,124,126,127,129,131,133,135,137,138,140,142,
-          144,146,148,150,152,154,156,158,160,162,164,167,169,171,173,175,
-          177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
-          215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255
-                      );
-       degammas = Map.new();
-       for (Int i = 0;i < gammas.size;i = i++) {
-         degammas.put(gammas[i], i);
-       }
-       degammas.put(0, 13);//27
-       degammas.put(1, 33);//13 40
-       degammas.put(2, 44);//8 48
-       degammas.put(3, 51);//7 55
-     }
-   }
-
    gamma(Int start) Int {
-     prepGammas();
-     if (start < 0 || start > 255) { return(start); }
-     Int end = gammas[start];
-     if (end == 0) { end = 1; }
-     return(end);
+     //start^2/255
+     //if (true) { return(start); }
+     Int res = start.squared;
+     res = res / 255;
+     if (res < 1) {
+       res = 1;
+       log.log("upped gamma to 1");
+     }
+     if (res > 255) {
+       res = 255;
+       log.log("downed gamma to 255");
+     }
+     log.log("gamma got " + res + " for " + start);
+     return(res);
    }
 
    degamma(Int start) Int {
-     prepGammas();
-     if (start < 0 || start > 255) { return(start); }
-     Int end = degammas[start];
-     if (end == 0) { end = 1; }
-     return(end);
+     //sqrt(start * 255)
+     //if (true) { return(start); }
+     Int res = start * 255;
+     res = res.squareRoot;
+     if (res < 1) {
+       res = 1;
+       log.log("upped degamma to 1");
+     }
+     if (res > 255) {
+       res = 255;
+       log.log("downed degamma to 255");
+     }
+     log.log("degamma got " + res + " for " + start);
+     return(res);
    }
 
    setDeviceLvlMcmd(String rhanpos, String rstate) Map {
@@ -2129,22 +2116,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
      Int gamd = Int.new(rstate);
-     gamd = gamma(gamd);
+     //gamd = gamma(gamd);
+     rstate = gamd.toString();
 
-     if (itype == "rgb") {
-       String rgb = hargb.get(rhanpos);
-       if (TS.notEmpty(rgb)) {
-         log.log("got rgb in setDeviceLvlMcmd " + rgb);
-       } else {
-         log.log("setting rgb to white in setDeviceLvlMcmd");
-         rgb = "255,255,255";
-       }
-       rgb = rgbForRgbLvl(rgb, rstate);
-       cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setrgb " + rgb + " e";
-     } else {
-      String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setlvl " + gamd + " e";
-      log.log("cmds " + cmds);
-     }
+     String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setlvl " + rstate + " e";
+     log.log("cmds " + cmds);
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -2187,7 +2163,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    rgbForRgbLvl(String rgb, String lvl) {
      //what would you multiply the max color by to get to 255 (IS 255/maxcolorval)
      //multiply all 3 by this, that's the true rgb color
-     //multiply gamma adjusted dim level / 255 against all 3 to get their levels to send
      log.log("in rgbForRgbLvl");
      log.log("rgb " + rgb);
      log.log("lvl " + lvl);
@@ -2243,7 +2218,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           if (TS.notEmpty(itype) && itype == "dim") {
             Map dps = Map.new();
             dps.put("state", "ON");
-            dps.put("brightness", Int.new(rstate));
+            Int gamd = Int.new(rstate);
+            //gamd = degamma(gamd);
+            dps.put("brightness", gamd);
             String stpp = "homeassistant/light/" + rhanpos + "/state";
             mqtt.publish(stpp, Json:Marshaller.marshall(dps));
           }

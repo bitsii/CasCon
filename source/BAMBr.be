@@ -805,11 +805,11 @@ use class IUHub:Eui {
       var colorPickerWheel = vapp.$f7.colorPicker.create({
       inputEl: '#demo-color-picker-wheel',
       targetEl: '#demo-color-picker-wheel-value',
-      targetElSetBackgroundColor: true,
+      targetElSetBackgroundColor: false,
       modules: ['wheel'],
-      //openIn: 'popover',//bad
-      //openIn: 'page',//bad
-      openIn: 'popup',//ok
+      //openIn: 'popover',
+      //openIn: 'page',
+      openIn: 'popup',//ok, consistent with dim
       //openIn: 'sheet',//bad
       value: {
         hex: '#00ff00',
@@ -822,7 +822,7 @@ use class IUHub:Eui {
      }
      emit(js) {
        """
-
+       this.bevi_colorPickerWheel.open();
        """
      }
    }

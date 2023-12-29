@@ -912,7 +912,7 @@ use class IUHub:Eui {
                 lin = lin.swap("FORDIM", "");
               }
               ih += lin;
-            } elseIf (itype == "rgb") {
+            } elseIf (itype == "rgb" || itype == "rgbdim") {
               lin = coli.swap("NAMEOFDEVICE", conf["name"]);
               lin = lin.swap("IDOFDEVICE", conf["id"]);
               lin = lin.swap("POSOFDEVICE", i.toString());

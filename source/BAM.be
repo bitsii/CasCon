@@ -2391,7 +2391,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           Map mc = i.next;
           if (mc["kdaddr"] == mcmd["kdaddr"]) {
             wct++=;
-            if (wct > 4) {
+            if (wct > 6) {
               log.log("too many waiting no adding to cmdQueue");
               return(false);
             }

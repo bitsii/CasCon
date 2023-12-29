@@ -222,78 +222,6 @@ use class IUHub:Eui {
      HC.callApp(Lists.from("setDeviceSwRequest", dname, pos, state));
    }
 
-   openPicker(String dname, String pos) {
-     slots {
-       String pickerDname = dname;
-       String pickerPos = pos;
-     }
-     String chex = HD.getEle("coli" + pickerDname + "-" + pickerPos).value;
-     HD.getEle("hadsList").display = "none";
-     HD.getEle("cpickercon").display = "block";
-           emit(js) {
-        """
-        if (this.picker == null) {
-        this.picker = new ColorPickerControl({
-            container: cpicker,
-            theme: 'dark'
-        });
-        this.picker.on('change', (color) => {
-            console.log('Event: "change"', color.toHEX());
-            callUI('pickerChanged', color.toHEX());
-        });
-        }
-        this.picker.color.fromHEX(bevl_chex.bems_toJsString());
-        """
-      }
-   }
-
-   pickerChanged(hxcol) {
-     log.log("in pickerchanged");
-     //set the native html color picker.  It's the .value as a hex string 6 char preceeded by #
-     if (TS.notEmpty(pickerDname) && TS.notEmpty(pickerPos) && TS.notEmpty(hxcol)) {
-       HD.getEle("coli" + pickerDname + "-" + pickerPos).value = hxcol;
-       checkColor(pickerDname, pickerPos);
-     } else {
-       if (TS.isEmpty(hxcol)) { log.log("hxcol empty"); }
-       log.log("picker dname or pos or hxcol empty");
-     }
-   }
-
-   closePicker() {
-     HD.getEle("hadsList").display = "block";
-     HD.getEle("cpickercon").display = "none";
-     pickerDname = null;
-     pickerPos = null;
-   }
-
-   checkColor(String dname, String pos) {
-
-     log.log("checkColor " + dname + " " + pos);
-     //String val = HD.getElementById("colorpicker").value;
-     String val = HD.getEle("coli" + dname + "-" + pos).value;
-     log.log("checkColor val " + val);
-
-     String rh = val.substring(1,3);
-     log.log("rh " + rh);
-     Int rhi = Int.hexNew(rh);
-
-     String gh = val.substring(3,5);
-     log.log("gh " + gh);
-     Int ghi = Int.hexNew(gh);
-
-     String bh = val.substring(5,7);
-     log.log("bh " + bh);
-     Int bhi = Int.hexNew(bh);
-
-     String rgb = rhi.toString() + "," + ghi.toString() + "," + bhi.toString();
-     log.log("checkColor r,g,b " + rgb);
-
-     HD.getEle("devErr").display = "none";
-     HD.getEle("hat" + dname + "-" + pos).checked = true;
-     HC.callApp(Lists.from("setDeviceRgbRequest", dname + "-" + pos, rgb));
-
-   }
-
    checkBrt(String dname, String pos) {
      log.log("checkBrt " + dname + " " + pos);
      Int statet = HD.getEle("brt" + dname + "-" + pos).value;
@@ -784,6 +712,42 @@ use class IUHub:Eui {
 
    colorChanged() {
      log.log("in colorChanged");
+     String res;
+     emit(js) {
+      """
+      if (self.bevi_colorWheelValue != null) {
+         bevl_res = new be_$class/Text:String$().bems_new(self.bevi_colorWheelValue.hex);
+      }
+      """
+     }
+     if (TS.notEmpty(res) && TS.notEmpty(setColorDid) && TS.notEmpty(setColorPos)) {
+       log.log("colorChanged to " + res);
+       String rh = res.substring(1,3);
+       log.log("rh " + rh);
+       Int rhi = Int.hexNew(rh);
+
+       String gh = res.substring(3,5);
+       log.log("gh " + gh);
+       Int ghi = Int.hexNew(gh);
+
+       String bh = res.substring(5,7);
+       log.log("bh " + bh);
+       Int bhi = Int.hexNew(bh);
+
+       String rgb = rhi.toString() + "," + ghi.toString() + "," + bhi.toString();
+
+       unless (def(ignoreNextColorChange) && ignoreNextColorChange) {
+        log.log("colorChanged r,g,b " + rgb);
+        HD.getEle("devErr").display = "none";
+        HD.getEle("hat" + setColorDid + "-" + setColorPos).checked = true;
+        HC.callApp(Lists.from("setDeviceRgbRequest", setColorDid + "-" + setColorPos, rgb));
+       } else {
+        log.log("colorChanged first ignored " + rgb);
+        ignoreNextColorChange = false;
+       }
+     } else {
+       log.log("res null in colorChanged");
+     }
    }
 
    setForColor(String did, String pos) {
@@ -800,6 +764,8 @@ use class IUHub:Eui {
         String setColorDid = did;
         String setColorPos = pos;
         Bool wheelBeenMade;
+        String setColorRgb = rgb;
+        Bool ignoreNextColorChange = true;
      }
      unless (def(wheelBeenMade) && wheelBeenMade) {
      emit(js) {
@@ -809,7 +775,7 @@ use class IUHub:Eui {
       inputEl: '#demo-color-picker-wheel',
       targetEl: '#demo-color-picker-wheel-value',
       targetElSetBackgroundColor: false,
-      modules: ['wheel'],
+      modules: ['palette', 'wheel'],
       on: {
         change(cp, value) {
           self.bevi_colorWheelValue = value;
@@ -817,12 +783,26 @@ use class IUHub:Eui {
         },
       },
       //openIn: 'popover',
-      //openIn: 'page',
-      openIn: 'popup',//ok, consistent with dim
+      openIn: 'page',
+      //openInPhone: 'popup',
+      //openIn: 'popup',//ok, consistent with dim
       //openIn: 'sheet',//bad
       value: {
         hex: '#ffffff',
       },
+      palette: [
+    ['#FFEBEE', '#FFCDD2', '#EF9A9A', '#E57373', '#EF5350', '#F44336', '#E53935', '#D32F2F', '#C62828', '#B71C1C'],
+    ['#F3E5F5', '#E1BEE7', '#CE93D8', '#BA68C8', '#AB47BC', '#9C27B0', '#8E24AA', '#7B1FA2', '#6A1B9A', '#4A148C'],
+    ['#E8EAF6', '#C5CAE9', '#9FA8DA', '#7986CB', '#5C6BC0', '#3F51B5', '#3949AB', '#303F9F', '#283593', '#1A237E'],
+    ['#E1F5FE', '#B3E5FC', '#81D4FA', '#4FC3F7', '#29B6F6', '#03A9F4', '#039BE5', '#0288D1', '#0277BD', '#01579B'],
+    ['#E0F2F1', '#B2DFDB', '#80CBC4', '#4DB6AC', '#26A69A', '#009688', '#00897B', '#00796B', '#00695C', '#004D40'],
+    ['#F1F8E9', '#DCEDC8', '#C5E1A5', '#AED581', '#9CCC65', '#8BC34A', '#7CB342', '#689F38', '#558B2F', '#33691E'],
+    ['#FFFDE7', '#FFF9C4', '#FFF59D', '#FFF176', '#FFEE58', '#FFEB3B', '#FDD835', '#FBC02D', '#F9A825', '#F57F17'],
+    ['#FFF3E0', '#FFE0B2', '#FFCC80', '#FFB74D', '#FFA726', '#FF9800', '#FB8C00', '#F57C00', '#EF6C00', '#E65100'],
+  ],
+  formatValue: function (value) {
+    return value.hex;
+  },
     });
       this.bevi_colorPickerWheel = colorPickerWheel;
        """

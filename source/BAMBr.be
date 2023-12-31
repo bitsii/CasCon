@@ -871,6 +871,7 @@ use class IUHub:Eui {
            <div class="item-after">
            <a href="#" onclick="callUI('setForColor', 'IDOFDEVICE', 'POSOFDEVICE');return false;" class="col button"><i class="icon f7-icons">color_filter</i></a>
            </div>
+           FORDIM
             <div class="item-after">
              <label class="toggle">
                <input type="checkbox" onclick="callUI('checkToggled', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
@@ -936,6 +937,13 @@ use class IUHub:Eui {
                 lin = lin.swap("DEVICESTATETOG", "checked");
               } else {
                 lin = lin.swap("DEVICESTATETOG", "");
+              }
+              if (itype == "rgbdim") {
+                fdg = fordim.swap("IDOFDEVICE", conf["id"]);
+                fdg = fdg.swap("POSOFDEVICE", i.toString());
+                lin = lin.swap("FORDIM", fdg);
+              } else {
+                lin = lin.swap("FORDIM", "");
               }
               ih += lin;
             }

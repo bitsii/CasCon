@@ -895,7 +895,7 @@ use class IUHub:Eui {
             log.log("got dev " + ds.key + " " + ds.value);
             Map conf = Json:Unmarshaller.unmarshall(ds.value);
 
-            if (itype == "dim" || itype == "sw") {
+            if (itype == "dim" || itype == "gdim" || itype == "sw") {
               String lin = li.swap("NAMEOFDEVICE", conf["name"]);
               lin = lin.swap("IDOFDEVICE", conf["id"]);
               lin = lin.swap("POSOFDEVICE", i.toString());
@@ -905,7 +905,7 @@ use class IUHub:Eui {
               } else {
                 lin = lin.swap("DEVICESTATETOG", "");
               }
-              if (itype == "dim") {
+              if (itype == "dim" || itype == "gdim") {
                 String fdg = fordim.swap("IDOFDEVICE", conf["id"]);
                 fdg = fdg.swap("POSOFDEVICE", i.toString());
                 lin = lin.swap("FORDIM", fdg);

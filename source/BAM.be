@@ -201,7 +201,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         ifEmit(wajv) {
           fields {
             Mqtt mqtt;
-            Bool backgroundPulse = true;
+            Bool backgroundPulse = false;
           }
         }
         super.new();
@@ -344,7 +344,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 } else {
                   topubs.put(tpp + "/state", "OFF");
                 }
-              } elseIf(itype == "dim") {
+              } elseIf(itype == "dim" || itype == "gdim") {
                 tpp = "homeassistant/light/" + did + "-" + i;
                 cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i, "schema", "json", "brightness", true, "brightness_scale", 255);
                 //optimistic, false
@@ -1319,7 +1319,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   if (itype == "sw") {
                     String stpp = "homeassistant/switch/" + did + "-" + dp + "/state";
                     mqtt.publish(stpp, cres.upper());
-                  } elseIf (itype == "dim") {
+                  } elseIf (itype == "dim" || itype == "gdim") {
                     Map dps = Map.new();
                     dps.put("state", cres.upper());
                     stpp = "homeassistant/light/" + did + "-" + dp + "/state";
@@ -1517,20 +1517,22 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
           ifEmit(wajv) {
             if (def(mqtt)) {
-              if (TS.notEmpty(itype) && itype == "dim") {
-                Map dps = Map.new();
-                String st = hasw.get(did + "-" + dp);
-                if (TS.notEmpty(st)) {
-                  dps.put("state", st.upper());
-                } else {
-                  dps.put("state", "OFF");
+              if (TS.notEmpty(itype)) {
+                if (itype == "dim" || itype == "gdim") {
+                  Map dps = Map.new();
+                  String st = hasw.get(did + "-" + dp);
+                  if (TS.notEmpty(st)) {
+                    dps.put("state", st.upper());
+                  } else {
+                    dps.put("state", "OFF");
+                  }
+                  //dps.put("state", "ON");
+                  Int gamd = cresi;
+                  //gamd = degamma(cresi);
+                  dps.put("brightness", gamd);
+                  String stpp = "homeassistant/light/" + did + "-" + dp + "/state";
+                  mqtt.publish(stpp, Json:Marshaller.marshall(dps));
                 }
-                //dps.put("state", "ON");
-                Int gamd = cresi;
-                //gamd = degamma(cresi);
-                dps.put("brightness", gamd);
-                String stpp = "homeassistant/light/" + did + "-" + dp + "/state";
-                mqtt.publish(stpp, Json:Marshaller.marshall(dps));
               }
             }
           }
@@ -1664,6 +1666,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 if (ks[0] == "sw") {
                   updateSwState(ks[1], Int.new(ks[2]), ks[0]);
                 } elseIf (ks[0] == "dim") {
+                  updateSwState(ks[1], Int.new(ks[2]), ks[0]);
+                  updateLvlState(ks[1], Int.new(ks[2]), ks[0]);
+                } elseIf (ks[0] == "gdim") {
                   updateSwState(ks[1], Int.new(ks[2]), ks[0]);
                   updateLvlState(ks[1], Int.new(ks[2]), ks[0]);
                 } elseIf (ks[0] == "pwm") {
@@ -1947,7 +1952,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             if (itype == "sw") {
               String stpp = "homeassistant/switch/" + rhan + "-" + rpos + "/state";
               mqtt.publish(stpp, rstate.upper());
-            } elseIf (itype == "dim") {
+            } elseIf (itype == "dim" || itype == "gdim") {
               Map dps = Map.new();
               dps.put("state", rstate.upper());
               stpp = "homeassistant/light/" + rhan + "-" + rpos + "/state";
@@ -2138,7 +2143,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //gamd = gamma(gamd);
      rstate = gamd.toString();
 
-     String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setlvl " + rstate + " e";
+     if (itype == "gdim") {
+       cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setlvl " + rstate + " " + rstate + " e";
+     } else {
+       String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setlvl " + rstate + " e";
+     }
      log.log("cmds " + cmds);
 
      //getting the name
@@ -2234,14 +2243,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        hasw.put(rhanpos, "on");
        ifEmit(wajv) {
         if (def(mqtt)) {
-          if (TS.notEmpty(itype) && itype == "dim") {
-            Map dps = Map.new();
-            dps.put("state", "ON");
-            Int gamd = Int.new(rstate);
-            //gamd = degamma(gamd);
-            dps.put("brightness", gamd);
-            String stpp = "homeassistant/light/" + rhanpos + "/state";
-            mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+          if (TS.notEmpty(itype)) {
+            if (itype == "dim" || itype == "gdim") {
+              Map dps = Map.new();
+              dps.put("state", "ON");
+              Int gamd = Int.new(rstate);
+              //gamd = degamma(gamd);
+              dps.put("brightness", gamd);
+              String stpp = "homeassistant/light/" + rhanpos + "/state";
+              mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+            }
           }
         }
        }

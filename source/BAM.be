@@ -363,7 +363,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 if (TS.notEmpty(lv)) {
                   //log.log("got lv " + lv);
                   Int gamd = Int.new(lv);
-                  //gamd = degamma(gamd);
                   dps.put("brightness", gamd);
                 }
                 topubs.put(tpp + "/state", Json:Marshaller.marshall(dps));
@@ -1050,12 +1049,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           if (TS.notEmpty(lv)) {
             //log.log("got lv " + lv);
             Int gamd = Int.new(lv);
-            //gamd = degamma(gamd);
-            if (undef(gamd)) {
-              log.log("got undef degamma for " + lv);
-            } else {
-              log.log("got " + gamd + " degamma for " + lv);
-            }
             lv = gamd.toString();
             levels.put(did + "-" + i, lv);
           }
@@ -1462,11 +1455,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        String sws = haspecs.get(did);
        if (TS.notEmpty(sws) && sws.has("q,")) {
-         cmds = "dostate Q " + dpd + " getlvl e";
+         if (itype == "gdim") {
+          cmds = "getstatexd Q " + dpd + " e";
+         } else {
+          cmds = "dostate Q " + dpd + " getlvl e";
+         }
          log.log("cmds " + cmds);
          mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 0, "pw", "", "itype", itype, "itype", itype, "cname", cname, "cmds", cmds);
        } else {
-         String cmds = "dostate " + conf["spass"] + " " + dpd + " getlvl e";
+         if (itype == "gdim") {
+           cmds = "getstatexd " + conf["spass"] + " " + dpd + " e";
+         } else {
+           String cmds = "dostate " + conf["spass"] + " " + dpd + " getlvl e";
+         }
          log.log("cmds " + cmds);
          Map mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
@@ -1528,7 +1529,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   }
                   //dps.put("state", "ON");
                   Int gamd = cresi;
-                  //gamd = degamma(cresi);
                   dps.put("brightness", gamd);
                   String stpp = "homeassistant/light/" + did + "-" + dp + "/state";
                   mqtt.publish(stpp, Json:Marshaller.marshall(dps));
@@ -2100,23 +2100,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(res);
    }
 
-   degamma(Int start) Int {
-     //sqrt(start * 255)
-     //if (true) { return(start); }
-     Int res = start * 255;
-     res = res.squareRoot;
-     if (res < 1) {
-       res = 1;
-       log.log("upped degamma to 1");
-     }
-     if (res > 255) {
-       res = 255;
-       log.log("downed degamma to 255");
-     }
-     log.log("degamma got " + res + " for " + start);
-     return(res);
-   }
-
    setDeviceLvlMcmd(String rhanpos, String rstate) Map {
 
      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
@@ -2140,11 +2123,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
      Int gamd = Int.new(rstate);
-     //gamd = gamma(gamd);
-     rstate = gamd.toString();
+     gamd = gamma(gamd);
+     String gamds = gamd.toString();
 
      if (itype == "gdim") {
-       cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setlvl " + rstate + " " + rstate + " e";
+       cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setlvl " + gamds + " " + rstate + " e";
      } else {
        String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setlvl " + rstate + " e";
      }
@@ -2248,7 +2231,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               Map dps = Map.new();
               dps.put("state", "ON");
               Int gamd = Int.new(rstate);
-              //gamd = degamma(gamd);
               dps.put("brightness", gamd);
               String stpp = "homeassistant/light/" + rhanpos + "/state";
               mqtt.publish(stpp, Json:Marshaller.marshall(dps));

@@ -201,7 +201,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         ifEmit(wajv) {
           fields {
             Mqtt mqtt;
-            Bool backgroundPulse = false;
+            Bool backgroundPulse = true;
           }
         }
         super.new();

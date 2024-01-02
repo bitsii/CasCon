@@ -2040,7 +2040,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (itype == "rgbgdim") {
        String lv = halv.get(rhanpos);
        if (TS.isEmpty(lv)) { lv = "255"; }
-       String frgb = rgbForRgbLvl(rgb, lv); //do gamd here
+       Int gamd = Int.new(lv);
+       gamd = gamma(gamd);
+       String gamds = gamd.toString();
+       String frgb = rgbForRgbLvl(rgb, gamds);
        String xd = rgb + "," + lv;
        cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setrgb " + frgb + " " + xd + " e";
      } else {
@@ -2162,7 +2165,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        if (TS.isEmpty(orgb)) {
          orgb = "255,255,255";
        }
-       String frgb = rgbForRgbLvl(orgb, rstate); //do gamd here
+       gamd = Int.new(rstate);
+       gamd = gamma(gamd);
+       gamds = gamd.toString();
+       String frgb = rgbForRgbLvl(orgb, gamds);
        String xd = orgb + "," + rstate;
        cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setrgb " + frgb + " " + xd + " e";
      } else {

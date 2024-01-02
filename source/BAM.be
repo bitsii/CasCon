@@ -1340,6 +1340,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateRgbState(String did, Int dp, String cname) {
      log.log("in updateRgbState " + did + " " + dp);
 
+     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     String ctl = hactls.get(did);
+     auto ctll = ctl.split(",");
+     String itype = ctll.get(dp);
+
      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
      String confs = hadevs.get(did);
@@ -1357,13 +1362,21 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        String sws = haspecs.get(did);
        if (TS.notEmpty(sws) && sws.has("q,")) {
-         cmds = "dostate Q " + dpd + " getrgb e";
+         if (itype == "rgbgdim") {
+           cmds = "getstatexd Q " + dpd + " e";
+         } else {
+           cmds = "dostate Q " + dpd + " getrgb e";
+         }
          log.log("cmds " + cmds);
-         mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 0, "pw", "", "cname", cname, "cmds", cmds);
+         mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
        } else {
-         String cmds = "dostate " + conf["spass"] + " " + dpd + " getrgb e";
+         if (itype == "rgbgdim") {
+           cmds = "getstatexd " + conf["spass"] + " " + dpd + " e";
+         } else {
+          String cmds = "dostate " + conf["spass"] + " " + dpd + " getrgb e";
+         }
          log.log("cmds " + cmds);
-         Map mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "cname", cname, "cmds", cmds);
+         Map mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
 
        ifEmit(wajv) {
@@ -1393,6 +1406,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateRgbStateCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String did = mcmd["did"];
+     String itype = mcmd["itype"];
      Int dp = mcmd["dp"];
      auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
      auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
@@ -1402,6 +1416,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         log.log("got getrgb " + cres);
         unless (cres.has("undefined")) {
           if (cres.has(",")) {
+            if (itype == "rgbgdim") {
+              auto crl = cres.split(",");
+              cres = crl[0] + "," + crl[1] + "," + crl[2];
+              String lv = crl[3];
+              String lvl = halv.get(did + "-" + dp);
+              if (TS.isEmpty(lvl) || lvl != lv) {
+                log.log("got lvl change in rgb update");
+                halv.put(did + "-" + dp, lv);
+                stDiffed = true;
+              }
+            }
             String cset = hargb.get(did + "-" + dp);
             if (TS.isEmpty(cset) || cset.has(",")! || cset != cres) {
               log.log("got rgb update");

@@ -913,7 +913,7 @@ use class IUHub:Eui {
                 lin = lin.swap("FORDIM", "");
               }
               ih += lin;
-            } elseIf (itype == "rgb" || itype == "rgbdim") {
+            } elseIf (itype == "rgb" || itype == "rgbgdim") {
               lin = coli.swap("NAMEOFDEVICE", conf["name"]);
               lin = lin.swap("IDOFDEVICE", conf["id"]);
               lin = lin.swap("POSOFDEVICE", i.toString());
@@ -938,7 +938,7 @@ use class IUHub:Eui {
               } else {
                 lin = lin.swap("DEVICESTATETOG", "");
               }
-              if (itype == "rgbdim") {
+              if (itype == "rgbgdim") {
                 fdg = fordim.swap("IDOFDEVICE", conf["id"]);
                 fdg = fdg.swap("POSOFDEVICE", i.toString());
                 lin = lin.swap("FORDIM", fdg);

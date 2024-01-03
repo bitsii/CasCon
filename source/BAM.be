@@ -201,7 +201,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         ifEmit(wajv) {
           fields {
             Mqtt mqtt;
-            Bool backgroundPulse = true;
+            Bool backgroundPulseOnIdle = false;
+            Bool backgroundPulse = backgroundPulseOnIdle;
           }
         }
         super.new();
@@ -234,9 +235,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       ifEmit(wajv) {
         System:Thread.new(System:Invocation.new(self, "keepMqttUp", List.new())).start();
-        if (backgroundPulse) {
+        //if (backgroundPulse) {
           System:Thread.new(System:Invocation.new(self, "runPulseDevices", List.new())).start();
-        }
+        //}
       }
 
       initializeDiscoveryListener();
@@ -1638,9 +1639,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         while (true) {
           Time:Sleep.sleepMilliseconds(250);
           try {
-            pulseDevices();
+            if (backgroundPulse) {
+              pulseDevices();
+            }
           } catch (any e) {
-            log.elog("except in keepMqttUp");
+            log.elog("except in pulseDevices");
           }
         }
       }

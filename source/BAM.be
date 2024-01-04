@@ -218,7 +218,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         ifEmit(wajv) {
           fields {
             Mqtt mqtt;
-            Bool backgroundPulseOnIdle = false;
+            Bool backgroundPulseOnIdle = true;
             Bool backgroundPulse = backgroundPulseOnIdle;
           }
         }
@@ -1614,6 +1614,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String lastError;
      }
 
+     ifEmit(wajv) {
+      slots {
+        Int pulseCheck = Time:Interval.now().seconds;
+      }
+      if (backgroundPulse) {
+        log.log("disabling backgroundPulse");
+      }
+      backgroundPulse = false;
+     }
+
      if (TS.notEmpty(lastError)) {
        String lastErrorL = lastError;
        lastError = null;
@@ -1659,6 +1669,21 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       ifEmit(wajv) {
         while (true) {
           Time:Sleep.sleepMilliseconds(250);
+          unless(backgroundPulse) {
+            if (undef(pulseCheck)) {
+              if (backgroundPulseOnIdle) {
+                log.log("enabling backgroundPulse");
+                backgroundPulse = backgroundPulseOnIdle;
+              }
+            } else {
+              if (Time:Interval.now().seconds - pulseCheck > 5) {
+                if (backgroundPulseOnIdle) {
+                  log.log("enabling backgroundPulse");
+                  backgroundPulse = backgroundPulseOnIdle;
+                }
+              }
+            }
+          }
           try {
             if (backgroundPulse) {
               pulseDevices();

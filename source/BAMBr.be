@@ -89,7 +89,7 @@ use class IUHub:Eui {
         lastAction = Time:Interval.now().seconds;
       }
       Int ns = Time:Interval.now().seconds;
-      if (ns - lastAction > 600) {
+      if (ns - lastAction > 30) {
         //log.log("lastAction a while ago skipping manageStateUpdatesRequest");
         return(self);
       }

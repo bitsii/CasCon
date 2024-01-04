@@ -149,10 +149,34 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     public static java.util.Hashtable<String, String> knownDevices = new java.util.Hashtable<String, String>();
     public static java.util.Hashtable<String, NsdServiceInfo> resolving = new java.util.Hashtable<String, NsdServiceInfo>();
+    public static volatile NsdServiceInfo nowResolving = null;
+
+    public static void maybeResolve() {
+       if (nowResolving == null && !resolving.isEmpty()) {
+        try {
+          java.util.Collection<NsdServiceInfo> rv = resolving.values();
+          int rnd = new java.util.Random().nextInt(rv.size());
+          java.util.Iterator<NsdServiceInfo> rvi = rv.iterator();
+          NsdServiceInfo rs = null;
+          for (int i = 0;i <= rnd;i++) {
+            rs = rvi.next();
+          }
+          nowResolving = rs;
+          nsdManager.resolveService(rs, new InitializeResolveListener());
+        } catch (ClassCastException cce) {
+          System.out.println("class cast exception in resolving");
+          resolving.clear();
+        }
+      }
+    }
 
     @Override
     public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
       System.out.println("Resolve failed" + errorCode);
+      String sname = serviceInfo.getServiceName();
+      resolving.remove(sname);
+      nowResolving = null;
+      maybeResolve();
     }
 
     @Override
@@ -174,16 +198,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       knownDevices.put(sname, hip);
       resolving.remove(sname);
-      if (!resolving.isEmpty()) {
-        try {
-          NsdServiceInfo[] rs = (NsdServiceInfo[]) resolving.values().toArray();
-          int rnd = new java.util.Random().nextInt(rs.length);
-          nsdManager.resolveService(rs[rnd], new InitializeResolveListener());
-        } catch (ClassCastException cce) {
-          System.out.println("class cast exception in resolving");
-          resolving.clear();
-        }
-      }
+      nowResolving = null;
+      maybeResolve();
     }
   };
 
@@ -197,6 +213,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           any app;
           Map cmdQueues = Map.new();
           CasProt prot = CasProt.new();
+          OLocker discoverNow = OLocker.new(true);
         }
         ifEmit(wajv) {
           fields {
@@ -647,7 +664,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             String kdaddr = InitializeResolveListener.knownDevices.get(beva_kdname.bems_toJvString());
             if (kdaddr != null) {
               bevl_kdaddr =  new $class/Text:String$(kdaddr.getBytes("UTF-8"));
-              InitializeResolveListener.knownDevices.remove(beva_kdname.bems_toJvString());
             }
             """
           }
@@ -663,7 +679,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           haknc.put(kdname, kdaddr);
       }
      }
-     if (TS.notEmpty(kdaddr)) { log.log("got kdaddr " + kdaddr + " for " + kdname); } else { log.log("got no kdaddr for " + kdname); }
+     if (TS.notEmpty(kdaddr)) {
+       log.log("got kdaddr " + kdaddr + " for " + kdname);
+    } else {
+      log.log("got no kdaddr for " + kdname);
+      discoverNow.o = true;
+    }
       return(kdaddr);
     }
 
@@ -831,7 +852,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "resetDeviceCb", "did", did, "kdaddr", kdaddr, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
+     Map mcmd = Maps.from("cb", "resetDeviceCb", "did", did, "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
 
      sendDeviceMcmd(mcmd, 1);
 
@@ -917,7 +938,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "sendDeviceCommandCb", "kdaddr", kdaddr, "pwt", pt, "pw", tp, "cmds", cmds);
+     Map mcmd = Maps.from("cb", "sendDeviceCommandCb", "kdaddr", kdaddr, "kdname", kdname, "pwt", pt, "pw", tp, "cmds", cmds);
 
      sendDeviceMcmd(mcmd, 1);
 
@@ -1096,7 +1117,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String kdaddr = getCashedAddr(kdname);
 
      if (def(kdaddr)) {
-       Map mcmd = Maps.from("cb", "updateSpecCb", "did", did, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "cmds", cmds);
+       Map mcmd = Maps.from("cb", "updateSpecCb", "did", did, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "cmds", cmds);
 
        ifEmit(wajv) {
         if (backgroundPulse) {
@@ -1158,7 +1179,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //String kdaddr = getCashedAddr(kdname);
 
      if (def(kdaddr)) {
-       Map mcmd = Maps.from("cb", "getLastEventsCb", "did", conf["id"], "kdaddr", kdaddr, "pwt", 0, "pw", "", "cmds", cmds);
+       Map mcmd = Maps.from("cb", "getLastEventsCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "cmds", cmds);
 
        ifEmit(wajv) {
          if (backgroundPulse) {
@@ -1275,11 +1296,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        if (TS.notEmpty(sws) && sws.has("q,")) {
          cmds = "dostate Q " + dpd + " getsw e";
          log.log("cmds " + cmds);
-         mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
+         mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
        } else {
          String cmds = "dostate " + conf["spass"] + " " + dpd + " getsw e";
          log.log("cmds " + cmds);
-         Map mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+         Map mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
 
        ifEmit(wajv) {
@@ -1379,7 +1400,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            cmds = "dostate Q " + dpd + " getrgb e";
          }
          log.log("cmds " + cmds);
-         mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
+         mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
        } else {
          if (itype == "rgbgdim") {
            cmds = "getstatexd " + conf["spass"] + " " + dpd + " e";
@@ -1387,7 +1408,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String cmds = "dostate " + conf["spass"] + " " + dpd + " getrgb e";
          }
          log.log("cmds " + cmds);
-         Map mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+         Map mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
 
        ifEmit(wajv) {
@@ -1500,7 +1521,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           cmds = "dostate Q " + dpd + " getlvl e";
          }
          log.log("cmds " + cmds);
-         mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 0, "pw", "", "itype", itype, "itype", itype, "cname", cname, "cmds", cmds);
+         mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "itype", itype, "cname", cname, "cmds", cmds);
        } else {
          if (itype == "gdim") {
            cmds = "getstatexd " + conf["spass"] + " " + dpd + " e";
@@ -1508,7 +1529,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            String cmds = "dostate " + conf["spass"] + " " + dpd + " getlvl e";
          }
          log.log("cmds " + cmds);
-         Map mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+         Map mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
 
        ifEmit(wajv) {
@@ -1779,6 +1800,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           @Override
           public void onDiscoveryStarted(String regType) {
               System.out.println("Service discovery started");
+              InitializeResolveListener.nowResolving = null;
+              InitializeResolveListener.resolving.clear();
+              InitializeResolveListener.maybeResolve();
           }
 
           @Override
@@ -1786,18 +1810,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               // A service was found! Do something with it.
               System.out.println("Service discovery success" + service);
               String sname = service.getServiceName();
-              if (sname != null) {
+              if (sname != null && sname.startsWith("CasNic")) {
                 System.out.println("onServiceFound " + sname);
                 if (!InitializeResolveListener.knownDevices.containsKey(sname)) {
-                  if (InitializeResolveListener.resolving.isEmpty()) {
-                    InitializeResolveListener.resolving.put(sname, service);
-                    nsdManager.resolveService(service, new InitializeResolveListener());
-                  } else {
-                    InitializeResolveListener.resolving.put(sname, service);
-                  }
+                  InitializeResolveListener.resolving.put(sname, service);
+                  InitializeResolveListener.maybeResolve();
                 }
               }
-          }
+            }
 
           @Override
           public void onServiceLost(NsdServiceInfo service) {
@@ -1841,14 +1861,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    pollDiscoveryInnerJvad() {
      while(true) {
-     log.log("start runDiscoveryInner");
-     startDiscovery();
-     log.log("started discovery");
-     Time:Sleep.sleepSeconds(20);
-     log.log("discovery sleep done");
-     stopDiscovery();
-     log.log("stopped discovery");
-     Time:Sleep.sleepSeconds(10);
+      log.log("start runDiscoveryInner");
+      if (discoverNow.o) {
+        startDiscovery();
+        log.log("started discovery");
+        Time:Sleep.sleepSeconds(10);
+        log.log("discovery sleep done");
+        stopDiscovery();
+        log.log("stopped discovery");
+        Time:Sleep.sleepSeconds(10);
+        discoverNow.o = false;
+      } else {
+        Time:Sleep.sleepSeconds(10);
+      }
      }
    }
 
@@ -1858,7 +1883,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        """
        try {
         //multicastLock.acquire();
-        InitializeResolveListener.resolving = new java.util.Hashtable<String, NsdServiceInfo>();
         nsdManager = (NsdManager) be.BEC_3_2_4_10_UIJvAdWebBrowser.MainActivity.appContext.getSystemService(Context.NSD_SERVICE);
         nsdManager.discoverServices(
         "_http._tcp.", NsdManager.PROTOCOL_DNS_SD, discoveryListener);
@@ -1908,7 +1932,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "rectlDeviceCb", "did", conf["id"], "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "cmds", cmds);
+     Map mcmd = Maps.from("cb", "rectlDeviceCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "cmds", cmds);
      sendDeviceMcmd(mcmd, 2);
 
      return(null);
@@ -1973,7 +1997,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "setDeviceSwCb", "did", conf["id"], "rhan", did, "rpos", iposs, "rstate", state, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("cb", "setDeviceSwCb", "did", conf["id"], "rhan", did, "rpos", iposs, "rstate", state, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
      return(mcmd);
 
    }
@@ -2076,7 +2100,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "setDeviceRgbCb", "did", conf["id"], "rhanpos", rhanpos, "rgb", rgb, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("cb", "setDeviceRgbCb", "did", conf["id"], "rhanpos", rhanpos, "rgb", rgb, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
      if (itype == "rgbgdim") {
        mcmd.put("lv", lv);
      }
@@ -2202,7 +2226,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String kdname = "CasNic" + conf["ondid"];
      String kdaddr = getAddrDis(kdname);
 
-     Map mcmd = Maps.from("cb", "setDeviceLvlCb", "did", conf["id"], "rhanpos", rhanpos, "rstate", rstate, "kdaddr", kdaddr, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("cb", "setDeviceLvlCb", "did", conf["id"], "rhanpos", rhanpos, "rstate", rstate, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
 
      return(mcmd);
    }
@@ -2420,39 +2444,50 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      //?failre / timeout callback?
      String kdaddr = mcmd["kdaddr"];
+     String kdname = mcmd["kdname"];
 
      if (mcmd.has("cb")) {
        cmdsFailMcmd = mcmd;
      }
 
+
+     auto haknc = app.kvdbs.get("HAKNC"); //kdname to addr
+     if (TS.notEmpty(kdname)) {
+      log.log("SHOULD NOW EJECT " + kdname);
+      haknc.delete(kdname);
+      if (def(knc)) {
+        knc.delete(kdname);
+      }
+      ifEmit(jvad) {
+        emit(jv) {
+          """
+        InitializeResolveListener.knownDevices.remove(bevl_kdname.bems_toJvString());
+        """
+        }
+      }
+     }
      if (TS.notEmpty(kdaddr)) {
       log.log("SHOULD NOW EJECT " + kdaddr);
       if (def(kac)) {
-          String kdn = kac.get(kdaddr);
-          if (TS.notEmpty(kdn)) {
-            //clear pending
-            for (auto kv in cmdQueues) {
-              Container:LinkedList cmdQueue = kv.value;
-              if (def(cmdQueue)) {
-                for (Map mcmdcl in cmdQueue) {
-                  if (TS.notEmpty(mcmdcl["kdaddr"]) && mcmdcl["kdaddr"] == kdaddr) {
-                    log.log("clearing kdaddr in cmdQueue");
-                    mcmdcl["kdaddr"] = "";
-                  }
-                }
-              }
+        kac.delete(kdaddr);
+      }
+     }
+
+      for (auto kv in cmdQueues) {
+        Container:LinkedList cmdQueue = kv.value;
+        if (def(cmdQueue)) {
+          for (Map mcmdcl in cmdQueue) {
+            if (TS.notEmpty(kdaddr) && TS.notEmpty(mcmdcl["kdaddr"]) && mcmdcl["kdaddr"] == kdaddr) {
+              log.log("clearing kdaddr in cmdQueue");
+              mcmdcl["kdaddr"] = "";
             }
-            String kda = knc.get(kdn);
-            if (TS.notEmpty(kda)) {
-              knc.delete(kdn);
-              auto haknc = app.kvdbs.get("HAKNC"); //kdname to addr
-              haknc.delete(kdn);
+            if (TS.notEmpty(kdname) && TS.notEmpty(mcmdcl["kdname"]) && mcmdcl["kdname"] == kdname) {
+              log.log("clearing kdaddr for kdname in cmdQueue");
+              mcmdcl["kdaddr"] = "";
             }
-            kac.delete(kdaddr);
           }
         }
       }
-      startDiscovery();
    }
 
    sendDeviceMcmd(Map mcmd, Int priority) Bool {
@@ -2693,7 +2728,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      log.log("in getOnWifiRequest " + devPin + " " + devSsid);
 
-     stopDiscovery();
      lastSsids = List.new();
       ifEmit(platDroid) {
       emit(jv) {

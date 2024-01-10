@@ -227,13 +227,66 @@ class CasNic:CasProt {
     }
 
    ifEmit(wajv) {
+     slots {
+       String wajvip;
+     }
+     if (TS.notEmpty(wajvip)) {
+       return(wajvip);
+     }
       auto inter = Net:Interface.interfaceForNetwork(kdaddr);
       if (def(inter)) {
         String addr = inter.address;
         if (TS.notEmpty(addr)) {
           log.log("WAJV ADDR " + addr);
           ip = addr;
+          //wajvip = ip;
         }
+      }
+
+      String sbt = System:Environment.getVar("SUPERVISOR_TOKEN");
+      if (TS.notEmpty(sbt)) {
+        log.log("GOT SBT " + sbt);
+        Web:Client client = Web:Client.new();
+        client.url = "http://supervisor/network/info";
+        client.outputContentType = "application/json";
+
+        client.outputHeaders.put("Authorization", "Bearer " + sbt);
+
+        client.verb = "GET";
+        String res = client.openInput().readString();
+
+        if (TS.notEmpty(res)) {
+          log.log("res is " + res);
+          Map resm = Json:Unmarshaller.unmarshall(res);
+          Map data = resm.get("data");
+          if (def(data)) {
+            log.log("got data");
+            List ifc = data.get("interfaces");
+            if (def(ifc)) {
+              log.log("got interfaces");
+              for (Map ifm in ifc) {
+                if (ifm.has("ipv4")) {
+                  log.log("got ipv4");
+                  Map fer = ifm.get("ipv4");
+                  List addrl = fer.get("address");
+                  if (def(addrl)) {
+                    log.log("got addrl");
+                    log.log(addrl[0]);
+                    auto adll = addrl.get(0).split("/");
+                    String sip = adll.get(0);
+                    ip = sip;
+                    wajvip = ip;
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          log.log("res empty");
+        }
+
+      } else {
+        log.log("NO SBT");
       }
     }
 

@@ -14,7 +14,7 @@ server
 Db:MemFileStoreKeyValue
 --appKvPoolSize
 1
---app.bindAddress
+--webApp.CasCon.app.bindAddress
 127.0.0.1
 --appName
 CasCon
@@ -24,4 +24,3 @@ yes
 CasCon
 --logSinkDir
 Logs
-

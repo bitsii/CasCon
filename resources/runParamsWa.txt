@@ -1,6 +1,8 @@
 --plugin
 App:PublicReadPlugin
 --plugin
+App:AuthPlugin
+--plugin
 BA:EDevPlugin
 --plugin
 BA:BamPlugin

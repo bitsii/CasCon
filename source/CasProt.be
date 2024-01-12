@@ -52,8 +52,24 @@ class CasNic:CasProt {
     slots {
       String jvadCmdsRes;
     }
+    ifEmit(wajv) {
+      slots {
+        String supTok;
+        String supUrl;
+        Bool doSupIp;
+      }
+    }
     log = IO:Logs.get(self);
     IO:Logs.turnOnAll();
+    ifEmit(wajv) {
+      //supTok = System:Environment.getVar("SUPERVISOR_TOKEN"); //inside
+      //supUrl = "http://supervisor"; //inside
+      //doSupIp = true; //inside
+
+      //supTok = ""; //outside
+      //supUrl = "http://supervisor"; //outside
+      doSupIp = false; //really running outside
+    }
   }
 
    processDeviceMcmd(Map mcmd) {
@@ -243,14 +259,14 @@ class CasNic:CasProt {
         }
       }
 
-      String sbt = System:Environment.getVar("SUPERVISOR_TOKEN");
-      if (TS.notEmpty(sbt)) {
-        log.log("GOT SBT " + sbt);
+
+      if (TS.notEmpty(supTok) && TS.notEmpty(supUrl) && doSupIp) {
+        log.log("GOT supTok " + supTok);
         Web:Client client = Web:Client.new();
-        client.url = "http://supervisor/network/info";
+        client.url = supUrl + "/network/info";
         client.outputContentType = "application/json";
 
-        client.outputHeaders.put("Authorization", "Bearer " + sbt);
+        client.outputHeaders.put("Authorization", "Bearer " + supTok);
 
         client.verb = "GET";
         String res = client.openInput().readString();

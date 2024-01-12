@@ -38,9 +38,9 @@ use class IUHub:Eui {
           List callbacks = Lists.from(self); //plugins
           HC hc = HC.new(callbacks);
           Bool authless = true;
-          //ifEmit(bnbr) {
-          //  authless = false;
-          //}
+          ifEmit(bnbr) {
+            authless = false;
+          }
           log.log("authless " + authless);
         }
     }

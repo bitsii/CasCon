@@ -46,6 +46,14 @@ use Time:Interval;
 
 use App:Mqtt;
 
+
+use BAM:BamAuthPlugin;
+
+class BamAuthPlugin(App:AuthPlugin) {
+
+}
+
+
 use class BA:EDevPlugin {
 
      new() self {
@@ -2491,27 +2499,46 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
       }
      }
-     if (TS.notEmpty(kdaddr)) {
-      log.log("SHOULD NOW EJECT " + kdaddr);
-      if (def(kac)) {
-        kac.delete(kdaddr);
-      }
-     }
 
-      for (auto kv in cmdQueues) {
-        Container:LinkedList cmdQueue = kv.value;
+     if (TS.notEmpty(kdaddr)) {
+       log.log("SHOULD NOW EJECT " + kdaddr);
+       if (def(kac)) {
+          String kdn = kac.get(kdaddr);
+          if (TS.notEmpty(kdn)) {
+            //clear pending
+            for (auto kv in cmdQueues) {
+              Container:LinkedList cmdQueue = kv.value;
+              if (def(cmdQueue)) {
+                for (Map mcmdcl in cmdQueue) {
+                  if (TS.notEmpty(mcmdcl["kdaddr"]) && mcmdcl["kdaddr"] == kdaddr) {
+                    log.log("clearing kdaddr in cmdQueue");
+                    mcmdcl["kdaddr"] = "";
+                  }
+                }
+              }
+             }
+            String kda = knc.get(kdn);
+            if (TS.notEmpty(kda)) {
+              knc.delete(kdn);
+              haknc.delete(kdn);
+             }
+            kac.delete(kdaddr);
+           }
+         }
+       }
+
+      if (TS.notEmpty(kdname)) {
+      for (kv in cmdQueues) {
+        cmdQueue = kv.value;
         if (def(cmdQueue)) {
-          for (Map mcmdcl in cmdQueue) {
-            if (TS.notEmpty(kdaddr) && TS.notEmpty(mcmdcl["kdaddr"]) && mcmdcl["kdaddr"] == kdaddr) {
-              log.log("clearing kdaddr in cmdQueue");
-              mcmdcl["kdaddr"] = "";
-            }
-            if (TS.notEmpty(kdname) && TS.notEmpty(mcmdcl["kdname"]) && mcmdcl["kdname"] == kdname) {
+          for (mcmdcl in cmdQueue) {
+            if (TS.notEmpty(mcmdcl["kdname"]) && mcmdcl["kdname"] == kdname) {
               log.log("clearing kdaddr for kdname in cmdQueue");
               mcmdcl["kdaddr"] = "";
             }
           }
         }
+      }
       }
    }
 

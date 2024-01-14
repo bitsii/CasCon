@@ -53,63 +53,6 @@ class BamAuthPlugin(App:AuthPlugin) {
 
 }
 
-
-use class BA:EDevPlugin {
-
-     new() self {
-       fields {
-          any app;
-          IO:Log log;
-          Bool run = true;
-        }
-        super.new();
-        log = IO:Logs.get(self);
-        IO:Logs.turnOnAll();
-     }
-     
-     appSet(any _app) {
-       "in appset".print();
-       app = _app;
-     }
-     
-     
-     start() {
-     
-      //if (Logic:Bools.fromString(app.configManager.get("logs.turnOnAll"))) {
-        IO:Logs.turnOnAll();
-      //}
-      
-      log.log("in edev start");
-      
-      app.configManager;
-      
-    }
-    
-    handleWeb(request) this {
-      
-      request.continueHandling = true;
-    }
-      
-     nameGet() String {
-       String name = "EDev";
-       return(name);
-     }
-     
-     dataNameGet() String {
-       fields {
-        String dataName;
-       }
-       if (undef(dataName)) {
-         dataName = "CasCon";
-         ifEmit(bnbr) {
-          dataName = "KBridge";
-         }
-       }
-       return(dataName);
-     }
-     
-}
-
 emit(jv) {
 """
 import java.io.*;
@@ -3240,7 +3183,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    iosAppStart() {
      "in iosappstart".print();
-     App:AppStart.start(Parameters.new(Lists.from("--plugin", "BA:EDevPlugin", "--plugin", "BA:BamPlugin", "--plugin", "App:ConfigPlugin", "--appPlugin", "CasCon", "--appType", "browser", "--appName", "CasCon", "--sdbClass", "Db:MemFileStoreKeyValue", "--appKvPoolSize", "1")));
+     App:AppStart.start(Parameters.new(Lists.from("--plugin", "BA:BamPlugin", "--plugin", "App:ConfigPlugin", "--appPlugin", "CasCon", "--appType", "browser", "--appName", "CasCon", "--sdbClass", "Db:MemFileStoreKeyValue", "--appKvPoolSize", "1")));
    }
    
 }

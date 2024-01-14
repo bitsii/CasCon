@@ -3,8 +3,6 @@ App:PublicReadPlugin
 --plugin
 BAM:BamAuthPlugin
 --plugin
-BA:EDevPlugin
---plugin
 BA:BamPlugin
 --plugin
 App:ConfigPlugin

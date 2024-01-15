@@ -91,6 +91,29 @@ class BamAuthPlugin(App:AuthPlugin) {
         } catch (any e) {
           log.log("auth call excepted and failed");
         }
+        if (authOk) {
+          Account a = self.accountManager.getAccount(arg["accountName"]);
+          if (def(a)) {
+            log.log("got account");
+            if (a.checkPass(arg["accountPass"])) {
+              log.log("pass good");
+            } else {
+              log.log("pass needs update");
+              a.pass = arg["accountPass"];
+              self.accountManager.putAccount(a);
+            }
+          } else {
+            log.log("no account yet");
+            a = Account.new();
+            a.user = arg["accountName"];
+            a.pass = arg["accountPass"];
+            a.perms.put("admin");
+            request.context.put("account", a);
+            self.accountManager.putAccount(a);
+          }
+        }
+    } else {
+      authOk = true;
     }
     if (authOk) {
       log.log("authOk proceeding");

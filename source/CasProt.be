@@ -63,15 +63,15 @@ class CasNic:CasProt {
     log = IO:Logs.get(self);
     IO:Logs.turnOnAll();
     ifEmit(wajv) {
-      //supTok = System:Environment.getVar("SUPERVISOR_TOKEN"); //inside
-      //supUrl = "http://supervisor"; //inside
-      //doSupIp = true; //inside
-      //doSupAuth = true; //inside
+      supTok = System:Environment.getVar("SUPERVISOR_TOKEN"); //inside
+      supUrl = "http://supervisor"; //inside
+      doSupIp = true; //inside
+      doSupAuth = true; //inside
 
-      supTok = "f4ff4758e1e9aece1787b4b63fd6378d2320b0b799e6d47c9bb0dd49716e963caa4fbf35736348f769ca626a5ba6e0cb33ccb59c4c7dbfb7"; //outside
-      supUrl = "http://192.168.1.182"; //outside
-      doSupIp = false; //really running outside
-      doSupAuth = true; //testing
+      //supTok = "f4ff4758e1e9aece1787b4b63fd6378d2320b0b799e6d47c9bb0dd49716e963caa4fbf35736348f769ca626a5ba6e0cb33ccb59c4c7dbfb7"; //outside
+      //supUrl = "http://192.168.1.182"; //outside
+      //doSupIp = false; //really running outside
+      //doSupAuth = true; //testing
     }
   }
 

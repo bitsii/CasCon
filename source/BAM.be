@@ -51,6 +51,56 @@ use BAM:BamAuthPlugin;
 
 class BamAuthPlugin(App:AuthPlugin) {
 
+  start() {
+    super.start();
+    if (def(app.pluginsByName.get("CasCon"))) {
+      prot = app.pluginsByName.get("CasCon").prot;
+      log.log("GOT PROT");
+    }
+    slots {
+      CasProt prot;
+    }
+  }
+
+  loginRequest(Map arg, request) {
+    //Account a = self.accountManager.getAccount(arg["accountName"]);
+    //a.checkPass(arg["accountPass"])
+    //check pass against ha if present
+    //set pass if it doesn't checkPass (it's changed), or if account missing
+    Bool authOk = false;
+    if (TS.notEmpty(prot.supTok) && TS.notEmpty(prot.supUrl) && prot.doSupAuth) {
+        log.log("GOT supTok " + prot.supTok);
+        Web:Client client = Web:Client.new();
+        client.url = prot.supUrl + "/auth";
+        client.outputContentType = "application/json";
+
+        client.outputHeaders.put("X-Supervisor-Token", prot.supTok);
+        //client.outputHeaders.put("X-Supervisor-Token", "blah");
+
+        client.verb = "POST";
+        String co = Json:Marshaller.marshall(Maps.from("username", arg["accountName"], "password", arg["accountPass"]));
+        log.log("co " + co);
+        client.contentsOut = co;
+        try {
+          String res = client.openInput().readString();
+          log.log("res from auth call" + res);
+          Map resm = Json:Unmarshaller.unmarshall(res);
+          if (TS.notEmpty(resm["result"]) && resm["result"] == "ok") {
+            authOk = true;
+          }
+        } catch (any e) {
+          log.log("auth call excepted and failed");
+        }
+    }
+    if (authOk) {
+      log.log("authOk proceeding");
+      return(super.loginRequest(arg, request));
+    }
+    log.log("not authOk stopping");
+    badLogin(request);
+    return(logoutRequest(arg, request));
+  }
+
 }
 
 emit(jv) {

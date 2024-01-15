@@ -37,6 +37,7 @@ use class IUHub:Eui {
           IO:Log log = IO:Logs.get(self);
           List callbacks = Lists.from(self); //plugins
           HC hc = HC.new(callbacks);
+          loggedIn = false;
           Bool authless = true;
           ifEmit(bnbr) {
             authless = false;
@@ -65,6 +66,9 @@ use class IUHub:Eui {
       fields {
         String pageName = HD.getElementById("pageName").value;
       }
+      HC.pollUI(List.new().addValue("checkCx"), 1500);
+      HC.pollUI(List.new().addValue("checkNexts"), 1000);
+      HC.pollUI(List.new().addValue("manageStateUpdates"), 250);
       if (authless) {
         log.log("doing loggedin b/c authless");
         loggedInResponse(Map.new());
@@ -75,9 +79,6 @@ use class IUHub:Eui {
         arg["action"] = "pageTokenRequest";
         handleCallOut(arg);
       }
-      HC.pollUI(List.new().addValue("checkCx"), 1500);
-      HC.pollUI(List.new().addValue("checkNexts"), 1000);
-      HC.pollUI(List.new().addValue("manageStateUpdates"), 250);
    }
 
    manageStateUpdates() {
@@ -94,10 +95,12 @@ use class IUHub:Eui {
         return(self);
       }
      }
+     unless (loggedIn) { return(self); }
      HC.callApp(Lists.from("manageStateUpdatesRequest"));
    }
 
    checkCx() {
+     unless (loggedIn) { return(self); }
      slots {
        String lastCx;
        //Int lctr;
@@ -167,6 +170,7 @@ use class IUHub:Eui {
       //hideNShowResponse(Sets.from("loginDiv"));
       //hideNShowMenuResponse(Sets.from("loginMe"));
       //HC.callApp(Lists.from("checkAccountsRequest"));
+      loggedIn = false;
       HD.getEle("loginButton").click();
    }
 
@@ -180,6 +184,9 @@ use class IUHub:Eui {
    
    loggedInResponse(Map arg) {
      log.log("logged in res is fl");
+     slots {
+       Bool loggedIn = true;
+     }
      HC.callApp(Lists.from("getDevicesRequest"));
    }
 
@@ -239,7 +246,7 @@ use class IUHub:Eui {
    }
 
    checkNexts() {
-
+    unless (loggedIn) { return(self); }
     slots {
       Int discoCounts;
     }

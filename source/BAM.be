@@ -279,6 +279,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         //if (backgroundPulse) {
           System:Thread.new(System:Invocation.new(self, "runPulseDevices", List.new())).start();
         //}
+        if (prot.doSupUpdate) {
+          System:Thread.new(System:Invocation.new(self, "haDoUp", List.new())).start();
+        }
+
       }
 
       initializeDiscoveryListener();
@@ -289,6 +293,98 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     }
 
+    haDoUp() {
+      ifEmit(wajv) {
+        Int cnt = 0;
+        while (true) {
+          try {
+            haDoUpInner();
+          } catch (any e) {
+            log.elog("except in haDoUp", e);
+          }
+          if (cnt < 6) {
+            Time:Sleep.sleepSeconds(20);
+          } else {
+            cnt = 60;
+            Time:Sleep.sleepSeconds(60);
+          }
+        }
+      }
+    }
+
+    haDoUpInner() {
+      log.log("checking for upver");
+      Bool docu = false;
+
+      if (TS.notEmpty(prot.supTok) && TS.notEmpty(prot.supUrl) && prot.doSupUpdate) {
+        log.log("checking addonvers");
+        Web:Client client = Web:Client.new();
+        client.url = prot.supUrl + "/addons";
+        client.outputContentType = "application/json";
+
+        client.outputHeaders.put("Authorization", "Bearer " + prot.supTok);
+
+        client.verb = "GET";
+        String res = client.openInput().readString();
+
+        if (TS.notEmpty(res)) {
+          //log.log("res is " + res);
+          Map resm = Json:Unmarshaller.unmarshall(res);
+          Map data = resm.get("data");
+          if (def(data)) {
+            log.log("got data");
+            List ads = data.get("addons");
+            if (def(ads)) {
+              log.log("got ads");
+              for (Map ad in ads) {
+                if (TS.notEmpty(ad["slug"]) && ad["slug"].has("casnic")) {
+                  log.log("got casnic ad " + ad["slug"]);
+                  String ver = ad["version"];
+                  String verlat = ad["version_latest"];
+                  if (TS.notEmpty(ver) && TS.notEmpty(verlat)) {
+                    log.log("ver " + ver);
+                    log.log("verlat " + verlat);
+                    String verKnown = app.configManager.get("supUpdate.verk");
+                    if (TS.isEmpty(verKnown)) {
+                      log.log("docu, no verKnown");
+                      docu = true;
+                    } elseIf (verKnown != ver) {
+                      log.log("docu, dif verKnown");
+                      docu = true;
+                    } elseIf (verKnown != verlat) {
+                      log.log("docu, diff verlat");
+                      docu = true;
+                    }
+                    app.configManager.put("supUpdate.verk", ver);
+                    //docu = true;//just for dev
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (docu) {
+        log.log("docu true");
+        Path sp = app.paths.appPath.copy();
+        sp = sp.parent;
+        sp.addStep("CasUpdate.sh");
+        unless (sp.file.exists) {
+          log.log("making casup");
+          IO:Writer sw = sp.file.writer.open();
+          sw.write("#!/bin/bash\n");
+          //sw.write("rm -rf App/CasConOld\n");
+          //sw.write("mv App/CasCon App/CasConOld\n");
+	        sw.write("curl -L -s \"https://github.com/bitsii/beEmb/releases/download/Genned.30/CasCon." + verlat + ".tar.gz\" | tar -C /data/apprun/App -zxpf -\n");
+          sw.write("\n");
+          sw.close();
+        } else {
+          log.log("casup already exists");
+        }
+      }
+    }
+
     keepMqttUp() {
       ifEmit(wajv) {
         while (true) {
@@ -296,7 +392,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           try {
             checkStartMqtt();
           } catch (any e) {
-            log.elog("except in keepMqttUp");
+            log.elog("except in keepMqttUp", e);
           }
         }
       }

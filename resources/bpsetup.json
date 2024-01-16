@@ -1,5 +1,5 @@
 {
-"proxy":{"appPortConf": "webApp.CasCon.app.port", "authenticate", true, "delay": 35},
+"proxy":{"appPortConf": "webApp.CasCon.app.port", "delay": 35},
 "name": "CasCon", "displayName": "Casnic Controller",
 "updateUrl": "https://github.com/bitsii/Bitsii/releases/download/v2/CasConUpdate.txt",
 "build": 7,

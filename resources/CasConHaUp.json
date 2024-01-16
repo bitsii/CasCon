@@ -1,0 +1,16 @@
+{
+   "data" : {
+      "addons" : [
+         {
+           "slug": "casnic",
+           "version" : "1.29.0",
+           "version_latest" : "1.29.0"
+         },
+         {
+           "slug": "yokels",
+           "version" : "9.99.9",
+           "version_latest" : "9.99.9"
+         }
+      ]
+  }
+}

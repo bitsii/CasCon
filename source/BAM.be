@@ -295,19 +295,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     haDoUp() {
       ifEmit(wajv) {
-        Int cnt = 0;
+        //Int cnt = 0;
         while (true) {
           try {
             haDoUpInner();
           } catch (any e) {
             log.elog("except in haDoUp", e);
           }
-          if (cnt < 6) {
-            Time:Sleep.sleepSeconds(20);
-          } else {
-            cnt = 60;
-            Time:Sleep.sleepSeconds(60);
-          }
+          //if (cnt < 6) {
+          //  Time:Sleep.sleepSeconds(20);
+          //} else {
+          //  cnt = 60;
+          //  Time:Sleep.sleepSeconds(60);
+          //}
+          Time:Sleep.sleepSeconds(43200);// every 12 hrs
         }
       }
     }
@@ -319,16 +320,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (TS.notEmpty(prot.supTok) && TS.notEmpty(prot.supUrl) && prot.doSupUpdate) {
         log.log("checking addonvers");
         Web:Client client = Web:Client.new();
-        client.url = prot.supUrl + "/addons";
-        client.outputContentType = "application/json";
 
-        client.outputHeaders.put("Authorization", "Bearer " + prot.supTok);
+        //client.url = prot.supUrl + "/addons";
+        //client.outputContentType = "application/json";
+        //client.outputHeaders.put("Authorization", "Bearer " + prot.supTok);
 
+        client.url = "https://github.com/bitsii/beEmb/releases/download/Genned.30/CasConHaUp.json";
         client.verb = "GET";
         String res = client.openInput().readString();
 
         if (TS.notEmpty(res)) {
-          //log.log("res is " + res);
+          log.log("res is " + res);
           Map resm = Json:Unmarshaller.unmarshall(res);
           Map data = resm.get("data");
           if (def(data)) {
@@ -362,6 +364,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               }
             }
           }
+        } else {
+          log.log("no res from casconhaup");
         }
       }
 

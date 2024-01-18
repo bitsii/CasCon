@@ -59,6 +59,7 @@ class CasNic:CasProt {
         Bool doSupIp;
         Bool doSupAuth;
         Bool doSupUpdate;
+        Bool doGetMqtt;
       }
     }
     log = IO:Logs.get(self);
@@ -70,12 +71,14 @@ class CasNic:CasProt {
       doSupIp = true; //inside
       doSupAuth = true; //inside
       doSupUpdate = true;
+      doGetMqtt = true;
 
       //supTok = "f4ff4758e1e9aece1787b4b63fd6378d2320b0b799e6d47c9bb0dd49716e963caa4fbf35736348f769ca626a5ba6e0cb33ccb59c4c7dbfb7"; //outside
       //supUrl = "http://192.168.1.182"; //outside
       //doSupIp = false; //really running outside
       //doSupAuth = true; //testing
       //doSupUpdate = true;
+      //doGetMqtt = true;
 
     }
   }

@@ -414,6 +414,32 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String mqttBroker = app.configManager.get("mqtt.broker");
           String mqttUser = app.configManager.get("mqtt.user");
           String mqttPass = app.configManager.get("mqtt.pass");
+          if (TS.isEmpty(mqttBroker) || TS.isEmpty(mqttUser) || TS.isEmpty(mqttPass)) {
+            if (TS.notEmpty(prot.supTok) && TS.notEmpty(prot.supUrl) && prot.doSupAuth) {
+              log.log("GOT supTok " + prot.supTok);
+              Web:Client client = Web:Client.new();
+              client.url = prot.supUrl + "/services/mqtt";
+              client.outputContentType = "application/json";
+
+              client.outputHeaders.put("Authorization", "Bearer " + prot.supTok);
+
+              client.verb = "GET";
+              String res = client.openInput().readString();
+              if (TS.notEmpty(res)) {
+                log.log("mqtt ha get conn res " + res);
+                Map resm = Json:Unmarshaller.unmarshall(res);
+                Map data = resm.get("data");
+                if (def(data)) {
+                  log.log("got data");
+                  mqttUser = data["username"];
+                  mqttPass = data["password"];
+                  mqttBroker = "tcp://" + data["host"] + ":" + data["port"];
+                }
+              } else {
+                log.log("mqtt ha get conn res empty");
+              }
+            }
+          }
           if (TS.notEmpty(mqttBroker) && TS.notEmpty(mqttUser) && TS.notEmpty(mqttPass)) {
             initializeMqtt(mqttBroker, mqttUser, mqttPass);
           }
@@ -534,6 +560,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   }
                 }
                 String rgb = hargb.get(did + "-" + i);
+                if (TS.isEmpty(rgb)) {
+                  rgb = "255,255,255";
+                }
                 auto rgbl = rgb.split(",");
                 Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
                 dps.put("color", rgbm);

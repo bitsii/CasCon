@@ -2343,12 +2343,97 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      log.log("in setDeviceTempRequest " + rhanpos + " " + rstate);
 
      //not checking user rn
-     /*Map mcmd = setDeviceTempMcmd(rhanpos, rstate);
+     Map mcmd = setDeviceTempMcmd(rhanpos, rstate);
      if (sendDeviceMcmd(mcmd, 0)!) {
        if (def(request)) {
          return(CallBackUI.showDevErrorResponse());
        }
-     }*/
+     }
+     return(null);
+   }
+
+   setDeviceTempMcmd(String rhanpos, String rstate) Map {
+
+     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
+     auto hacct = app.kvdbs.get("HACCT"); //hargb - device id to rgb
+
+     auto rhp = rhanpos.split("-");
+     String rhan = rhp.get(0);
+
+     Int rpos = Int.new(rhp.get(1));
+
+     String ctl = hactls.get(rhan);
+     auto ctll = ctl.split(",");
+     String itype = ctll.get(rpos);
+
+     rpos--=;
+
+     String confs = hadevs.get(rhan);
+     Map conf = Json:Unmarshaller.unmarshall(confs);
+
+     Int rsi = Int.new(rstate);
+     //higher value more warm
+     //first value is cold, second is warm
+
+     //right in middle is 255,255
+     //at first quartile 255, 255-128
+     //at third quartile 255-128, 255
+     //at left 255,0
+     //at right 0,255
+
+     if (rsi == 127) {
+       Int c = 255;
+       Int w = 255;
+     } elseIf (rsi < 127) {
+       c = 255;
+       w = rsi;
+     } elseIf (rsi > 127) {
+       c = 255 - rsi;
+       w = 255;
+     }
+
+     String ocw = c.toString() + "," + w.toString();
+
+     if (itype == "cctsgdim") {
+       String lv = halv.get(rhanpos);
+       if (TS.isEmpty(lv)) { lv = "255"; }
+       Int gamd = Int.new(lv);
+       gamd = gamma(gamd);
+       String gamds = gamd.toString();
+       String fcw = cwForCwLvl(ocw, gamds);
+       String xd = ocw + "," + lv;
+       String cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setcw " + fcw + " " + xd + " e";
+     }
+     log.log("cmds " + cmds);
+
+     //getting the name
+     String kdname = "CasNic" + conf["ondid"];
+     String kdaddr = getAddrDis(kdname);
+
+     Map mcmd = Maps.from("cb", "setDeviceTempCb", "did", conf["id"], "rhanpos", rhanpos, "ocw", ocw, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+
+     return(mcmd);
+   }
+
+   setDeviceTempCb(Map mcmd, request) Map {
+     String cres = mcmd["cres"];
+     String rhanpos = mcmd["rhanpos"];
+     String ocw = mcmd["ocw"];
+     String itype = mcmd["itype"];
+     auto hacct = app.kvdbs.get("HACCT"); //hargb - device id to rgb
+     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     if (TS.notEmpty(cres) && cres.has("ok")) {
+       //Map tb = trueRgb(rgb);
+       //rgb = "" + tb["r"] + "," + tb["g"] + "," + tb["b"];
+       log.log("hacct putting " + rhanpos + " " + ocw);
+       hacct.put(rhanpos, ocw);
+       hasw.put(rhanpos, "on");
+     }
+     stDiffed = true;
      return(null);
    }
 

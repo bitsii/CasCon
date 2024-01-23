@@ -2376,6 +2376,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
      auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
      auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
+     auto hacct = app.kvdbs.get("HACCT"); //hargb - device id to rgb
 
      auto rhp = rhanpos.split("-");
      String rhan = rhp.get(0);
@@ -2408,6 +2409,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String frgb = rgbForRgbLvl(orgb, gamds);
        String xd = orgb + "," + rstate;
        cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setrgb " + frgb + " " + xd + " e";
+     } elseIf (itype == "cctsgdim") {
+       String ocw = hacct.get(rhanpos);
+       if (TS.isEmpty(ocw)) {
+         ocw = "255,255";
+       }
+       gamd = Int.new(rstate);
+       gamd = gamma(gamd);
+       gamds = gamd.toString();
+       String fcw = cwForCwLvl(ocw, gamds);
+       xd = ocw + "," + rstate;
+       cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setcw " + fcw + " " + xd + " e";
      } else {
        String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setlvl " + rstate + " e";
      }
@@ -2492,6 +2504,29 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      b = bf.toInt();
      log.log("adjusted rgb " + r + "," + g + "," + b);
      return(r.toString() + "," + g.toString() + "," + b.toString());
+   }
+
+   cwForCwLvl(String cw, String lvl) {
+     log.log("in cwForCwLvl");
+     log.log("cw " + cw);
+     log.log("lvl " + lvl);
+     //c and w scaled to lvl/255
+     Float tff = Float.intNew(255);
+     auto cwl = cw.split(",");
+     Int c = Int.new(cwl[0]);
+     Int w = Int.new(cwl[1]);
+     Float cf = Float.intNew(c);
+     Float wf = Float.intNew(w);
+     Int l = Int.new(lvl);
+     Float lf = Float.intNew(l);
+     Float mpl = lf / tff;
+     Float fcf = cf * mpl;
+     Float fwf = wf * mpl;
+     Int fc = fcf.toInt();
+     Int fw = fwf.toInt();
+     if (fc < 1 && c > 0) { fc = 1; }
+     if (fw < 1 && w > 0) { fw = 1; }
+     return(fc.toString() + "," + fw.toString());
    }
 
    setDeviceLvlCb(Map mcmd, request) Map {

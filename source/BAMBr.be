@@ -688,6 +688,35 @@ use class IUHub:Eui {
      HC.callApp(Lists.from("setDeviceLvlRequest", dname + "-" + pos, statet.toString()));
    }*/
 
+   tempChanged(Int value) {
+     log.log("temp changed " + value);
+     if (def(currTemp) && currTemp == value) {
+       "not really is curr temp".print();
+     } else {
+       currTemp = value;
+       HD.getEle("hat" + setTempDid + "-" + setTempPos).checked = true;
+       HD.getEle("devErr").display = "none";
+       HC.callApp(Lists.from("setDeviceTempRequest", setTempDid + "-" + setTempPos, currTemp.toString()));
+     }
+   }
+
+   setForTemp(String did, String pos) {
+     log.log("in setForTemp " + did + " " + pos);
+     String temp = temps.get(did + "-" + pos);
+     if (TS.notEmpty(temp)) {
+       log.log("temp " + temp);
+     } else {
+       log.log("no temp");
+       temp = "255";
+     }
+     slots {
+        Int currTemp = Int.new(temp);
+        Bool setCurrTemp = true;
+        String setTempDid = did;
+        String setTempPos = pos;
+     }
+   }
+
    brightChanged(Int value) {
      log.log("bright changed " + value);
      if (def(currLvl) && currLvl == value) {
@@ -836,6 +865,7 @@ use class IUHub:Eui {
      slots {
        Map devCtls = ctls;
        Map levels = _levels;
+       Map temps = Map.new();
        Map rgbs = _rgbs;
      }
      if (nsecs > 0) {
@@ -877,6 +907,24 @@ use class IUHub:Eui {
            <div class="item-title" style="width:150px;"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
            <div class="item-after">
            <a href="#" onclick="callUI('setForColor', 'IDOFDEVICE', 'POSOFDEVICE');return false;" class="col button"><i class="icon f7-icons">color_filter</i></a>
+           </div>
+           FORDIM
+            <div class="item-after">
+             <label class="toggle">
+               <input type="checkbox" onclick="callUI('checkToggled', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
+               <span class="toggle-icon"></span>
+             </label>
+           </div>
+         </div>
+       </li>
+       ''';
+
+       String ccti = '''
+       <li class="item-content">
+         <div class="item-inner">
+           <div class="item-title" style="width:150px;"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
+           <div class="item-after">
+           <a href="#" data-popup="#settemp" onclick="callUI('setForTemp', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">fire</i></a>
            </div>
            FORDIM
             <div class="item-after">
@@ -952,6 +1000,20 @@ use class IUHub:Eui {
               } else {
                 lin = lin.swap("FORDIM", "");
               }
+              ih += lin;
+            } elseIf (itype == "cctsgdim") {
+              lin = ccti.swap("NAMEOFDEVICE", conf["name"]);
+              lin = lin.swap("IDOFDEVICE", conf["id"]);
+              lin = lin.swap("POSOFDEVICE", i.toString());
+              st = states.get(ds.key + "-" + i);
+              if (TS.notEmpty(st) && st == "on") {
+                lin = lin.swap("DEVICESTATETOG", "checked");
+              } else {
+                lin = lin.swap("DEVICESTATETOG", "");
+              }
+              fdg = fordim.swap("IDOFDEVICE", conf["id"]);
+              fdg = fdg.swap("POSOFDEVICE", i.toString());
+              lin = lin.swap("FORDIM", fdg);
               ih += lin;
             }
          }

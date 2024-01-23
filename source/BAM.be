@@ -2339,6 +2339,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
+   setDeviceTempRequest(String rhanpos, String rstate, request) Map {
+     log.log("in setDeviceTempRequest " + rhanpos + " " + rstate);
+
+     //not checking user rn
+     /*Map mcmd = setDeviceTempMcmd(rhanpos, rstate);
+     if (sendDeviceMcmd(mcmd, 0)!) {
+       if (def(request)) {
+         return(CallBackUI.showDevErrorResponse());
+       }
+     }*/
+     return(null);
+   }
+
    gamma(Int start) Int {
      //start^2/255
      //if (true) { return(start); }

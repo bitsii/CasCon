@@ -34,6 +34,13 @@
      //console.log(range.detail.value);
      callUI('brightChanged', range.detail.value);
   }
+  var onTempChanged = function(range) {
+     //console.log("bright change");
+     //console.log(range);
+     //console.log(range.detail.inputEl.id);
+     //console.log(range.detail.value);
+     callUI('tempChanged', range.detail.value);
+  }
   </script>
 
 </head>
@@ -209,6 +216,37 @@
       <div class="item-cell width-auto flex-shrink-0">
         <i class="icon f7-icons if-not-md">circle_half</i>
         <i class="icon material-icons md-only">brightness_high</i>
+      </div>
+    </li>
+  </ul>
+</div>
+</f7-page>
+        </f7-view>
+      </f7-popup>
+
+      <!-- Popup -->
+      <f7-popup id="settemp">
+        <f7-view>
+          <f7-page>
+            <f7-navbar title="Temperature">
+              <f7-nav-right>
+                <f7-link popup-close>Done</f7-link>
+              </f7-nav-right>
+            </f7-navbar>
+      <div class="list simple-list">
+  <ul>
+    <li>
+      <div class="item-cell width-auto flex-shrink-0">
+        <i class="icon f7-icons">waterdrop</i>
+      </div>
+      <div class="item-cell flex-shrink-3">
+        <!-- range slider, enable labels -->
+        <div id="bsideRange" class="range-slider range-slider-init" @range:changed="onTempChanged" data-label="true">
+          <input id="setTempSlide" type="range" min="1" max="255" step="1" value="50">
+        </div>
+      </div>
+      <div class="item-cell width-auto flex-shrink-0">
+        <i class="icon f7-icons">fire</i>
       </div>
     </li>
   </ul>

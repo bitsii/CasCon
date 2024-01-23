@@ -2404,7 +2404,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        Int gamd = Int.new(lv);
        gamd = gamma(gamd);
        String gamds = gamd.toString();
+       log.log("ocw " + ocw);
        String fcw = cwForCwLvl(ocw, gamds);
+       log.log("fcw " + fcw);
        String xd = ocw + "," + lv;
        String cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setcw " + fcw + " " + xd + " e";
      }

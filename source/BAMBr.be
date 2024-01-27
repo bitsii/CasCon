@@ -366,6 +366,29 @@ use class IUHub:Eui {
        }
      }
 
+     auto ts = HD.getEle("setTempSlide");
+     if (ts.exists) {
+       if (def(setCurrTemp) && setCurrTemp && def(currTemp)) {
+         log.log("setting currTemp");
+         setCurrTemp = false;
+         Int tmli = currTemp;
+         emit(js) {
+           """
+           /*-attr- -noreplace-*/
+           //console.log(vapp);
+           //console.log(vapp.$f7);
+           //var range = vapp.$f7.range.get('.range-slider');
+           var range = vapp.$f7.range.get('#btempRange');
+           //console.log("rv");
+           //console.log(range.value);
+           //console.log(range.setValue(5));
+           //console.log(range.getValue());
+           range.setValue(bevl_tmli.bevi_int);
+           """
+         }
+       }
+     }
+
      unless (ndb.exists || sde.exists) {
        if (TS.notEmpty(lastCx)) {
          HD.getEle("openSettings").click();
@@ -702,15 +725,16 @@ use class IUHub:Eui {
 
    setForTemp(String did, String pos) {
      log.log("in setForTemp " + did + " " + pos);
-     String temp = temps.get(did + "-" + pos);
-     if (TS.notEmpty(temp)) {
-       log.log("temp " + temp);
+     String cw = cws.get(did + "-" + pos);
+     if (TS.notEmpty(cw)) {
+       log.log("cw " + cw);
      } else {
-       log.log("no temp");
-       temp = "255";
+       log.log("no cw");
+       cw = "255,255";
      }
      slots {
-        Int currTemp = Int.new(temp);
+        //Int currTemp = Int.new(cwsv);
+        Int currTemp = 127;
         Bool setCurrTemp = true;
         String setTempDid = did;
         String setTempPos = pos;
@@ -860,13 +884,13 @@ use class IUHub:Eui {
      }
    }
    
-   getDevicesResponse(Map devices, Map ctls, Map states, Map _levels, Map _rgbs, Int nsecs) {
+   getDevicesResponse(Map devices, Map ctls, Map states, Map _levels, Map _rgbs, Map _cws, Int nsecs) {
      log.log("in getDevicesResponse");
      slots {
        Map devCtls = ctls;
        Map levels = _levels;
-       Map temps = Map.new();
        Map rgbs = _rgbs;
+       Map cws = _cws;
      }
      if (nsecs > 0) {
        nextInform = Interval.new(nsecs, 0);

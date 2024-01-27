@@ -1207,12 +1207,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
      auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
+     auto hacw = app.kvdbs.get("HACW");
      auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
      Map devices = Map.new();
      Map ctls = Map.new();
      Map states = Map.new();
      Map levels = Map.new();
      Map rgbs = Map.new();
+     Map cws = Map.new();
      for (any kv in haowns.getMap(uhex + ".")) {
        String did = kv.value;
        String confs = hadevs.get(did);
@@ -1243,6 +1245,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             log.log("got rgb " + rgb);
             rgbs.put(did + "-" + i, rgb);
           }
+          log.log("getting cw for " + did + "-" + i);
+          String cw = hacw.get(did + "-" + i);
+          if (TS.notEmpty(cw)) {
+            log.log("got cw " + cw);
+            cws.put(did + "-" + i, cw);
+          }
         }
        }
      }
@@ -1251,7 +1259,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      } else {
        nsecs = 0;
      }
-     return(CallBackUI.getDevicesResponse(devices, ctls, states, levels, rgbs, nsecs));
+     return(CallBackUI.getDevicesResponse(devices, ctls, states, levels, rgbs, cws, nsecs));
    }
 
    updateSpec(String did) {

@@ -2270,14 +2270,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String xd = rgb + "," + lv;
        if (itype == "rgbcwgd") {
          if (frgb == "255,255,255") {
-           frgb += ",255,0";
+           String cw = "255,0";
          } else {
-           frgb += ",255,255";
-         }
-         String cw = hacw.get(rhanpos);
-         if (TS.isEmpty(cw)) {
            cw = "255,255";
          }
+         frgb += "," += cw;
          xd += "," += cw;
          String setcmd = " setrgbcw ";
        } else {
@@ -2316,12 +2313,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String itype = mcmd["itype"];
      auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
      auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     auto hacw = app.kvdbs.get("HACW");
      if (TS.notEmpty(cres) && cres.has("ok")) {
        //Map tb = trueRgb(rgb);
        //rgb = "" + tb["r"] + "," + tb["g"] + "," + tb["b"];
        log.log("hargb putting " + rhanpos + " " + rgb);
        hargb.put(rhanpos, rgb);
        hasw.put(rhanpos, "on");
+       if (TS.notEmpty(mcmd["cw"])) {
+         hacw.put(rhanpos, mcmd["cw"]);
+       }
        ifEmit(wajv) {
         if (def(mqtt)) {
           if (TS.notEmpty(itype)) {
@@ -2346,19 +2347,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
      }
      stDiffed = true;
-     return(null);
-   }
-
-   setDeviceLvlRequest(String rhanpos, String rstate, request) Map {
-     log.log("in setDeviceLvlRequest " + rhanpos + " " + rstate);
-
-     //not checking user rn
-     Map mcmd = setDeviceLvlMcmd(rhanpos, rstate);
-     if (sendDeviceMcmd(mcmd, 0)!) {
-       if (def(request)) {
-         return(CallBackUI.showDevErrorResponse());
-       }
-     }
      return(null);
    }
 
@@ -2432,11 +2420,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        log.log("ocw " + ocw);
        String fcw = cwForCwLvl(ocw, gamds);
        if (itype == "rgbcwgd") {
-         fcw = "255,255,255," + fcw;
-         String orgb = hargb.get(rhanpos);
-         if (TS.isEmpty(orgb)) {
-           orgb = "255,255,255";
-         }
+         String orgb = "255,255,255";
+         fcw = orgb + "," + fcw;
          String xd = orgb + "," + lv + "," + ocw;
          String setcmd = " setrgbcw ";
        } else {
@@ -2452,7 +2437,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String kdname = "CasNic" + conf["ondid"];
      String kdaddr = getAddrDis(kdname);
 
-     Map mcmd = Maps.from("cb", "setDeviceTempCb", "did", conf["id"], "rhanpos", rhanpos, "ocw", ocw, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("cb", "setDeviceTempCb", "did", conf["id"], "rhanpos", rhanpos, "cw", ocw, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+     if (itype == "rgbcwgd") {
+       mcmd.put("rgb", orgb);
+     }
 
      return(mcmd);
    }
@@ -2460,16 +2448,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    setDeviceTempCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String rhanpos = mcmd["rhanpos"];
-     String ocw = mcmd["ocw"];
+     String cw = mcmd["cw"];
      String itype = mcmd["itype"];
      auto hacw = app.kvdbs.get("HACW"); //hargb - device id to rgb
      auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
      if (TS.notEmpty(cres) && cres.has("ok")) {
        //Map tb = trueRgb(rgb);
        //rgb = "" + tb["r"] + "," + tb["g"] + "," + tb["b"];
-       log.log("hacw putting " + rhanpos + " " + ocw);
-       hacw.put(rhanpos, ocw);
+       log.log("hacw putting " + rhanpos + " " + cw);
+       hacw.put(rhanpos, cw);
        hasw.put(rhanpos, "on");
+       if (TS.notEmpty(mcmd["rgb"])) {
+         hargb.put(rhanpos, mcmd["rgb"]);
+       }
      }
      stDiffed = true;
      return(null);
@@ -2490,6 +2482,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      log.log("gamma got " + res + " for " + start);
      return(res);
+   }
+
+   setDeviceLvlRequest(String rhanpos, String rstate, request) Map {
+     log.log("in setDeviceLvlRequest " + rhanpos + " " + rstate);
+
+     //not checking user rn
+     Map mcmd = setDeviceLvlMcmd(rhanpos, rstate);
+     if (sendDeviceMcmd(mcmd, 0)!) {
+       if (def(request)) {
+         return(CallBackUI.showDevErrorResponse());
+       }
+     }
+     return(null);
    }
 
    setDeviceLvlMcmd(String rhanpos, String rstate) Map {
@@ -2529,18 +2534,36 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        gamd = Int.new(rstate);
        gamd = gamma(gamd);
        gamds = gamd.toString();
-       String frgb = rgbForRgbLvl(orgb, gamds);
-       String xd = orgb + "," + rstate;
-       cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setrgb " + frgb + " " + xd + " e";
+       if (itype == "rgbcwgd") {
+         if (orgb == "255,255,255") {
+           String ocw = hacw.get(rhanpos);
+           if (TS.isEmpty(ocw)) {
+             ocw = "255,255";
+           }
+           String fcw = cwForCwLvl(ocw, gamds);
+           String frgb = orgb + "," + fcw;
+           xd = orgb + "," + rstate + "," + ocw;
+         } else {
+           ocw = "255,255";
+           frgb = rgbForRgbLvl(orgb, gamds);
+           frgb += "," + ocw;
+           xd = orgb + "," + rstate + "," + ocw;
+         }
+         cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setrgbcw " + frgb + " " + xd + " e";
+       } else {
+        frgb = rgbForRgbLvl(orgb, gamds);
+        String xd = orgb + "," + rstate;
+        cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setrgb " + frgb + " " + xd + " e";
+       }
      } elseIf (itype == "cwgd") {
-       String ocw = hacw.get(rhanpos);
+       ocw = hacw.get(rhanpos);
        if (TS.isEmpty(ocw)) {
          ocw = "255,255";
        }
        gamd = Int.new(rstate);
        gamd = gamma(gamd);
        gamds = gamd.toString();
-       String fcw = cwForCwLvl(ocw, gamds);
+       fcw = cwForCwLvl(ocw, gamds);
        xd = ocw + "," + rstate;
        cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setcw " + fcw + " " + xd + " e";
      } else {

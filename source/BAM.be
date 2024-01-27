@@ -1249,7 +1249,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String cw = hacw.get(did + "-" + i);
           if (TS.notEmpty(cw)) {
             log.log("got cw " + cw);
-            cws.put(did + "-" + i, cw);
+            cws.put(did + "-" + i, cwToCwv(cw));
           }
         }
        }
@@ -1260,6 +1260,38 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        nsecs = 0;
      }
      return(CallBackUI.getDevicesResponse(devices, ctls, states, levels, rgbs, cws, nsecs));
+   }
+
+   cwToCwv(String cw) {
+     log.log("cwToCwv got " + cw);
+     auto ctll = cw.split(",");
+     Int cvi = Int.new(ctll[0]);
+     Int wvi = Int.new(ctll[1]);
+     if (cvi == 255 && wvi < 255 && wvi >= 0) {
+       cwi = wvi / 2;
+     } elseIf (wvi == 255 && cvi < 255 && cvi >= 0) {
+       Int cvid = cvi / 2;
+       cwi = cvid + 127;
+     } else {
+       //resume both 255
+       Int cwi = 127;
+     }
+
+     /*if (rsi == 127) {
+       Int c = 255;
+       Int w = 255;
+     } elseIf (rsi < 127) {
+       c = 255;
+       w = rsi * 2; //127 == 254, 120 == 240, 64 == 128, 32 == 64, 16 == 8, 8 == 16, 4 == 8
+     } elseIf (rsi > 127) {
+       //254 == 2, 128 == 254, 134 == 240,
+       rsii = rsi - 127;//128 == 127, 127+7=134,255-134=121,127+64= 255-251=4
+       c = rsii * 2; //127 == 254, 121 == 242, 64 == 128, 32 == 64
+       w = 255;
+     }*/
+
+     log.log("cwToCwv returning " + cwi);
+     return(cwi.toString());
    }
 
    updateSpec(String did) {
@@ -2412,7 +2444,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        w = rsi * 2; //127 == 254, 120 == 240, 64 == 128, 32 == 64, 16 == 8, 8 == 16, 4 == 8
      } elseIf (rsi > 127) {
        //254 == 2, 128 == 254, 134 == 240,
-       Int rsii = 255 - rsi;//128 == 127, 127+7=134,255-134=121,127+64= 255-251=4
+       Int rsii = rsi - 127;//128 == 127, 127+7=134,255-134=121,127+64= 255-251=4
        c = rsii * 2; //127 == 254, 121 == 242, 64 == 128, 32 == 64
        w = 255;
      }

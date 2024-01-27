@@ -730,11 +730,10 @@ use class IUHub:Eui {
        log.log("cw " + cw);
      } else {
        log.log("no cw");
-       cw = "255,255";
+       cw = "127";
      }
      slots {
-        //Int currTemp = Int.new(cwsv);
-        Int currTemp = 127;
+        Int currTemp = Int.new(cw);
         Bool setCurrTemp = true;
         String setTempDid = did;
         String setTempPos = pos;

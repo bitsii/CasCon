@@ -534,11 +534,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   dps.put("brightness", gamd);
                 }
                 topubs.put(tpp + "/state", Json:Marshaller.marshall(dps));
-              } elseIf (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd") {
+              } elseIf (itype == "rgb" || itype == "rgbgdim") {
                 tpp = "homeassistant/light/" + did + "-" + i;
                 cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i, "schema", "json", "brightness", false, "rgb", true, "color_temp", false);
                 //optimistic, false
-                if (itype == "rgbgdim" || itype == "rgbcwgd") {
+                if (itype == "rgbgdim") {
                   cf.put("brightness", true);
                   cf.put("brightness_scale", 255);
                 }
@@ -553,7 +553,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 } else {
                   dps.put("state", "OFF");
                 }
-                if (itype == "rgbgdim" || itype == "rgbcwgd") {
+                if (itype == "rgbgdim") {
                   lv = halv.get(did + "-" + i);
                   if (TS.notEmpty(lv)) {
                     dps.put("brightness", Int.new(lv));
@@ -1507,7 +1507,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                     dps.put("state", cres.upper());
                     stpp = "homeassistant/light/" + did + "-" + dp + "/state";
                     mqtt.publish(stpp, Json:Marshaller.marshall(dps));
-                  } elseIf (itype == "rgbgdim" || itype == "rgbcwgd") {
+                  } elseIf (itype == "rgbgdim") {
                     dps = Map.new();
                     dps.put("state", cres.upper());
                     stpp = "homeassistant/light/" + did + "-" + dp + "/state";
@@ -1596,6 +1596,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
      auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     auto hacw = app.kvdbs.get("HACW");
 
      if (TS.notEmpty(cres)) {
         log.log("got getrgb " + cres);
@@ -1610,6 +1611,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 log.log("got lvl change in rgb update");
                 halv.put(did + "-" + dp, lv);
                 stDiffed = true;
+              }
+              if (itype == "rgbcwgd") {
+                String cw = crl[4] + "," + crl[5];
+                String ocw = hacw.get(did + "-" + dp);
+                if (TS.isEmpty(ocw) || ocw != cw) {
+                  log.log("got cw change in rgb update");
+                  hacw.put(did + "-" + dp, cw);
+                  stDiffed = true;
+                }
               }
             }
             String cset = hargb.get(did + "-" + dp);
@@ -1627,7 +1637,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 } else {
                   dps.put("state", "OFF");
                 }
-                if (itype == "rgbgdim" || itype == "rgbcwgd") {
+                if (itype == "rgbgdim") {
                   dps.put("brightness", Int.new(lv));
                 }
                 auto rgbl = cres.split(",");
@@ -1905,18 +1915,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 auto ks = k.split(",");
                 if (ks[0] == "sw") {
                   updateSwState(ks[1], Int.new(ks[2]), ks[0]);
-                } elseIf (ks[0] == "dim") {
-                  updateSwState(ks[1], Int.new(ks[2]), ks[0]);
-                  updateLvlState(ks[1], Int.new(ks[2]), ks[0]);
-                } elseIf (ks[0] == "gdim") {
+                } elseIf (ks[0] == "dim" || ks[0] == "gdim") {
                   updateSwState(ks[1], Int.new(ks[2]), ks[0]);
                   updateLvlState(ks[1], Int.new(ks[2]), ks[0]);
                 } elseIf (ks[0] == "pwm") {
                   updateLvlState(ks[1], Int.new(ks[2]), ks[0]);
-                } elseIf (ks[0] == "rgb") {
-                  updateSwState(ks[1], Int.new(ks[2]), ks[0]);
-                  updateRgbState(ks[1], Int.new(ks[2]), ks[0]);
-                } elseIf (ks[0] == "rgbgdim") {
+                } elseIf (ks[0] == "rgb" || ks[0] == "rgbgdim" || ks[0] == "rgbcwgd") {
                   updateSwState(ks[1], Int.new(ks[2]), ks[0]);
                   updateRgbState(ks[1], Int.new(ks[2]), ks[0]);
                 }
@@ -2205,7 +2209,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               dps.put("state", rstate.upper());
               stpp = "homeassistant/light/" + rhan + "-" + rpos + "/state";
               mqtt.publish(stpp, Json:Marshaller.marshall(dps));
-            } elseIf (itype == "rgbgdim" || itype == "rgbcwgd") {
+            } elseIf (itype == "rgbgdim") {
               dps = Map.new();
               dps.put("state", rstate.upper());
               stpp = "homeassistant/light/" + rhan + "-" + rpos + "/state";
@@ -2239,6 +2243,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
      auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     auto hacw = app.kvdbs.get("HACW");
      auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
 
      auto rhp = rhanpos.split("-");
@@ -2263,7 +2268,22 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String gamds = gamd.toString();
        String frgb = rgbForRgbLvl(rgb, gamds);
        String xd = rgb + "," + lv;
-       cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setrgb " + frgb + " " + xd + " e";
+       if (itype == "rgbcwgd") {
+         if (frgb == "255,255,255") {
+           frgb += ",255,0";
+         } else {
+           frgb += ",255,255";
+         }
+         String cw = hacw.get(rhanpos);
+         if (TS.isEmpty(cw)) {
+           cw = "255,255";
+         }
+         xd += "," += cw;
+         String setcmd = " setrgbcw ";
+       } else {
+         setcmd = " setrgb ";
+       }
+       cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + setcmd + frgb + " " + xd + " e";
      } else {
        String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setrgb " + rgb + " e";
      }
@@ -2281,6 +2301,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map mcmd = Maps.from("cb", "setDeviceRgbCb", "did", conf["id"], "rhanpos", rhanpos, "rgb", rgb, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
      if (itype == "rgbgdim" || itype == "rgbcwgd") {
        mcmd.put("lv", lv);
+       if (itype == "rgbcwgd") {
+        mcmd.put("cw", cw);
+      }
      }
 
      return(mcmd);
@@ -2302,13 +2325,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        ifEmit(wajv) {
         if (def(mqtt)) {
           if (TS.notEmpty(itype)) {
-            if (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd") {
+            if (itype == "rgb" || itype == "rgbgdim") {
               auto rgbl = rgb.split(",");
               Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
               Map dps = Map.new();
               dps.put("state", "ON");
               dps.put("color", rgbm);
-              if (itype == "rgbgdim" || itype == "rgbcwgd") {
+              if (itype == "rgbgdim") {
                 dps.put("brightness", Int.new(mcmd["lv"]));
               }
               String stpp = "homeassistant/light/" + rhanpos + "/state";

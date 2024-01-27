@@ -2423,7 +2423,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      String ocw = c.toString() + "," + w.toString();
 
-     if (itype == "cwgd") {
+     if (itype == "cwgd" || itype == "rgbcwgd") {
        String lv = halv.get(rhanpos);
        if (TS.isEmpty(lv)) { lv = "255"; }
        Int gamd = Int.new(lv);
@@ -2431,9 +2431,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String gamds = gamd.toString();
        log.log("ocw " + ocw);
        String fcw = cwForCwLvl(ocw, gamds);
+       if (itype == "rgbcwgd") {
+         fcw = "255,255,255," + fcw;
+         String orgb = hargb.get(rhanpos);
+         if (TS.isEmpty(orgb)) {
+           orgb = "255,255,255";
+         }
+         String xd = orgb + "," + lv + "," + ocw;
+         String setcmd = " setrgbcw ";
+       } else {
+         setcmd = " setcw ";
+         xd = ocw + "," + lv;
+       }
        log.log("fcw " + fcw);
-       String xd = ocw + "," + lv;
-       String cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setcw " + fcw + " " + xd + " e";
+       String cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + setcmd + fcw + " " + xd + " e";
      }
      log.log("cmds " + cmds);
 

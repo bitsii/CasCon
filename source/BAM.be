@@ -1249,7 +1249,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String cw = hacw.get(did + "-" + i);
           if (TS.notEmpty(cw)) {
             log.log("got cw " + cw);
-            cws.put(did + "-" + i, cwToCwv(cw));
+            cws.put(did + "-" + i, cw);
           }
         }
        }
@@ -1260,38 +1260,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        nsecs = 0;
      }
      return(CallBackUI.getDevicesResponse(devices, ctls, states, levels, rgbs, cws, nsecs));
-   }
-
-   cwToCwv(String cw) {
-     log.log("cwToCwv got " + cw);
-     auto ctll = cw.split(",");
-     Int cvi = Int.new(ctll[0]);
-     Int wvi = Int.new(ctll[1]);
-     if (cvi == 255 && wvi < 255 && wvi >= 0) {
-       cwi = wvi / 2;
-     } elseIf (wvi == 255 && cvi < 255 && cvi >= 0) {
-       Int cvid = cvi / 2;
-       cwi = cvid + 127;
-     } else {
-       //resume both 255
-       Int cwi = 127;
-     }
-
-     /*if (rsi == 127) {
-       Int c = 255;
-       Int w = 255;
-     } elseIf (rsi < 127) {
-       c = 255;
-       w = rsi * 2; //127 == 254, 120 == 240, 64 == 128, 32 == 64, 16 == 8, 8 == 16, 4 == 8
-     } elseIf (rsi > 127) {
-       //254 == 2, 128 == 254, 134 == 240,
-       rsii = rsi - 127;//128 == 127, 127+7=134,255-134=121,127+64= 255-251=4
-       c = rsii * 2; //127 == 254, 121 == 242, 64 == 128, 32 == 64
-       w = 255;
-     }*/
-
-     log.log("cwToCwv returning " + cwi);
-     return(cwi.toString());
    }
 
    updateSpec(String did) {
@@ -1653,7 +1621,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 stDiffed = true;
               }
               if (itype == "rgbcwgd") {
-                String cw = crl[4] + "," + crl[5];
+                String cw = crl[4];
                 String ocw = hacw.get(did + "-" + dp);
                 if (TS.isEmpty(ocw) || ocw != cw) {
                   log.log("got cw change in rgb update");
@@ -2310,11 +2278,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String xd = rgb + "," + lv;
        if (itype == "rgbcwgd") {
          if (frgb == "255,255,255") {
-           String cw = "255,0";
+           String cw = "0";
          } else {
-           cw = "255,255";
+           cw = "127";
          }
-         frgb += "," += cw;
+         frgb += "," += cwForCwLvl(cw, gamds);
          xd += "," += cw;
          String setcmd = " setrgbcw ";
        } else {
@@ -2426,30 +2394,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String confs = hadevs.get(rhan);
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
-     Int rsi = Int.new(rstate);
-     //higher value more warm
-     //first value is cold, second is warm
-
-     //right in middle is 255,255
-     //at first quartile 255, 255-128
-     //at third quartile 255-128, 255
-     //at left 255,0
-     //at right 0,255
-
-     if (rsi == 127) {
-       Int c = 255;
-       Int w = 255;
-     } elseIf (rsi < 127) {
-       c = 255;
-       w = rsi * 2; //127 == 254, 120 == 240, 64 == 128, 32 == 64, 16 == 8, 8 == 16, 4 == 8
-     } elseIf (rsi > 127) {
-       //254 == 2, 128 == 254, 134 == 240,
-       Int rsii = rsi - 127;//128 == 127, 127+7=134,255-134=121,127+64= 255-251=4
-       c = rsii * 2; //127 == 254, 121 == 242, 64 == 128, 32 == 64
-       w = 255;
-     }
-
-     String ocw = c.toString() + "," + w.toString();
+     String ocw = rstate;
 
      if (itype == "cwgd" || itype == "rgbcwgd") {
        String lv = halv.get(rhanpos);
@@ -2462,7 +2407,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        if (itype == "rgbcwgd") {
          String orgb = "255,255,255";
          fcw = orgb + "," + fcw;
-         String xd = orgb + "," + lv + "," + ocw;
+         String xd = orgb + "," + lv + "," + rstate;
          String setcmd = " setrgbcw ";
        } else {
          setcmd = " setcw ";
@@ -2477,7 +2422,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String kdname = "CasNic" + conf["ondid"];
      String kdaddr = getAddrDis(kdname);
 
-     Map mcmd = Maps.from("cb", "setDeviceTempCb", "did", conf["id"], "rhanpos", rhanpos, "cw", ocw, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("cb", "setDeviceTempCb", "did", conf["id"], "rhanpos", rhanpos, "cw", rstate, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
      if (itype == "rgbcwgd") {
        mcmd.put("rgb", orgb);
      }
@@ -2578,15 +2523,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          if (orgb == "255,255,255") {
            String ocw = hacw.get(rhanpos);
            if (TS.isEmpty(ocw)) {
-             ocw = "255,255";
+             ocw = "127";
            }
            String fcw = cwForCwLvl(ocw, gamds);
            String frgb = orgb + "," + fcw;
            xd = orgb + "," + rstate + "," + ocw;
          } else {
-           ocw = "255,255";
+           ocw = "127";
            frgb = rgbForRgbLvl(orgb, gamds);
-           frgb += "," + ocw;
+           frgb += "," + cwForCwLvl(ocw, gamds);
            xd = orgb + "," + rstate + "," + ocw;
          }
          cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + " setrgbcw " + frgb + " " + xd + " e";
@@ -2598,7 +2543,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      } elseIf (itype == "cwgd") {
        ocw = hacw.get(rhanpos);
        if (TS.isEmpty(ocw)) {
-         ocw = "255,255";
+         ocw = "127";
        }
        gamd = Int.new(rstate);
        gamd = gamma(gamd);
@@ -2693,14 +2638,33 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    cwForCwLvl(String cw, String lvl) {
-     log.log("in cwForCwLvl");
-     log.log("cw " + cw);
-     log.log("lvl " + lvl);
+     log.log("in cwForCwLvl cw " + cw + " lvl " + lvl);
+
+     //higher value more warm
+     //first value is cold, second is warm
+
+     //right in middle is 255,255
+     //at first quartile 255, 255-128
+     //at third quartile 255-128, 255
+     //at left 255,0
+     //at right 0,255
+
+     Int rsi = Int.new(cw);
+     if (rsi == 127) {
+       Int c = 255;
+       Int w = 255;
+     } elseIf (rsi < 127) {
+       c = 255;
+       w = rsi * 2; //127 == 254, 120 == 240, 64 == 128, 32 == 64, 16 == 8, 8 == 16, 4 == 8
+     } elseIf (rsi > 127) {
+       //254 == 2, 128 == 254, 134 == 240,
+       Int rsii = 255 - rsi;//128 == 127, 127+7=134,255-134=121,127+64= 255-251=4
+       c = rsii * 2; //127 == 254, 121 == 242, 64 == 128, 32 == 64
+       w = 255;
+     }
+
      //c and w scaled to lvl/255
      Float tff = Float.intNew(255);
-     auto cwl = cw.split(",");
-     Int c = Int.new(cwl[0]);
-     Int w = Int.new(cwl[1]);
      Float cf = Float.intNew(c);
      Float wf = Float.intNew(w);
      Int l = Int.new(lvl);
@@ -2712,7 +2676,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Int fw = fwf.toInt();
      if (fc < 1 && c > 0) { fc = 1; }
      if (fw < 1 && w > 0) { fw = 1; }
-     return(fc.toString() + "," + fw.toString());
+     String res = fc.toString() + "," + fw.toString();
+     log.log("cwForCwLvl res " + res);
+     return(res);
    }
 
    setDeviceLvlCb(Map mcmd, request) Map {

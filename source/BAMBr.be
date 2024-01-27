@@ -726,7 +726,7 @@ use class IUHub:Eui {
    setForTemp(String did, String pos) {
      log.log("in setForTemp " + did + " " + pos);
      String cw = cws.get(did + "-" + pos);
-     if (TS.notEmpty(cw)) {
+     if (TS.notEmpty(cw) && cw.has(",")!) {
        log.log("cw " + cw);
      } else {
        log.log("no cw");

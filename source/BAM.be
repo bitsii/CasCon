@@ -538,7 +538,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 tpp = "homeassistant/light/" + did + "-" + i;
                 cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i, "schema", "json", "brightness", false, "rgb", true, "color_temp", false);
                 //optimistic, false
-                if (itype == "rgbgdim") {
+                if (itype == "rgbgdim" || itype == "rgbcwgd") {
                   cf.put("brightness", true);
                   cf.put("brightness_scale", 255);
                 }
@@ -628,6 +628,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               if (mcmd.has("cb")) {
                 self.invoke(mcmd["cb"], Lists.from(mcmd, null));
               }
+            } elseIf (incmd.has("color_temp")) {
+              mcmd = setDeviceTempMcmd(dp[0] + "-" + dp[1], miredToLs(incmd.get("color_temp")).toString());
+              mcmd["runSync"] = true;
+              processDeviceMcmd(mcmd);
+              if (mcmd.has("cb")) {
+                self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+              }
             } elseIf (incmd.has("state")) {
               mcmd = setDeviceSwMcmd(dp[0], dp[1], incmd.get("state").lower());
               mcmd["runSync"] = true;
@@ -640,6 +647,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
       }
+    }
+
+    miredToLs(Int mr) Int {
+      if (mr < 153 || mr > 500) { mr = 153; }
+      Int mrb = mr - 153;
+      Float mrbf = Float.intNew(mrb);
+      Float fh = Float.intNew(347);
+      Float mp = mrbf / fh;
+      Float lsm = Float.intNew(255);
+      Float lsf = mp * lsm;
+      Int ls = lsf.toInt();
+      return(ls);
     }
 
     handleWeb(request) this {

@@ -482,6 +482,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
         auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
         auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
+        auto hacw = app.kvdbs.get("HACW");
         Map devices = Map.new();
         Map ctls = Map.new();
         Map topubs = Map.new();
@@ -560,6 +561,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   lv = halv.get(did + "-" + i);
                   if (TS.notEmpty(lv)) {
                     dps.put("brightness", Int.new(lv));
+                  }
+                  if (itype == "rgbcwgd") {
+                    String cw = hacw.get(did + "-" + i);
+                    if (TS.notEmpty(cw)) {
+                       dps.put("color_temp", lsToMired(Int.new(cw)));
+                    }
                   }
                 }
                 String rgb = hargb.get(did + "-" + i);
@@ -659,6 +666,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       Float lsf = mp * lsm;
       Int ls = lsf.toInt();
       return(ls);
+    }
+
+    lsToMired(Int ls) Int {
+      if (ls < 0 || ls > 255) { ls = 255; }
+      Float lsf = Float.intNew(ls);
+      Float fh = Float.intNew(255);
+      Float mp = lsf / fh;
+      Float mrm = Float.intNew(347);
+      Float mrf = mp * mrm;
+      Int mr = mrf.toInt();
+      mr = mr + 153;
+      return(mr);
     }
 
     handleWeb(request) this {
@@ -1669,6 +1688,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 }
                 if (itype == "rgbgdim" || itype == "rgbcwgd") {
                   dps.put("brightness", Int.new(lv));
+                  if (itype == "rgbcwgd") {
+                    if (TS.notEmpty(cw)) {
+                       dps.put("color_temp", lsToMired(Int.new(cw)));
+                    }
+                  }
                 }
                 auto rgbl = cres.split(",");
                 Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
@@ -2448,6 +2472,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (itype == "rgbcwgd") {
        mcmd.put("rgb", orgb);
      }
+     if (TS.notEmpty(lv)) {
+       mcmd.put("lv", lv);
+     }
 
      return(mcmd);
    }
@@ -2468,6 +2495,29 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        hasw.put(rhanpos, "on");
        if (TS.notEmpty(mcmd["rgb"])) {
          hargb.put(rhanpos, mcmd["rgb"]);
+       }
+       ifEmit(wajv) {
+        if (def(mqtt)) {
+          if (TS.notEmpty(itype)) {
+            if (itype == "rgbcwgd") {
+              Map dps = Map.new();
+              dps.put("state", "ON");
+              if (TS.notEmpty(mcmd["lv"])) {
+                dps.put("brightness", Int.new(mcmd["lv"]));
+              }
+              if (TS.notEmpty(cw)) {
+                dps.put("color_temp", lsToMired(Int.new(cw)));
+              }
+              if (TS.notEmpty(mcmd["rgb"])) {
+                auto rgbl = mcmd.get("rgb").split(",");
+                Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
+                dps.put("color", rgbm);
+              }
+              String stpp = "homeassistant/light/" + rhanpos + "/state";
+              mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+            }
+          }
+        }
        }
      }
      stDiffed = true;

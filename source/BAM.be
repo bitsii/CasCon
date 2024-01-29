@@ -63,6 +63,7 @@ class BamAuthPlugin(App:AuthPlugin) {
   }
 
   loginRequest(Map arg, request) {
+    ifEmit(wajv) {
     //Account a = self.accountManager.getAccount(arg["accountName"]);
     //a.checkPass(arg["accountPass"])
     //check pass against ha if present
@@ -122,6 +123,10 @@ class BamAuthPlugin(App:AuthPlugin) {
     log.log("not authOk stopping");
     badLogin(request);
     return(logoutRequest(arg, request));
+    }
+    ifNotEmit(wajv) {
+      return(null);
+    }
   }
 
 }
@@ -314,6 +319,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     haDoUpInner() {
+      ifEmit(wajv) {
       log.log("checking for upver");
       Bool docu = false;
 
@@ -386,6 +392,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         } else {
           log.log("casup already exists");
         }
+      }
       }
     }
 

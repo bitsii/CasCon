@@ -542,16 +542,24 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   dps.put("brightness", gamd);
                 }
                 topubs.put(tpp + "/state", Json:Marshaller.marshall(dps));
-              } elseIf (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd") {
+              } elseIf (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "cwgd") {
                 tpp = "homeassistant/light/" + did + "-" + i;
-                cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i, "schema", "json", "brightness", false, "rgb", true, "color_temp", false);
-                //optimistic, false
-                if (itype == "rgbgdim" || itype == "rgbcwgd") {
+                cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i, "schema", "json");
+                if (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd") {
+                  cf.put("rgb", true);
+                } else {
+                  cf.put("rgb", false);
+                }
+                if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "cwgd") {
                   cf.put("brightness", true);
                   cf.put("brightness_scale", 255);
+                } else {
+                  cf.put("brightness", false);
                 }
-                if (itype == "rgbcwgd") {
+                if (itype == "rgbcwgd" || itype == "cwgd") {
                   cf.put("color_temp", true);
+                } else {
+                  cf.put("color_temp", false);
                 }
                 cfs = Json:Marshaller.marshall(cf);
                 log.log("will set discovery tpp " + tpp + " cfs " + cfs);
@@ -564,12 +572,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 } else {
                   dps.put("state", "OFF");
                 }
-                if (itype == "rgbgdim" || itype == "rgbcwgd") {
+                if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "cwgd") {
                   lv = halv.get(did + "-" + i);
                   if (TS.notEmpty(lv)) {
                     dps.put("brightness", Int.new(lv));
                   }
-                  if (itype == "rgbcwgd") {
+                  if (itype == "rgbcwgd" || itype == "cwgd") {
                     String cw = hacw.get(did + "-" + i);
                     if (TS.notEmpty(cw)) {
                        dps.put("color_temp", lsToMired(Int.new(cw)));
@@ -1984,6 +1992,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 } elseIf (ks[0] == "rgb" || ks[0] == "rgbgdim" || ks[0] == "rgbcwgd") {
                   updateSwState(ks[1], Int.new(ks[2]), ks[0]);
                   updateRgbState(ks[1], Int.new(ks[2]), ks[0]);
+                } elseIf (ks[0] == "cwgd") {
+                  updateSwState(ks[1], Int.new(ks[2]), ks[0]);
+                  //updateTempState(ks[1], Int.new(ks[2]), ks[0]);
                 }
               } catch (any e) {
                 log.elog("Error updating device states", e);
@@ -2260,18 +2271,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             if (itype == "sw") {
               String stpp = "homeassistant/switch/" + rhan + "-" + rpos + "/state";
               mqtt.publish(stpp, rstate.upper());
-            } elseIf (itype == "dim" || itype == "gdim") {
+            } elseIf (itype == "dim" || itype == "gdim" || itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "cwgd") {
               Map dps = Map.new();
-              dps.put("state", rstate.upper());
-              stpp = "homeassistant/light/" + rhan + "-" + rpos + "/state";
-              mqtt.publish(stpp, Json:Marshaller.marshall(dps));
-            } elseIf (itype == "rgb") {
-              dps = Map.new();
-              dps.put("state", rstate.upper());
-              stpp = "homeassistant/light/" + rhan + "-" + rpos + "/state";
-              mqtt.publish(stpp, Json:Marshaller.marshall(dps));
-            } elseIf (itype == "rgbgdim" || itype == "rgbcwgd") {
-              dps = Map.new();
               dps.put("state", rstate.upper());
               stpp = "homeassistant/light/" + rhan + "-" + rpos + "/state";
               mqtt.publish(stpp, Json:Marshaller.marshall(dps));
@@ -2506,7 +2507,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        ifEmit(wajv) {
         if (def(mqtt)) {
           if (TS.notEmpty(itype)) {
-            if (itype == "rgbcwgd") {
+            if (itype == "rgbcwgd" || itype == "cwgd") {
               Map dps = Map.new();
               dps.put("state", "ON");
               if (TS.notEmpty(mcmd["lv"])) {

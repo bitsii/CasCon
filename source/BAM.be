@@ -584,13 +584,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                     }
                   }
                 }
-                String rgb = hargb.get(did + "-" + i);
-                if (TS.isEmpty(rgb)) {
-                  rgb = "255,255,255";
+                unless (itype == "cwgd") {
+                  String rgb = hargb.get(did + "-" + i);
+                  if (TS.isEmpty(rgb)) {
+                    rgb = "255,255,255";
+                  }
+                  auto rgbl = rgb.split(",");
+                  Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
+                  dps.put("color", rgbm);
                 }
-                auto rgbl = rgb.split(",");
-                Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
-                dps.put("color", rgbm);
                 topubs.put(tpp + "/state", Json:Marshaller.marshall(dps));
               }
             }
@@ -1722,6 +1724,117 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
+   updateTempState(String did, Int dp, String cname) {
+     log.log("in updateRgbState " + did + " " + dp);
+
+     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     String ctl = hactls.get(did);
+     auto ctll = ctl.split(",");
+     String itype = ctll.get(dp);
+
+     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+
+     String confs = hadevs.get(did);
+     Map conf = Json:Unmarshaller.unmarshall(confs);
+
+     //dostate eek setsw on e
+     Int dpd = dp--;
+
+     //getting the name
+     String kdname = "CasNic" + conf["ondid"];
+     String kdaddr = getCashedAddr(kdname);
+
+     if (def(kdaddr)) {
+
+       auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+       String sws = haspecs.get(did);
+       if (TS.notEmpty(sws) && sws.has("q,")) {
+         String cmds = "getstatexd Q " + dpd + " e";
+         log.log("cmds " + cmds);
+         Map mcmd = Maps.from("cb", "updateTempStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
+       } else {
+         cmds = "getstatexd " + conf["spass"] + " " + dpd + " e";
+         log.log("cmds " + cmds);
+         mcmd = Maps.from("cb", "updateTempStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+       }
+
+       ifEmit(wajv) {
+         if (backgroundPulse) {
+          mcmd["runSync"] = true;
+          processDeviceMcmd(mcmd);
+          if (mcmd.has("cb")) {
+            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+          }
+         } else {
+           sendDeviceMcmd(mcmd, 4);
+         }
+       }
+       ifNotEmit(wajv) {
+        sendDeviceMcmd(mcmd, 4);
+       }
+
+     } else {
+      log.log("getcw kdaddr empty");
+     }
+
+     return(null);
+   }
+
+
+
+   updateTempStateCb(Map mcmd, request) Map {
+     String cres = mcmd["cres"];
+     String did = mcmd["did"];
+     String itype = mcmd["itype"];
+     Int dp = mcmd["dp"];
+     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     auto hacw = app.kvdbs.get("HACW");
+
+     if (TS.notEmpty(cres)) {
+        log.log("got gettemp " + cres);
+        unless (cres.has("undefined")) {
+          if (cres.has(",")) {
+            if (itype == "cwgd") {
+              auto crl = cres.split(",");
+              String lv = crl[1];
+              String lvl = halv.get(did + "-" + dp);
+              if (TS.isEmpty(lvl) || lvl != lv) {
+                log.log("got lvl change in rgb update");
+                halv.put(did + "-" + dp, lv);
+                stDiffed = true;
+              }
+              String cw = crl[0];
+              String ocw = hacw.get(did + "-" + dp);
+              if (TS.isEmpty(ocw) || ocw != cw) {
+                log.log("got cw change in rgb update");
+                hacw.put(did + "-" + dp, cw);
+                stDiffed = true;
+              }
+            }
+            ifEmit(wajv) {
+              if (def(mqtt)) {
+                Map dps = Map.new();
+                String st = hasw.get(did + "-" + dp);
+                if (TS.notEmpty(st)) {
+                  dps.put("state", st.upper());
+                } else {
+                  dps.put("state", "OFF");
+                }
+                if (itype == "cwgd") {
+                  dps.put("brightness", Int.new(lv));
+                  dps.put("color_temp", lsToMired(Int.new(cw)));
+                }
+                String stpp = "homeassistant/light/" + did + "-" + dp + "/state";
+                mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+              }
+            }
+          }
+        }
+      }
+      return(null);
+   }
+
    updateLvlState(String did, Int dp, String cname) {
      log.log("in updateLvlState " + did + " " + dp);
 
@@ -1994,7 +2107,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   updateRgbState(ks[1], Int.new(ks[2]), ks[0]);
                 } elseIf (ks[0] == "cwgd") {
                   updateSwState(ks[1], Int.new(ks[2]), ks[0]);
-                  //updateTempState(ks[1], Int.new(ks[2]), ks[0]);
+                  updateTempState(ks[1], Int.new(ks[2]), ks[0]);
                 }
               } catch (any e) {
                 log.elog("Error updating device states", e);

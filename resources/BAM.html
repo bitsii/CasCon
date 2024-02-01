@@ -504,16 +504,52 @@
                 ></f7-list-input></f7-list-item>
                 </f7-list>
                 <f7-row tag="p">
-                  <f7-button class="col" popup-open="#qrshare" outline>Share</f7-button>
+                  <f7-button class="col" onclick="callUI('toggleDevDetails');return false;" outline>Configure</f7-button>
                 </f7-row>
-              <f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('saveDevice');return false;" outline>Save</f7-button>
+                <div id="divDevDetails" style="display: none;">
+                 <f7-row tag="p">
+                  <f7-button class="col" popup-open="#verreset" outline>Reset</f7-button>
                 </f7-row>
                 <f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('toggleDevDetails');callUI('toggleAdvanced');return false;" outline>More...</f7-button>
+                  <f7-button class="col" popup-open="#verdelete" outline>Delete</f7-button>
                 </f7-row>
-
-                <div id="divDevDetails" style="display: none;">
+                <f7-row tag="p">
+          <f7-button class="col" onclick="callUI('rectlDevice');return false;" outline>Reload Controls</f7-button>
+        </f7-row>
+                <f7-list> <f7-list-item>Sharing Blob</f7-list-item>
+            <f7-list-input
+              input-id="shBlob"
+            type="text"
+            placeholder=""
+          ></f7-list-input></f7-list-item>
+          <f7-block>
+         <f7-row tag="p">
+          <f7-button id="genShareButton" class="col" onclick="callUI('genDeviceShare', false);return false;" outline>Generate Device Share</f7-button>
+        </f7-row>
+        <f7-row tag="p">
+          <f7-button id="genShareButton" class="col" onclick="callUI('genDeviceShare', true);return false;" outline>Generate Admin Device Share</f7-button>
+        </f7-row>
+        <f7-row tag="p">
+          <f7-button id="adsButton" class="col" popup-open="#veracshare" outline>Accept Device Share</f7-button>
+        </f7-row>
+                <f7-list>
+          <f7-list-item>Device Command</f7-list-item>
+            <f7-list-input
+              input-id="devSendCmd"
+            type="text"
+            placeholder=""
+          ></f7-list-input></f7-list-item>
+            </f7-list>
+            <f7-row tag="p">
+            <f7-button id="sendCmdButton" class="col" onclick="callUI('sendDeviceCommand');return false;" outline>Send</f7-button>
+          </f7-row>
+            <f7-list>
+          <f7-list-item>Command Response</f7-list-item>
+            <f7-list-input
+              input-id="devSeeRes"
+            type="text"
+            placeholder=""
+          ></f7-list-input></f7-list-item></f7-list>
                 <f7-list>
                 <f7-list-item>App Device Id</f7-list-item>
                   <f7-list-input
@@ -546,21 +582,25 @@
                   placeholder=""
                 ></f7-list-input>
                 </f7-list>
-                <f7-row tag="p">
+               <f7-row tag="p">
                 <f7-button id="nextDevButton" class="col" onclick="callUI('showDeviceConfig');return false;" outline>Next</f7-button>
                 </f7-row>
-                <f7-row tag="p">
-                  <f7-button class="col" popup-open="#verreset" outline>Reset</f7-button>
-                </f7-row>
-                <f7-row tag="p">
-                  <f7-button class="col" popup-open="#verdelete" outline>Delete</f7-button>
-                </f7-row>
+                </f7-block>
                 </div>
-         <!--<f7-row tag="p">
-          <f7-button id="advancedButton" class="col" onclick="callUI('toggleAdvanced');return false;" outline>Advanced Settings</f7-button>
-        </f7-row>-->
-        </f7-block>
+                <f7-row tag="p">
+                  <f7-button class="col" popup-open="#qrshare" outline>Share</f7-button>
+                </f7-row>
+              <f7-row tag="p">
+                  <f7-button class="col" onclick="callUI('saveDevice');return false;" outline>Save</f7-button>
+                </f7-row>
+                <f7-row tag="p">
+                  <f7-button class="col" onclick="callUI('toggleAdvanced');return false;" outline>More</f7-button>
+                </f7-row>
         <div id="divAdvanced" style="display: none;">
+         <f7-row tag="p">
+          <f7-button class="col" popup-open="#verclearold" outline>Clear Old Device Data</f7-button>
+        </f7-row>
+            </f7-list>
                 <f7-list>
                 <f7-list-item>Wifi Network Name</f7-list-item>
                   <f7-list-input
@@ -578,48 +618,6 @@
               <f7-row tag="p">
                   <f7-button class="col" onclick="callUI('saveWifi');return false;" outline>Save Wifi</f7-button>
                 </f7-row>
-         <f7-list>
-          <f7-list-item>Send device Command</f7-list-item>
-            <f7-list-input
-              input-id="devSendCmd"
-            type="text"
-            placeholder=""
-          ></f7-list-input></f7-list-item>
-            </f7-list>
-            <f7-row tag="p">
-            <f7-button id="sendCmdButton" class="col" onclick="callUI('sendDeviceCommand');return false;" outline>Send Command</f7-button>
-          </f7-row>
-            <f7-list>
-          <f7-list-item>View Command Response</f7-list-item>
-            <f7-list-input
-              input-id="devSeeRes"
-            type="text"
-            placeholder=""
-          ></f7-list-input></f7-list-item>
-          <f7-list-item>Sharing Blob</f7-list-item>
-            <f7-list-input
-              input-id="shBlob"
-            type="text"
-            placeholder=""
-          ></f7-list-input></f7-list-item>
-            </f7-list>
-        <f7-block>
-         <f7-row tag="p">
-          <f7-button id="genShareButton" class="col" onclick="callUI('genDeviceShare', false);return false;" outline>Generate Device Share</f7-button>
-        </f7-row>
-        <f7-row tag="p">
-          <f7-button id="genShareButton" class="col" onclick="callUI('genDeviceShare', true);return false;" outline>Generate Admin Device Share</f7-button>
-        </f7-row>
-        <f7-row tag="p">
-          <f7-button id="adsButton" class="col" popup-open="#veracshare" outline>Accept Device Share</f7-button>
-        </f7-row>
-        <f7-row tag="p">
-          <f7-button class="col" onclick="callUI('rectlDevice');return false;" outline>Reload Controls For Device</f7-button>
-        </f7-row>
-        <f7-row tag="p">
-          <f7-button class="col" popup-open="#verclearold" outline>Clear Old Device Data</f7-button>
-        </f7-row>
-        </f7-block>
         </div>
         <div id="divMqttAdvanced" style="display: none;">
         <f7-list>
@@ -652,7 +650,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="35"
+            value="36"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

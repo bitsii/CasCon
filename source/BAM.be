@@ -70,7 +70,8 @@ class BamAuthPlugin(App:AuthPlugin) {
     //set pass if it doesn't checkPass (it's changed), or if account missing
     Bool authOk = false;
     if (TS.notEmpty(prot.supTok) && TS.notEmpty(prot.supUrl) && prot.doSupAuth) {
-        log.log("GOT supTok " + prot.supTok);
+        //log.log("GOT supTok " + prot.supTok);
+        log.log("got supTok");
         Web:Client client = Web:Client.new();
         client.url = prot.supUrl + "/auth";
         client.outputContentType = "application/json";
@@ -80,7 +81,7 @@ class BamAuthPlugin(App:AuthPlugin) {
 
         client.verb = "POST";
         String co = Json:Marshaller.marshall(Maps.from("username", arg["accountName"], "password", arg["accountPass"]));
-        log.log("co " + co);
+        //log.log("co " + co);
         client.contentsOut = co;
         try {
           String res = client.openInput().readString();
@@ -423,7 +424,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String mqttPass = app.configManager.get("mqtt.pass");
           if (TS.isEmpty(mqttBroker) || TS.isEmpty(mqttUser) || TS.isEmpty(mqttPass)) {
             if (TS.notEmpty(prot.supTok) && TS.notEmpty(prot.supUrl) && prot.doSupAuth) {
-              log.log("GOT supTok " + prot.supTok);
+              //log.log("GOT supTok " + prot.supTok);
+              log.log("got supTok");
               Web:Client client = Web:Client.new();
               client.url = prot.supUrl + "/services/mqtt";
               client.outputContentType = "application/json";
@@ -607,7 +609,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     handleMessage(String topic, String payload) {
       ifEmit(wajv) {
-        log.log("in bam handlemessage for " + topic + " " + payload);
+        //log.log("in bam handlemessage for " + topic + " " + payload);
         if (TS.notEmpty(topic) && TS.notEmpty(payload)) {
           if (topic == "homeassistant/status" && payload == "online") {
             log.log("ha startedup");
@@ -784,7 +786,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          String did = kv.value;
          String confs = hadevs.get(did);
          if (retnext) {
-           log.log("returning conf " + confs);
+           //log.log("returning conf " + confs);
            return(CallBackUI.showDeviceConfigResponse(addFtype(confs), getCachedIp(confs)));
          }
          if (lastDid == did) {
@@ -792,7 +794,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          }
        }
        if (TS.notEmpty(confs)) {
-         log.log("returning conf " + confs);
+         //log.log("returning conf " + confs);
          return(CallBackUI.showDeviceConfigResponse(addFtype(confs), getCachedIp(confs)));
        }
        return(null);
@@ -891,7 +893,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
      }
      if (TS.notEmpty(kdaddr)) {
-       log.log("got kdaddr " + kdaddr + " for " + kdname);
+       //log.log("got kdaddr " + kdaddr + " for " + kdname);
     } else {
       log.log("got no kdaddr for " + kdname);
       discoverNow.o = true;
@@ -920,7 +922,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     getAddrDis(String kdname) {
-     log.log("kdname " + kdname);
+     //log.log("kdname " + kdname);
      String kdaddr = getAddr(kdname);
      return(kdaddr);
     }
@@ -940,7 +942,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    acceptShareRequest(String cx, request) Map {
-     log.log("in asr " + cx);
+     //log.log("in asr " + cx);
+     log.log("in asr");
      clearCxRequest(request);
      String confs = Encode:Hex.decode(cx);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -1139,7 +1142,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //dostate eek setsw on e
      String cmds = cmdline;
-     log.log("cmds " + cmds);
+     //log.log("cmds " + cmds);
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -1166,7 +1169,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
    
    saveDeviceRequest(String did, String confs, request) Map {
-     log.log("in addDeviceRequest " + confs);
+     //log.log("in addDeviceRequest " + confs);
+     log.log("in saveDeviceRequest");
      
      Account account = request.context.get("account");
      auto uhex = Hex.encode(account.user);
@@ -1220,7 +1224,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(ssid) && TS.notEmpty(sec)) {
       hawifi.put(uhex + ".ssid.0", ssid);
       hawifi.put(uhex + ".sec.0", sec);
-      log.log("saved " + ssid + " " + sec + " for wifi for user hex " + uhex);
+      //log.log("saved " + ssid + " " + sec + " for wifi for user hex " + uhex);
      } elseIf (TS.isEmpty(ssid) && TS.isEmpty(sec)) {
       hawifi.delete(uhex + ".ssid.0");
       hawifi.delete(uhex + ".sec.0");
@@ -1329,7 +1333,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
      String cmds = "doswspec " + conf["spass"] + " e";
-     log.log("cmds " + cmds);
+     //log.log("cmds " + cmds);
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -1381,7 +1385,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    getLastEvents(String confs) {
-     log.log("in getLastEvents");
+     //log.log("in getLastEvents");
 
      try {
        Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -1390,7 +1394,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        return(null);
      }
      String cmds = "getlastevents e";
-     log.log("cmds " + cmds);
+     //log.log("cmds " + cmds);
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -1429,7 +1433,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String cres = mcmd["cres"];
      String leid = mcmd["did"];
      if (TS.notEmpty(cres)) {
-        log.log("getlastevents cres |" + cres + "|");
+        //log.log("getlastevents cres |" + cres + "|");
         String ores = currentEvents.get(leid);
         if (TS.notEmpty(ores)) {
           if (cres != ores) {
@@ -1479,7 +1483,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           //log.log("have haspec " + haspecs.get(leid));
         //}
       } else {
-        log.log("getlastevents cres empty");
+        //log.log("getlastevents cres empty");
       }
      return(null);
    }
@@ -1514,11 +1518,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String sws = haspecs.get(did);
        if (TS.notEmpty(sws) && sws.has("q,")) {
          cmds = "dostate Q " + dpd + " getsw e";
-         log.log("cmds " + cmds);
+         //log.log("cmds " + cmds);
          mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
        } else {
          String cmds = "dostate " + conf["spass"] + " " + dpd + " getsw e";
-         log.log("cmds " + cmds);
+         //log.log("cmds " + cmds);
          Map mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
 
@@ -1618,7 +1622,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          } else {
            cmds = "dostate Q " + dpd + " getrgb e";
          }
-         log.log("cmds " + cmds);
+         //log.log("cmds " + cmds);
          mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
        } else {
          if (itype == "rgbgdim" || itype == "rgbcwgd") {
@@ -1626,7 +1630,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          } else {
           String cmds = "dostate " + conf["spass"] + " " + dpd + " getrgb e";
          }
-         log.log("cmds " + cmds);
+         //log.log("cmds " + cmds);
          Map mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
 
@@ -1750,11 +1754,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String sws = haspecs.get(did);
        if (TS.notEmpty(sws) && sws.has("q,")) {
          String cmds = "getstatexd Q " + dpd + " e";
-         log.log("cmds " + cmds);
+         //log.log("cmds " + cmds);
          Map mcmd = Maps.from("cb", "updateTempStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
        } else {
          cmds = "getstatexd " + conf["spass"] + " " + dpd + " e";
-         log.log("cmds " + cmds);
+         //log.log("cmds " + cmds);
          mcmd = Maps.from("cb", "updateTempStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
 
@@ -1865,7 +1869,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          } else {
           cmds = "dostate Q " + dpd + " getlvl e";
          }
-         log.log("cmds " + cmds);
+         //log.log("cmds " + cmds);
          mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "itype", itype, "cname", cname, "cmds", cmds);
        } else {
          if (itype == "gdim") {
@@ -1873,7 +1877,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          } else {
            String cmds = "dostate " + conf["spass"] + " " + dpd + " getlvl e";
          }
-         log.log("cmds " + cmds);
+         //log.log("cmds " + cmds);
          Map mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
 
@@ -2289,7 +2293,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //dostate eek setsw on e
      String cmds = "getcontroldef " + conf["spass"] + " e";
-     log.log("cmds " + cmds);
+     //log.log("cmds " + cmds);
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -2354,7 +2358,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //dostate eek setsw on e
      String cmds = "dostate " + conf["spass"] + " " + ipos + " setsw " + state + " e";
-     log.log("cmds " + cmds);
+     //log.log("cmds " + cmds);
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -2460,7 +2464,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setrgb " + rgb + " e";
      }
 
-     log.log("cmds " + cmds);
+     //log.log("cmds " + cmds);
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -2583,7 +2587,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        log.log("fcw " + fcw);
        String cmds = "dostatexd " + conf["spass"] + " " + rpos.toString() + setcmd + fcw + " " + xd + " e";
      }
-     log.log("cmds " + cmds);
+     //log.log("cmds " + cmds);
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -2747,7 +2751,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      } else {
        String cmds = "dostate " + conf["spass"] + " " + rpos.toString() + " setlvl " + rstate + " e";
      }
-     log.log("cmds " + cmds);
+     //log.log("cmds " + cmds);
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -3100,7 +3104,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
         cmdQueue += mcmd;
-        log.log("added to cmdQueue");
+        //log.log("added to cmdQueue");
         return(true);
       }
       return(false);
@@ -3141,12 +3145,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
       String sws = haspecs.get(mcmd["did"]);
       if (TS.notEmpty(sws) && sws.has("p3,")) {
-        log.log("adding tesh in processDeviceMcmd");
+        //log.log("adding tesh in processDeviceMcmd");
         Int teshi = Time:Interval.now().seconds;
         //teshi -= 300;
         mcmd["tesh"] = teshi.toString();
       } else {
-        log.log("no p3 in  processDeviceMcmd");
+        //log.log("no p3 in  processDeviceMcmd");
       }
      } else {
        log.log("no did in processDeviceMcmd");
@@ -3316,7 +3320,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String sec = devPin.substring(8, 16);
      }
 
-     log.log("in getOnWifiRequest " + devPin + " " + devSsid);
+     //log.log("in getOnWifiRequest " + devPin + " " + devSsid);
 
      lastSsids = List.new();
       ifEmit(platDroid) {

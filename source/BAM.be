@@ -3293,7 +3293,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
              String vna = Encode:Hex.decode(ssp[i]);
              log.log("got vna " + vna);
              visnets.put(vna, vna);
-             visnetsPos ++=;
+             visnetsPos++=;
            }
         } else {
           //done

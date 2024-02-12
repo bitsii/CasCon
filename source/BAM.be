@@ -3777,6 +3777,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           ftype = "Athom Plug V2";
         } elseIf (type == "WNABLB01") {
           ftype = "Athom 7w Bulb";
+        } elseIf (type == "WNABLB15") {
+          ftype = "Athom 15w Bulb";
         }
       }
      }

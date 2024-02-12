@@ -949,19 +949,19 @@ use class IUHub:Eui {
            log.log("got itype " + itype);
             log.log("got dev " + ds.key + " " + ds.value);
             Map conf = Json:Unmarshaller.unmarshall(ds.value);
-            if (itype == "dim" || itype == "gdim" || itype == "sw" || itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "cwgd") {
+            if (itype == "dim" || itype == "gdim" || itype == "sw" || itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
               String lin = li.swap("NAMEOFDEVICE", conf["name"]);
-              if (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd") {
+              if (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
                 lin = lin.swap("FORCOL", forcol);
               } else {
                 lin = lin.swap("FORCOL", "");
               }
-              if (itype == "dim" || itype == "gdim" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "cwgd") {
+              if (itype == "dim" || itype == "gdim" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
                 lin = lin.swap("FORDIM", fordim);
               } else {
                 lin = lin.swap("FORDIM", "");
               }
-              if (itype == "rgbcwgd" || itype == "cwgd") {
+              if (itype == "rgbcwgd" || itype == "cwgd" || itype == "rgbcwsgd") {
                 lin = lin.swap("FORCW", forcw);
               } else {
                 lin = lin.swap("FORCW", "");

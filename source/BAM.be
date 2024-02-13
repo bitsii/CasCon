@@ -2247,6 +2247,85 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
    }
 
+   updateWifiRequest(String did, request) Map {
+     log.log("in updateWifiRequest " + did);
+
+     Account account = request.context.get("account");
+     auto uhex = Hex.encode(account.user);
+
+     auto hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
+     String devSsid = Hex.encode(hawifi.get(uhex + ".ssid.0"));
+     String devSec = Hex.encode(hawifi.get(uhex + ".sec.0"));
+
+     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+
+     String confs = hadevs.get(did);
+     Map conf = Json:Unmarshaller.unmarshall(confs);
+
+     String cmds = "setwifi " + conf["pass"] + " hex " + devSsid + " " + devSec + " e";
+
+     //getting the name
+     String kdname = "CasNic" + conf["ondid"];
+     String kdaddr = getAddrDis(kdname);
+
+     //tcpjv edition
+
+     //cmds += "\r\n";
+
+     Map mcmd = Maps.from("cb", "updateWifiCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
+     sendDeviceMcmd(mcmd, 2);
+
+     return(null);
+   }
+
+   updateWifiCb(Map mcmd, request) Map {
+     String cres = mcmd["cres"];
+     String did = mcmd["did"];
+     if (TS.notEmpty(cres)) {
+        log.log("got cres " + cres);
+      }
+      if (def(request)) {
+        return(CallBackUI.reloadResponse());
+      }
+      return(null);
+   }
+
+   restartDevRequest(String did, request) Map {
+     log.log("in restartDevRequest " + did);
+
+     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+
+     String confs = hadevs.get(did);
+     Map conf = Json:Unmarshaller.unmarshall(confs);
+
+     String cmds = "restart " + conf["pass"] + " e";
+
+     //getting the name
+     String kdname = "CasNic" + conf["ondid"];
+     String kdaddr = getAddrDis(kdname);
+
+     //tcpjv edition
+
+     //cmds += "\r\n";
+
+     Map mcmd = Maps.from("cb", "restartDevCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
+     sendDeviceMcmd(mcmd, 2);
+
+     return(null);
+   }
+
+   restartDevCb(Map mcmd, request) Map {
+     String cres = mcmd["cres"];
+     String did = mcmd["did"];
+     if (TS.notEmpty(cres)) {
+        log.log("got cres " + cres);
+      }
+      if (def(request)) {
+        return(CallBackUI.reloadResponse());
+      }
+      return(null);
+   }
+
    rectlDeviceRequest(String did, request) Map {
      log.log("in rectlDeviceRequest " + did);
 

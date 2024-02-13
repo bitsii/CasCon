@@ -654,6 +654,16 @@ use class IUHub:Eui {
      HC.callApp(Lists.from("rectlDeviceRequest", devId));
    }
 
+   updateWifi() {
+     String devId = HD.getElementById("devId").value;
+     HC.callApp(Lists.from("updateWifiRequest", devId));
+   }
+
+   restartDev() {
+     String devId = HD.getElementById("devId").value;
+     HC.callApp(Lists.from("restartDevRequest", devId));
+   }
+
    resetDevice() {
      String devId = HD.getElementById("devId").value;
      HC.callApp(Lists.from("resetDeviceRequest", devId));

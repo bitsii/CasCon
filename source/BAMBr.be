@@ -310,6 +310,10 @@ use class IUHub:Eui {
             HD.getEle("foundaTxt").display = "none";
             HD.getEle("siscoTxt").display = "block";
           }
+          ifEmit(wajv) {
+            HD.getEle("foundiTxt").display = "none";
+            HD.getEle("wiskyTxt").display = "block";
+          }
         } else {
           ifEmit(apwk) {
             HD.getEle("discoTxt").display = "none";
@@ -319,6 +323,10 @@ use class IUHub:Eui {
             HD.getEle("siscoTxt").display = "none";
             //acshewly, depending on if the pin is empty or not
             HD.getEle("foundaTxt").display = "block";
+          }
+          ifEmit(wajv) {
+            HD.getEle("wiskyTxt").display = "none";
+            HD.getEle("foundiTxt").display = "block";
           }
         }
        }
@@ -1003,17 +1011,17 @@ use class IUHub:Eui {
      HD.getEle("devErr").display = "block";
    }
    
-   openAbout() {
+   openToUrl(String url) {
      ifEmit(bnbr) {
      emit(js) {
      """
-     var win = window.open('https://gitlab.com/bitsii/CasCon/-/wikis/Casnic', '_blank');
+     var win = window.open(beva_url.bems_toJsString(), '_blank');
      win.focus();
      """
      }
      }
      ifNotEmit(bnbr) {
-       HC.callApp(Lists.from("openAboutRequest"));
+       HC.callApp(Lists.from("openToUrlRequest", url));
      }
    }
    

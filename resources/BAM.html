@@ -309,10 +309,10 @@
                 <f7-link onclick="callUI('clearQrShare');return false;" popup-close>Close</f7-link>
               </f7-nav-right>
             </f7-navbar>
-            <f7-block>Sharing your device will allow the receiver to control the device (turn it on or off, etc).  Admin share also lets them administrate and reset the device.  To proceed assure CasNic is installed on the receiver's phone, click below to show a code, and have them open the QR code via their camera application.</f7-block>
-            <f7-button class="col" onclick="callUI('showQrShare', false);return false;" outline>Show Share Code</f7-button>
-            <f7-button class="col" onclick="callUI('showQrShare', true);return false;" outline>Show Admin Share Code</f7-button>
-            <div id="qrsharediv" style="margin: 30px 0 0 30px;"></div>
+            <f7-block>Share your device with another Casnic installation so it can control it.  The Admin code also allows for device configuration.  Make sure Casnic is installed, then click for a code below, open the code with with the camera application on the destination phone, open the address when prompted, and accept the share. For more information, or Homeassistant sharing instructions, click <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#sharing-a-device');return false;" href='#'>here for Help.</f7-link></f7-block>
+            <f7-button class="col" onclick="callUI('showQrShare', false);return false;" outline>Display Code</f7-button>
+            <f7-button class="col" onclick="callUI('showQrShare', true);return false;" outline>Display Admin Code</f7-button>
+            <div id="qrsharediv" style="margin: 20px 0 0 20px;"></div>
             <div id="qrerr" style="display: none;">You must have a device configured in the application and selected in Settings before you can share</div>
           </f7-page>
         </f7-view>
@@ -439,18 +439,21 @@
                 ></f7-list-input></f7-list-item>
                 </f7-list>
               <f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('startDeviceSetup');return false;" outline>Setup Device</f7-button>
+                  <f7-button class="col" onclick="callUI('startDeviceSetup');return false;" outline>Begin Setup</f7-button>
                 </f7-row>
-                <f7-button id="showDeviceButton" class="col" onclick="callApp('displayNextDeviceRequest', document.getElementById('disDevSsid').value);return false;" outline>Show Next Discovered Device</f7-button>
-
+                <f7-button id="showDeviceButton" class="col" onclick="callApp('displayNextDeviceRequest', document.getElementById('disDevSsid').value);return false;" outline>Show Next</f7-button>
+                <f7-row tag="p">
+                  <f7-button class="col" onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#setting-up-a-new-device-and-adding-it-to-the-network');return false;" outline back>Help</f7-button>
+                </f7-row>
                 <f7-button id="settleWifiButton" icon-f7='cloud_download' popup-open="#settlewifi" style="display: none;"></f7-button>
 
               <f7-row tag="p">
-              <div id="discoTxt" style="display: none;">To setup your device - power it up, go to your phone's Settings, click Wifi, connect to the network that begins with OCasnic and includes your device type.  Then return to this app and device details will soon populate.</div>
-            <!-- The password for the network is the set of letters in the network name following ICasnic, between the first set of hyphens (-). -->
-            <div id="siscoTxt" style="display: none;">To setup your device - power it up and in a short while device details will populate.</div>
-            <div id="foundiTxt" style="display: none;">A device has been found - give the device a name if you wish and click Setup Device.</div>
-            <div id="foundaTxt" style="display: none;">A device has been found - give the device a name if you wish and click Setup Device, then Connect when prompted.</div>
+              <div id="discoTxt" style="display: none;">To setup your device - plug it in, go to your phone's Settings, click Wifi, connect to the network that begins with Casnic and includes your device type.  Then return here and wait for name and type to appear. If the device was already setup on another phone, open the device on that phone and click Share to share it instead of using Setup A Device.</div>
+              <div id="wiskyTxt" style="display: none;">It's recommended you setup devices using the mobile app and then share them to this app.  If you wish to proceed with setup here you will need to plug in the device and connect this computer to the Wifi network that begins with Casnic and includes your device type.  Then return here and wait for name and type to appear. If the device was already setup on another phone, open the device on that phone and click Share to share it instead of using Setup A Device.</div>
+            <!-- The password for the network is the set of letters in the network name following CasnicI, between the first set of hyphens (-). -->
+            <div id="siscoTxt" style="display: none;">To setup your device - power it up and in a short while device details will populate.  If the device was already setup on another phone, open the device on that phone and click Share to share it instead of using Setup A Device.</div>
+            <div id="foundiTxt" style="display: none;">A device has been found - change the name if you like and click Begin Setup.</div>
+            <div id="foundaTxt" style="display: none;">A device has been found - change the name if you like and click Begin Setup. Choose Connect when asked.</div>
             <div id="doingSetup" style="display: none;">Setting up device</div>
             </f7-row>
             <f7-row tag="p">
@@ -481,11 +484,6 @@
   <template id="page-settings">
     <f7-page>
       <f7-navbar title="Settings" back-link="Back"></f7-navbar>
-              <f7-block>
-                <f7-row tag="p">
-          <f7-button class="col" onclick="callUI('openAbout');return false;" outline back>Help and About</f7-button>
-        </f7-row>
-        </f7-block>
       <f7-block>
                 <f7-list>
                 <f7-list-item>Device Configuration</f7-list-item>
@@ -508,6 +506,9 @@
                 </f7-row>
                 <f7-row tag="p">
                   <f7-button class="col" popup-open="#qrshare" outline>Share</f7-button>
+                </f7-row>
+                <f7-row tag="p">
+                  <f7-button class="col" onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic');return false;" outline back>Help</f7-button>
                 </f7-row>
                 <f7-row tag="p">
                   <f7-button class="col" onclick="callUI('toggleDevDetails');callUI('toggleAdvanced');return false;" outline>More</f7-button>

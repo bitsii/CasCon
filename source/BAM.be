@@ -742,8 +742,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        return(dataName);
      }
      
-     openAboutRequest(request) {
-      UI:ExternalBrowser.openToUrl("https://gitlab.com/bitsii/CasCon/-/wikis/Casnic");
+     openToUrlRequest(String url, request) {
+      UI:ExternalBrowser.openToUrl(url);
      }
      
      handleCmd(Parameters params) Bool {
@@ -3353,7 +3353,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         return(CallBackUI.getOnWifiResponse(tries, tries, wait));
        }
      }
-     unless (devSsid.begins("OCasnic-")) {
+     unless (devSsid.begins("OCasnic-") || devSsid.begins("CasnicO-")) {
        String sec = devPin.substring(8, 16);
      }
 
@@ -3711,7 +3711,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      if (TS.notEmpty(controlDef)) {
       String ssid = controlDef;
-      if (ssid.begins("ICasnic-") || ssid.begins("OCasnic-") || ssid.begins("UCasnic-")) {
+      if (ssid.begins("OCasnic-") || ssid.begins("Casnic")) {
         auto pts = ssid.split("-");
         if (pts.size == 4) {
           String type = pts[2];
@@ -3741,7 +3741,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      for (String ssid in ssids.sort()) {
           if (TS.notEmpty(ssid)) {
             log.log("in fndr be ssid " + ssid);
-            if (ssid.begins("ICasnic-") || ssid.begins("OCasnic-") || ssid.begins("UCasnic-")) {
+            if (ssid.begins("OCasnic-") || ssid.begins("Casnic")) {
               auto pts = ssid.split("-");
               if (pts.size == 4) {
                 String type = pts[2];
@@ -3770,14 +3770,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    ftypeForType(String type) String {
      if (TS.notEmpty(type)) {
-      if (type.begins("WN")) {
-        if (type == "WNN") {
+      if (type.begins("r")) {
+        if (type == "rNodeMCU") {
           ftype = "NodeMCU";
-        } elseIf (type == "WNAP2") {
+        } elseIf (type == "rAthPlugV2") {
           ftype = "Athom Plug V2";
-        } elseIf (type == "WNABLB01") {
+        } elseIf (type == "rAthBlb7w") {
           ftype = "Athom 7w Bulb";
-        } elseIf (type == "WNABLB15") {
+        } elseIf (type == "rAthBlb15w") {
           ftype = "Athom 15w Bulb";
         }
       }

@@ -967,39 +967,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(CallBackUI.reloadResponse());
      //return(null);
    }
-
-   clearOldDataRequest(request) Map {
-     "in clearOldDataRequest()".print();
-
-     Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
-     auto hapins = app.kvdbs.get("HAPINS"); //hapins - uh.pin to devpass
-     auto hapinid = app.kvdbs.get("HAPINID"); //hapinid - uh.pin to id
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-
-     Set toKeep = Set.new();
-
-     for (kv in hapinid.getMap(uhex + ".")) {
-       if (hadevs.has(kv.value)) {
-         ("not deleting hapinid " + kv.key).print();
-         toKeep += kv.key;
-       } else {
-        ("deleting hapinid " + kv.key).print();
-        hapinid.delete(kv.key);
-       }
-     }
-
-     for (auto kv in hapins.getMap(uhex + ".")) {
-       if (toKeep.has(kv.key)) {
-         ("keeping hapins " + kv.key).print();
-       } else {
-        ("deleting hapins " + kv.key).print();
-        hapins.delete(kv.key);
-       }
-     }
-
-     return(null);
-   }
    
    deleteDeviceRequest(String did, request) Map {
      log.log("in removeDeviceRequest " + did);
@@ -3483,53 +3450,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       auto uhex = Hex.encode(account.user);
 
       if (TS.isEmpty(devPass)) {
-        auto hapins = app.kvdbs.get("HAPINS"); //hapins - prefix account hex to map of dev passwords
-        devPass = hapins.get(uhex + "." + devPin);
-        if (TS.isEmpty(devPass)) {
-          Int dps = System:Random.getIntMax(4) + 16;
-          devPass = System:Random.getString(dps);
-          //devPass = "yo";
-          hapins.put(uhex + "." + devPin, devPass);
-        }
+        Int dps = System:Random.getIntMax(4) + 16;
+        devPass = System:Random.getString(dps);
       }
 
       auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-      auto hapinid = app.kvdbs.get("HAPINID"); //hapinid - uh.pin to id
-
-      String fid = hapinid.get(uhex + "." + devPin);
-      if (TS.notEmpty(fid)) {
-        String fconfs = hadevs.get(fid);
-        if (TS.notEmpty(fconfs)) {
-          Map fconf = Json:Unmarshaller.unmarshall(fconfs);
-        }
-      }
 
       if (TS.isEmpty(devSpass)) {
-        if (def(fconf) && TS.notEmpty(fconf["spass"])) {
-          devSpass = fconf["spass"];
-        } else {
-          dps = System:Random.getIntMax(4) + 16;
-          devSpass = System:Random.getString(dps);
-          //devSpass = "yaz";
-        }
+        dps = System:Random.getIntMax(4) + 16;
+        devSpass = System:Random.getString(dps);
       }
 
       if (TS.isEmpty(devDid)) {
-        if (def(fconf) && TS.notEmpty(fconf["ondid"])) {
-          devDid = fconf["ondid"];
-        } else {
-          devDid = System:Random.getString(16);
-          //devDid = "0123456701234567";
-        }
-      }
-
-      if (def(fconf)) {
-        if (TS.notEmpty(fconf["name"])) {
-          devName = fconf["name"];
-        }
-        if (TS.notEmpty(fconf["id"])) {
-          disDevId = fconf["id"];
-        }
+        devDid = System:Random.getString(16);
       }
 
       if (TS.isEmpty(devSsid)) {
@@ -3557,22 +3490,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           conf["spass"] = devSpass;
           String confs = Json:Marshaller.marshall(conf);
           saveDeviceRequest(conf["id"], confs, request);
-          hapinid.put(uhex + "." + devPin, conf["id"]);
 
           sendDeviceMcmd(mcmd, 1);
         } elseIf (alStep == "getcontroldef") {
           cmds = "getcontroldef " + devSpass + " e";
-          mcmd = Maps.from("cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-          sendDeviceMcmd(mcmd, 1);
-        } elseIf (alStep == "setname") {
-          cmds = "putconfigs " + devPass + " vhex fc.dname " + Hex.encode(devName) + " e";
-          mcmd = Maps.from("cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-          sendDeviceMcmd(mcmd, 1);
-        } elseIf (alStep == "setmqtt") {
-          String mqttBroker = app.configManager.get("mqtt.broker");
-          String mqttUser = app.configManager.get("mqtt.user");
-          String mqttPass = app.configManager.get("mqtt.pass");
-          cmds = "putconfigs " + devPass + " vhex fc.mqhost " + Hex.encode(mqttBroker) + " fc.mquser " + Hex.encode(mqttUser) + " fc.mqpass " + Hex.encode(mqttPass) + " e";
           mcmd = Maps.from("cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
           sendDeviceMcmd(mcmd, 1);
         } elseIf (alStep == "setwifi") {
@@ -3619,26 +3540,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          hactls.put(disDevId, controlDef);
          alStep = "setwifi";
        }
-     } elseIf (alStep == "setname") {
-       if (TS.notEmpty(cres) && cres.has("configs set")) {
-         log.log("setname worked");
-
-         //String mqttBroker = app.configManager.get("mqtt.broker");
-         //String mqttUser = app.configManager.get("mqtt.user");
-         //String mqttPass = app.configManager.get("mqtt.pass");
-
-         //if (TS.notEmpty(mqttBroker) && TS.notEmpty(mqttUser) && TS.notEmpty(mqttPass)) {
-         //  alStep = "setmqtt";
-         //} else {
-          alStep = "setwifi";
-         //}
-
-       }
-     //} elseIf (alStep == "setmqtt") {
-      // if (TS.notEmpty(cres) && cres.has("configs set")) {
-      //   log.log("setmqtt worked");
-     //    alStep = "setwifi";
-     //  }
      } elseIf (alStep == "setwifi") {
        if (TS.notEmpty(cres) && cres.has("Wifi Setup Written")) {
          log.log("wifi setup worked");

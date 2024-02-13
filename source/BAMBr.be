@@ -649,10 +649,6 @@ use class IUHub:Eui {
      HC.callApp(Lists.from("deleteDeviceRequest", devId));
    }
 
-   clearOldData() {
-     HC.callApp(Lists.from("clearOldDataRequest"));
-   }
-
    rectlDevice() {
      String devId = HD.getElementById("devId").value;
      HC.callApp(Lists.from("rectlDeviceRequest", devId));

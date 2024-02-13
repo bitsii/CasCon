@@ -181,6 +181,22 @@ use class IUHub:Eui {
       HD.getElementById("pwsnetname").type = "text";
      }
    }
+
+   toggleWsec() {
+     if (HD.getElementById("wifiSec").type == "text") {
+      HD.getElementById("wifiSec").type = "password";
+     } else {
+      HD.getElementById("wifiSec").type = "text";
+     }
+   }
+
+   toggleMqp() {
+     if (HD.getElementById("mqttPass").type == "text") {
+      HD.getElementById("mqttPass").type = "password";
+     } else {
+      HD.getElementById("mqttPass").type = "text";
+     }
+   }
    
    loggedInResponse(Map arg) {
      log.log("logged in res is fl");

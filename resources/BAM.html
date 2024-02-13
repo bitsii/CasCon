@@ -604,6 +604,9 @@
                   placeholder=""
                 ></f7-list-input>
                 </f7-list>
+                <f7-row tag="p">
+                  <f7-button onclick="callUI('toggleWsec');return false;" id="wsecshow" icon-f7='eye_fill'></f7-button>
+                </f7-row>
               <f7-row tag="p">
                   <f7-button class="col" onclick="callUI('saveWifi');return false;" outline>Save Wifi</f7-button>
                 </f7-row>
@@ -629,6 +632,9 @@
           placeholder=""
         ></f7-list-input>
         </f7-list>
+        <f7-row tag="p">
+                  <f7-button onclick="callUI('toggleMqp');return false;" id="mqpshow" icon-f7='eye_fill'></f7-button>
+                </f7-row>
       <f7-row tag="p">
           <f7-button class="col" onclick="callUI('saveMqtt');return false;" outline>Save MQTT</f7-button>
         </f7-row>

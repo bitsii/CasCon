@@ -2290,6 +2290,70 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
+   haShareRequest(String did, request) Map {
+     log.log("in haShareRequest " + did);
+
+     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+
+     String confs = hadevs.get(did);
+     Map conf = Json:Unmarshaller.unmarshall(confs);
+
+     auto sr = System:Random.new();
+     String shcd = "" + sr.getIntMax(9) + sr.getIntMax(9) + sr.getIntMax(9) + sr.getIntMax(9);
+
+     String cmds = "getcontroldef " + conf["spass"] + " e";//just a lie for now. will make a pin and send it
+
+     //getting the name
+     String kdname = "CasNic" + conf["ondid"];
+     String kdaddr = getAddrDis(kdname);
+
+     //tcpjv edition
+
+     //cmds += "\r\n";
+
+     Map mcmd = Maps.from("cb", "haShareCb", "shcd", shcd, "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
+     sendDeviceMcmd(mcmd, 2);
+
+     return(null);
+   }
+
+   haShareCb(Map mcmd, request) Map {
+     String cres = mcmd["cres"];
+     String did = mcmd["did"];
+     if (TS.notEmpty(cres)) {
+      log.log("got cres in haShareCb " + cres);
+     }
+     String myip = mcmd["myOutIp"];
+     String kdaddr = mcmd["kdaddr"];
+     String shcd = mcmd["shcd"];
+     if (TS.notEmpty(myip) && TS.notEmpty(kdaddr) && TS.notEmpty(shcd)) {
+      log.log("haShareCb myip " + myip + " kdaddr " + kdaddr);
+      auto mi = myip.split(".");
+      auto ki = kdaddr.split(".");
+      String ce = "";
+      for (Int i = 0;i < mi.size;i++=) {
+        String mp = mi[i];
+        String kp = ki[i];
+        if (mp != kp) {
+          if (TS.notEmpty(ce)) {
+            ce += "-";
+          }
+          ce += kp;
+        }
+      }
+      log.log("ce is " + ce);
+      String fshcd = shcd + "-" + ce;
+      log.log("fshcd " + fshcd);
+     } else {
+      log.log("not enough ips and sht in haShareCb");
+     }
+     if (def(request) && def(fshcd)) {
+       return(CallBackUI.haShareResponse(fshcd));
+     }
+     return(null);
+   }
+
+
    restartDevRequest(String did, request) Map {
      log.log("in restartDevRequest " + did);
 

@@ -93,7 +93,7 @@ class CasNic:CasProt {
        String tesh = mcmd["tesh"];
 
        if (true && pwt > 0 && TS.notEmpty(pw)) {
-         cmds = secCmds(kdaddr, pwt, pw, tesh, cmds);
+         cmds = secCmds(kdaddr, pwt, pw, tesh, cmds, mcmd);
        }
 
        cmds += "\r\n";
@@ -163,10 +163,13 @@ class CasNic:CasProt {
       }
    }
 
-   secCmds(String kdaddr, Int pwt, String pw, String tesh, String cmds) String {
+   secCmds(String kdaddr, Int pwt, String pw, String tesh, String cmds, Map mcmd) String {
       String myip = getMyOutIp(kdaddr);
        if (TS.notEmpty(myip)) {
          log.log("MY IP IS " + myip);
+         if (def(mcmd)) {
+          mcmd["myOutIp"] = myip;
+         }
          //return(cmds);
          if (pwt == 1) {
            String ncmd = "ap";

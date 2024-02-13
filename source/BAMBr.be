@@ -197,6 +197,20 @@ use class IUHub:Eui {
       HD.getElementById("mqttPass").type = "text";
      }
    }
+
+   haShare() {
+     HC.callApp(Lists.from("haShareRequest", HD.getElementById("devId").value));
+   }
+
+   haShareResponse(String fshcd) {
+     HD.getEle("hasharediv").display = "block";
+     HD.getEle("hasharefshcd").innerHTML = fshcd;
+   }
+
+   hideShareExtra() {
+     HD.getEle("hasharediv").display = "none";
+     HD.getEle("qrerr").display = "none";
+   }
    
    loggedInResponse(Map arg) {
      log.log("logged in res is fl");

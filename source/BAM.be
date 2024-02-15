@@ -2293,6 +2293,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    receiveShareRequest(String rsc, request) Map {
      log.log("in receiveShareRequest  rsc " + rsc);
      Int fd = rsc.find("-");
+     if (undef(fd)) { throw(Alert.new("malformed sharecode, pls check and try again")); }
      String shcd = rsc.substring(0, fd);
      String ipr = rsc.substring(fd + 1, rsc.size);
      log.log("shcd " + shcd + " ipr " + ipr);
@@ -2337,7 +2338,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         String confs = Json:Marshaller.marshall(conf);
         saveDeviceRequest(conf["id"], confs, request);
         rectlDeviceRequest(conf["id"], request);
+      } else {
+        throw(Alert.new("Unable to receive share info.  Get a new share code and try again."));
       }
+     } else {
+       throw(Alert.new("Unable to receive share info.  Make sure this device is on the same wifi network as the device you are sharing to it."));
      }
      return(null);
    }
@@ -2364,7 +2369,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //cmds += "\r\n";
 
      Map mcmd = Maps.from("cb", "haShareCb", "shcd", shcd, "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
-     sendDeviceMcmd(mcmd, 2);
+     unless (sendDeviceMcmd(mcmd, 2)) {
+       return(CallBackUI.haShareResponse("Failed to generate share code.  Please verify your are on the wifi network with the device, able to control the device, and have configuration access to the device"));
+     }
 
      return(null);
    }
@@ -2372,8 +2379,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    haShareCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String did = mcmd["did"];
+     Bool worked = false;
      if (TS.notEmpty(cres)) {
       log.log("got cres in haShareCb " + cres);
+      if (cres == "set shcd") {
+         worked = true;
+      }
+     }
+     unless (worked) {
+       return(CallBackUI.haShareResponse("Failed to generate share code.  Please verify your are on the wifi network with the device, able to control the device, and have configuration access to the device"));
      }
      String myip = mcmd["myOutIp"];
      String kdaddr = mcmd["kdaddr"];

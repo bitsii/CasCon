@@ -3747,6 +3747,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           alStep = "getcontroldef";
        } elseIf (TS.notEmpty(cres) && cres.has("pass is incorrect")) {
           throw(Alert.new("Device is already configured, reset before setting up again."));
+       } elseIf (TS.notEmpty(cres) && cres.has("mins of power on")) {
+          throw(Alert.new("Error, must setup w/in 30 mins of power on. Unplug and replug in device and try again"));
        }
      } elseIf (alStep == "getcontroldef") {
        if (TS.notEmpty(cres) && cres.has("controldef")) {

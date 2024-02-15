@@ -164,7 +164,7 @@ class CasNic:CasProt {
    }
 
    secCmds(String kdaddr, Int pwt, String pw, String tesh, String cmds, Map mcmd) String {
-      String myip = getMyOutIp(kdaddr);
+      String myip = getMyOutIp();
        if (TS.notEmpty(myip)) {
          log.log("MY IP IS " + myip);
          if (def(mcmd)) {
@@ -227,7 +227,7 @@ class CasNic:CasProt {
        return(cmds);
    }
 
-   getMyOutIp(String kdaddr) String {
+   getMyOutIp() String {
 
     String ip;
     ifEmit(jvad) {
@@ -263,16 +263,6 @@ class CasNic:CasProt {
      if (TS.notEmpty(wajvip)) {
        return(wajvip);
      }
-      auto inter = Net:Interface.interfaceForNetwork(kdaddr);
-      if (def(inter)) {
-        String addr = inter.address;
-        if (TS.notEmpty(addr)) {
-          log.log("WAJV ADDR " + addr);
-          ip = addr;
-          //wajvip = ip;
-        }
-      }
-
 
       if (TS.notEmpty(supTok) && TS.notEmpty(supUrl) && doSupIp) {
         log.log("GOT supTok " + supTok);
@@ -317,6 +307,16 @@ class CasNic:CasProt {
 
       } else {
         log.log("NO SBT");
+        String defadd = Net:Gateway.defaultAddress;
+          auto inter = Net:Interface.interfaceForNetwork(defadd);
+          if (def(inter)) {
+            String addr = inter.address;
+            if (TS.notEmpty(addr)) {
+              log.log("WAJV ADDR " + addr);
+              ip = addr;
+              //wajvip = ip;
+            }
+          }
       }
     }
 

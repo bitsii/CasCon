@@ -2290,6 +2290,58 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
+   receiveShareRequest(String rsc, request) Map {
+     log.log("in receiveShareRequest  rsc " + rsc);
+     Int fd = rsc.find("-");
+     String shcd = rsc.substring(0, fd);
+     String ipr = rsc.substring(fd + 1, rsc.size);
+     log.log("shcd " + shcd + " ipr " + ipr);
+     String myip = prot.getMyOutIp();
+     auto iprl = ipr.split("-");
+     auto myipl = myip.split(".");
+     Int mye = myipl.size - iprl.size;
+     String dip = "";
+     for (Int i = 0;i < mye;i++=) {
+        if (TS.notEmpty(dip)) { dip += "."; }
+        dip += myipl[i];
+     }
+     for (i = 0;i < iprl.size;i++=) {
+       if (TS.notEmpty(dip)) { dip += "."; }
+       dip += iprl[i];
+     }
+     log.log("dip " + dip);
+
+     //did pass spass
+     String cmds = "shdef " + shcd + " e";
+     Map mcmd = Maps.from("cb", "shdefCb", "kdaddr", dip, "pwt", 0, "pw", "", "cmds", cmds);
+     sendDeviceMcmd(mcmd, 1);
+
+     return(CallBackUI.reloadResponse());
+   }
+
+   shdefCb(Map mcmd, request) Map {
+     String cress = mcmd["cres"];
+     if (TS.notEmpty(cress)) {
+      log.log("got cress in shdefCb " + cress);
+      if (cress.begins("shdef:")) {
+        auto cres = cress.split(":");
+        //have it all, make and save, put in for controldef
+
+        Map conf = Map.new();
+        conf["type"] = cres[1];
+        conf["id"] = System:Random.getString(11);
+        conf["ondid"] = cres[2];
+        conf["name"] = ftypeForType(conf.get("type")) + " " + System:Random.getIntMax(99).toString();
+        conf["pass"] = cres[3];
+        conf["spass"] = cres[4];
+        String confs = Json:Marshaller.marshall(conf);
+        saveDeviceRequest(conf["id"], confs, request);
+        rectlDeviceRequest(conf["id"], request);
+      }
+     }
+     return(null);
+   }
+
    haShareRequest(String did, request) Map {
      log.log("in haShareRequest " + did);
 
@@ -2299,9 +2351,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
      auto sr = System:Random.new();
-     String shcd = "" + sr.getIntMax(9) + sr.getIntMax(9) + sr.getIntMax(9) + sr.getIntMax(9);
+     String shcd = "" + sr.getString(4);
 
-     String cmds = "getcontroldef " + conf["spass"] + " e";//just a lie for now. will make a pin and send it
+     String cmds = "shcd " + conf["pass"] + " " + shcd + " e";//just a lie for now. will make a pin and send it
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -2430,6 +2482,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (TS.notEmpty(controlDef)) {
         auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
         hactls.put(did, controlDef);
+        ifEmit(wajv) {
+          if (def(mqtt)) {
+            mqtt.close();
+            mqtt = null;
+          }
+          checkStartMqtt();
+        }
       }
       if (def(request)) {
         return(CallBackUI.reloadResponse());

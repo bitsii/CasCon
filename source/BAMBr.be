@@ -198,6 +198,10 @@ use class IUHub:Eui {
      }
    }
 
+   receiveShare() {
+     HC.callApp(Lists.from("receiveShareRequest", HD.getElementById("receiveShareCode").value));
+   }
+
    haShare() {
      HC.callApp(Lists.from("haShareRequest", HD.getElementById("devId").value));
    }

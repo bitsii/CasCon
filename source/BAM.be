@@ -1335,6 +1335,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String cres = mcmd["cres"];
      String did = mcmd["did"];
      auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+     auto hadevs = app.kvdbs.get("HADEVS");
      if (TS.notEmpty(cres)) {
         log.log("got dospec " + cres);
         if (cres.begins("controldef")) {
@@ -1343,6 +1344,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         } elseIf (cres.has("p2.")) {
           log.log("got swspec");
           haspecs.put(did, cres);
+          auto sl = cres.split(".");
+          String dt = sl[1];
+          String confs = hadevs.get(did);
+          Map conf = Json:Unmarshaller.unmarshall(confs);
+          conf["type"] = dt;
+          confs = Json:Marshaller.marshall(conf);
+          hadevs.put(did, confs);
+          if (def(request)) {
+            return(CallBackUI.reloadResponse());
+          }
         } else {
           log.log("swspec got nonsense, doing default");
           haspecs.put(did, "1,p2.gsh.4");

@@ -294,9 +294,9 @@
                 <f7-link onclick="callUI('clearQrShare');callUI('hideShareExtra');return false;" popup-close>Close</f7-link>
               </f7-nav-right>
             </f7-navbar>
-            <f7-block>Share your device with another Casnic installation so it can control it.  The Admin code also allows for device configuration.  Make sure Casnic is installed, then click to display a code below, open the code with with the camera application on the destination phone and accept the prompt to open casnic / go to Web Address when it appears, and accept the share when promted in Casnic. For more information click <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#sharing-a-device');return false;" href='#'>here for Help.</f7-link> <b>To share with Homeassistant</b> <f7-link onclick="callUI('haShare');return false;" href='#'>click here</f7-link></f7-block>
-            <f7-button class="col" onclick="callUI('showQrShare', false);return false;" outline>Display Code</f7-button>
-            <f7-button class="col" onclick="callUI('showQrShare', true);return false;" outline>Display Admin Code</f7-button>
+            <f7-block>Share your device with another Casnic installation so it can control it.  Make sure Casnic is installed on the destination phone, then click to display a code below. Open the code with with the camera application on the destination phone, accept the prompt to open casnic / go to Web Address when it appears, and accept the share when promted in Casnic. For more information click <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#sharing-a-device');return false;" href='#'>here for Help.</f7-link> <b>To share with Homeassistant</b> <f7-link onclick="callUI('haShare');return false;" href='#'>click here</f7-link></f7-block>
+            <!--<f7-button class="col" onclick="callUI('showQrShare', false);return false;" outline>Display Restricted Code</f7-button>-->
+            <f7-button class="col" onclick="callUI('showQrShare', true);return false;" outline>Display Code</f7-button>
             <div id="qrsharediv" style="margin: 20px 0 0 20px;"></div>
             <div id="hasharediv" style="margin: 20px 0 0 20px;display: none;">Open the Casnic addon WebUI on Homeassistant (go to Settings/Addons/Casnic/Open Web UI).  Login with your Homeassistant account if prompted.  In the UI click Settings/More, enter the Share Code: <div id="hasharefshcd"></div>and click Receive Share</div>
             <div id="qrerr" style="margin: 20px 0 0 20px;display: none;">You must have a device configured in the application and selected in Settings before you can share</div>
@@ -532,11 +532,11 @@
             placeholder=""
           ></f7-list-input></f7-list-item>
           <f7-block>
-         <f7-row tag="p">
-          <f7-button id="genShareButton" class="col" onclick="callUI('genDeviceShare', false);return false;" outline>Generate Device Share</f7-button>
-        </f7-row>
+         <!--<f7-row tag="p">
+          <f7-button id="genShareButton" class="col" onclick="callUI('genDeviceShare', false);return false;" outline>Generate Restricted Device Share</f7-button>
+        </f7-row>-->
         <f7-row tag="p">
-          <f7-button id="genShareButton" class="col" onclick="callUI('genDeviceShare', true);return false;" outline>Generate Admin Device Share</f7-button>
+          <f7-button id="genShareButton" class="col" onclick="callUI('genDeviceShare', true);return false;" outline>Generate Device Share</f7-button>
         </f7-row>
         <f7-row tag="p">
           <f7-button id="adsButton" class="col" popup-open="#veracshare" outline>Accept Device Share</f7-button>
@@ -656,7 +656,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="39"
+            value="40"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

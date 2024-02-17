@@ -441,6 +441,7 @@ use class IUHub:Eui {
    
    //devSendCmd devSeeRes
    sendDeviceCommand() {
+     HD.getEle("devSeeRes").value = "";
      String devId = HD.getElementById("devId").value;
      HC.callApp(Lists.from("sendDeviceCommandRequest", devId, HD.getEle("devSendCmd").value));
    }

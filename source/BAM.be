@@ -1399,7 +1399,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    getLastEventsCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String leid = mcmd["did"];
-     if (TS.notEmpty(cres)) {
+     if (TS.notEmpty(cres) && cres.has(";")) {
         //log.log("getlastevents cres |" + cres + "|");
         String ores = currentEvents.get(leid);
         if (TS.notEmpty(ores)) {

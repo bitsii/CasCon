@@ -1304,7 +1304,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getCashedAddr(kdname);
+     //String kdaddr = getCashedAddr(kdname);
+     String kdaddr = getAddrDis(kdname);
 
      if (def(kdaddr)) {
        Map mcmd = Maps.from("cb", "updateSpecCb", "did", did, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "cmds", cmds);

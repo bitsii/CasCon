@@ -366,6 +366,7 @@
                 name="username"
                 placeholder="Username"
                 type="text"
+                autocapitalize="off"
               ></f7-list-input>
               <f7-list-input
                 input-id="accountPass"
@@ -410,18 +411,21 @@
                     input-id="disDevName"
                   type="text"
                   placeholder=""
+                  autocapitalize="off"
                 ></f7-list-input></f7-list-item>
                 <f7-list-item>Type of Device</f7-list-item>
                   <f7-list-input
                     input-id="disDevTypeFriendly"
                   type="text"
                   placeholder=""
+                  readonly
                 ></f7-list-input></f7-list-item>
                 <f7-list-item>Setup Code</f7-list-item>
                   <f7-list-input
                     input-id="disDevPin"
                   type="text"
                   placeholder=""
+                  autocapitalize="off"
                 ></f7-list-input></f7-list-item>
                 </f7-list>
               <f7-row tag="p">
@@ -434,10 +438,10 @@
                 <f7-button id="settleWifiButton" icon-f7='cloud_download' popup-open="#settlewifi" style="display: none;"></f7-button>
 
               <f7-row tag="p">
-              <div id="discoTxt" style="display: none;">To setup your device - plug it in, go to your phone's Settings, click Wifi, connect to the network that begins with Casnic and includes your device type.  Then return here and wait for name and type to appear. If the device was already setup on another phone, open the device on that phone and click Share to share it instead of using Setup A Device.</div>
-              <div id="wiskyTxt" style="display: none;">It's recommended you setup devices using the mobile app and then share them to this app.  If you wish to proceed with setup here you will need to plug in the device and connect this computer to the Wifi network that begins with Casnic and includes your device type.  Then return here and wait for name and type to appear. If the device was already setup on another phone, open the device on that phone and click Share to share it instead of using Setup A Device.</div>
+              <div id="discoTxt" style="display: none;">To setup your device - plug it in, go to your phone's Settings, click Wifi, connect to the network that begins with Casnic and includes your device type.  Setup is only available for the first 30 minutes after a device receives power, if it has been powered for a long time unplug and replug it in before starting.  Then return here and wait for name and type to appear. If the device was already setup on another phone, open the device on that phone and click Share to share it instead of using Setup A Device.</div>
+              <div id="wiskyTxt" style="display: none;">It's recommended you setup devices using the mobile app and then share them to this app.  If you wish to proceed with setup here you will need to plug in the device and connect this computer to the Wifi network that begins with Casnic and includes your device type.  Setup is only available for the first 30 minutes after a device receives power, if it has been powered for a long time unplug and replug it in before starting.  Then return here and wait for name and type to appear. If the device was already setup on another phone, open the device on that phone and click Share to share it instead of using Setup A Device.</div>
             <!-- The password for the network is the set of letters in the network name following CasnicI, between the first set of hyphens (-). -->
-            <div id="siscoTxt" style="display: none;">To setup your device - power it up and in a short while device details will populate.  If the device was already setup on another phone, open the device on that phone and click Share to share it instead of using Setup A Device.</div>
+            <div id="siscoTxt" style="display: none;">To setup your device - power it up and in a short while device details will populate.  Setup is only available for the first 30 minutes after a device receives power, if it has been powered for a long time unplug and replug it in before starting.  If the device was already setup on another phone, open the device on that phone and click Share to share it instead of using Setup A Device.</div>
             <div id="foundiTxt" style="display: none;">A device has been found - change the name if you like and click Begin Setup.</div>
             <div id="foundaTxt" style="display: none;">A device has been found - change the name if you like and click Begin Setup. Choose Connect when asked.</div>
             <div id="doingSetup" style="display: none;">Setting up device</div>
@@ -485,6 +489,7 @@
                     input-id="devTypeFriendly"
                   type="text"
                   placeholder=""
+                  readonly
                 ></f7-list-input></f7-list-item>
                 </f7-list>
               <f7-row tag="p">
@@ -505,6 +510,7 @@
                       input-id="receiveShareCode"
                     type="text"
                     placeholder=""
+                    autocapitalize="off"
                   ></f7-list-input></f7-list-item>
                   <f7-block>
                 <f7-row tag="p">
@@ -530,6 +536,7 @@
               input-id="shBlob"
             type="text"
             placeholder=""
+            autocapitalize="off"
           ></f7-list-input></f7-list-item>
           <f7-block>
          <!--<f7-row tag="p">
@@ -547,6 +554,7 @@
               input-id="devSendCmd"
             type="text"
             placeholder=""
+            autocapitalize="off"
           ></f7-list-input></f7-list-item>
             </f7-list>
             <f7-row tag="p">
@@ -558,38 +566,44 @@
               input-id="devSeeRes"
             type="text"
             placeholder=""
+            readonly
           ></f7-list-input></f7-list-item></f7-list>
                 <f7-list>
-                <f7-list-item>App Device Id</f7-list-item>
+                <input type="hidden" id="devId" value=""/>
+                <!--<f7-list-item>App Device Id</f7-list-item>
                   <f7-list-input
                     input-id="devId"
-                  type="text"
+                  type="hidden"
                   placeholder=""
-                ></f7-list-input></f7-list-item>
-                <f7-list-item>On Device Id</f7-list-item>
+                ></f7-list-input></f7-list-item>-->
+                <input type="hidden" id="onDevId" value=""/>
+                <!--<f7-list-item>On Device Id</f7-list-item>
                   <f7-list-input
                     input-id="onDevId"
-                  type="text"
+                  type="hidden"
                   placeholder=""
-                ></f7-list-input></f7-list-item>
-                <f7-list-item>Admin Password</f7-list-item>
+                ></f7-list-input></f7-list-item>-->
+                <input type="hidden" id="devPass" value=""/>
+                <!--<f7-list-item>Admin Password</f7-list-item>
                 <f7-list-input
                     input-id="devPass"
-                  type="text"
+                  type="hidden"
                   placeholder=""
-                ></f7-list-input>
-                <f7-list-item>State Password</f7-list-item>
+                ></f7-list-input>-->
+                <input type="hidden" id="devSpass" value=""/>
+                <!--<f7-list-item>State Password</f7-list-item>
                 <f7-list-input
                     input-id="devSpass"
-                  type="text"
+                  type="hidden"
                   placeholder=""
-                ></f7-list-input>
-                <f7-list-item>Device Address</f7-list-item>
+                ></f7-list-input>-->
+                <input type="hidden" id="devIp" value=""/>
+                <!--<f7-list-item>Device Address</f7-list-item>
                 <f7-list-input
                     input-id="devIp"
-                  type="text"
+                  type="hidden"
                   placeholder=""
-                ></f7-list-input>
+                ></f7-list-input>-->
                 </f7-list>
                <f7-row tag="p">
                 <f7-button id="nextDevButton" class="col" onclick="callUI('showDeviceConfig');return false;" outline>Next</f7-button>
@@ -607,6 +621,7 @@
                     input-id="wifiSsid"
                   type="text"
                   placeholder=""
+                  autocapitalize="off"
                 ></f7-list-input></f7-list-item>
                 <f7-list-item>Wifi Password</f7-list-item>
                 <f7-list-input
@@ -629,12 +644,14 @@
             input-id="mqttBroker"
           type="text"
           placeholder="tcp://192.168.10.200:1883"
+          autocapitalize="off"
         ></f7-list-input></f7-list-item>
         <f7-list-item>MQTT User</f7-list-item>
           <f7-list-input
             input-id="mqttUser"
           type="text"
           placeholder=""
+          autocapitalize="off"
         ></f7-list-input></f7-list-item>
         <f7-list-item>MQTT Password</f7-list-item>
         <f7-list-input
@@ -656,7 +673,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="43"
+            value="45"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

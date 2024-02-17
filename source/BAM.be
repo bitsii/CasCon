@@ -2370,7 +2370,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         conf["type"] = cres[1];
         conf["id"] = System:Random.getString(11);
         conf["ondid"] = cres[2];
-        conf["name"] = ftypeForType(conf.get("type")) + " " + System:Random.getIntMax(99).toString();
+        conf["name"] = Hex.decode(cres[5]);
         conf["pass"] = cres[3];
         conf["spass"] = cres[4];
         String confs = Json:Marshaller.marshall(conf);
@@ -2392,11 +2392,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
+     String nm = conf["name"];
+     if (TS.isEmpty(nm)) { nm = "Nameless"; }
+     nm = Hex.encode(nm);
 
      auto sr = System:Random.new();
-     String shcd = "" + sr.getString(4);
+     String shcd = "" + sr.getString(4).lower();
 
-     String cmds = "shcd " + conf["pass"] + " " + shcd + " e";//just a lie for now. will make a pin and send it
+     String cmds = "shcd " + conf["pass"] + " " + shcd + " " + nm + " e";//just a lie for now. will make a pin and send it
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];

@@ -954,12 +954,7 @@ use class IUHub:Eui {
            FORCOL
            FORCW
            FORDIM
-           <div class="item-after">
-             <label class="toggle">
-               <input type="checkbox" onclick="callUI('checkToggled', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
-               <span class="toggle-icon"></span>
-             </label>
-           </div>
+           FORSW
          </div>
        </li>
        ''';
@@ -982,6 +977,15 @@ use class IUHub:Eui {
            </div>
       ''';
 
+      String forsw = '''
+        <div class="item-after">
+             <label class="toggle">
+               <input type="checkbox" onclick="callUI('checkToggled', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
+               <span class="toggle-icon"></span>
+             </label>
+           </div>
+      ''';
+
        String ih = '''
            <div class="list">
         <ul>
@@ -990,6 +994,9 @@ use class IUHub:Eui {
        for (any ds in devices) {
 
          String ctl = ctls.get(ds.key);
+         if (TS.isEmpty(ctl) || ctl == "controldef,") {
+           ctl = "controldef,empty"
+         }
          if (TS.notEmpty(ctl)) {
          auto ctll = ctl.split(",");
          log.log("got ctl " + ctl);
@@ -998,8 +1005,13 @@ use class IUHub:Eui {
            log.log("got itype " + itype);
             log.log("got dev " + ds.key + " " + ds.value);
             Map conf = Json:Unmarshaller.unmarshall(ds.value);
-            if (itype == "dim" || itype == "gdim" || itype == "sw" || itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
+            if (itype == "dim" || itype == "gdim" || itype == "sw" || itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd" || itype == "empty") {
               String lin = li.swap("NAMEOFDEVICE", conf["name"]);
+              if (itype == "empty") {
+                lin = lin.swap("FORSW", "");
+              } else {
+                lin = lin.swap("FORSW", forsw);
+              }
               if (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
                 lin = lin.swap("FORCOL", forcol);
               } else {

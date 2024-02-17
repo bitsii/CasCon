@@ -294,7 +294,7 @@
                 <f7-link onclick="callUI('clearQrShare');callUI('hideShareExtra');return false;" popup-close>Close</f7-link>
               </f7-nav-right>
             </f7-navbar>
-            <f7-block>Share your device with another Casnic installation so it can control it.  Make sure Casnic is installed on the destination phone, then click to display a code below. Open the code with with the camera application on the destination phone, accept the prompt to open casnic / go to Web Address when it appears, and accept the share when promted in Casnic. For more information click <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#sharing-a-device');return false;" href='#'>here for Help.</f7-link> <b>To share with Homeassistant</b> <f7-link onclick="callUI('haShare');return false;" href='#'>click here</f7-link></f7-block>
+            <f7-block>Share your device with Casnic on another phone or tablet.  Make sure Casnic is installed on the destination, then click Display Code. Point the the camera application on the ther phone at the square code on this screen, accept the camera apps prompt to open casnic / go to Web Address when it appears, and accept the share in Casnic when it opens. For more information click <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#sharing-a-device');return false;" href='#'>here for Help.</f7-link> <b>To share with Homeassistant</b> <f7-link onclick="callUI('haShare');return false;" href='#'>click here</f7-link></f7-block>
             <!--<f7-button class="col" onclick="callUI('showQrShare', false);return false;" outline>Display Restricted Code</f7-button>-->
             <f7-button class="col" onclick="callUI('showQrShare', true);return false;" outline>Display Code</f7-button>
             <div id="qrsharediv" style="margin: 20px 0 0 20px;"></div>
@@ -438,10 +438,10 @@
                 <f7-button id="settleWifiButton" icon-f7='cloud_download' popup-open="#settlewifi" style="display: none;"></f7-button>
 
               <f7-row tag="p">
-              <div id="discoTxt" style="display: none;">To setup your device - plug it in, go to your phone's Settings, click Wifi, connect to the network that begins with Casnic and includes your device type.  Setup is only available for the first 30 minutes after a device receives power, if it has been powered for a long time unplug and replug it in before starting.  Then return here and wait for name and type to appear. If the device was already setup on another phone, open the device on that phone and click Share to share it instead of using Setup A Device.</div>
-              <div id="wiskyTxt" style="display: none;">It's recommended you setup devices using the mobile app and then share them to this app.  If you wish to proceed with setup here you will need to plug in the device and connect this computer to the Wifi network that begins with Casnic and includes your device type.  Setup is only available for the first 30 minutes after a device receives power, if it has been powered for a long time unplug and replug it in before starting.  Then return here and wait for name and type to appear. If the device was already setup on another phone, open the device on that phone and click Share to share it instead of using Setup A Device.</div>
+              <div id="discoTxt" style="display: none;">To setup your device - unplug and re plug it in (setup is only available for first 30 minutes of power), go to your phone's Settings, click Wifi, connect to the network that begins with Casnic and includes your device type.  Then return here and wait for name and type to appear. If the device was already setup on another phone, open the device on that phone and click Share instead.</div>
+              <div id="wiskyTxt" style="display: none;">It's recommended you setup devices using the mobile app and then share them to this app.  To setup here - unplug and re plug it in (setup is only available for first 30 minutes of power), and connect the computer to the Wifi network that begins with Casnic and includes your device type. Then return here and wait for name and type to appear. If the device was already setup on a phone, open the device on that phone and click Share and Share with Homeassistant instead.</div>
             <!-- The password for the network is the set of letters in the network name following CasnicI, between the first set of hyphens (-). -->
-            <div id="siscoTxt" style="display: none;">To setup your device - power it up and in a short while device details will populate.  Setup is only available for the first 30 minutes after a device receives power, if it has been powered for a long time unplug and replug it in before starting.  If the device was already setup on another phone, open the device on that phone and click Share to share it instead of using Setup A Device.</div>
+            <div id="siscoTxt" style="display: none;">To setup your device - unplug and re plug it in (setup is only available for first 30 minutes of power).  If the device was already setup on another phone, open the device on that phone and click Share to share it instead.</div>
             <div id="foundiTxt" style="display: none;">A device has been found - change the name if you like and click Begin Setup.</div>
             <div id="foundaTxt" style="display: none;">A device has been found - change the name if you like and click Begin Setup. Choose Connect when asked.</div>
             <div id="doingSetup" style="display: none;">Setting up device</div>
@@ -673,7 +673,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="45"
+            value="46"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

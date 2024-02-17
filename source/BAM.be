@@ -1338,6 +1338,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      auto hadevs = app.kvdbs.get("HADEVS");
      if (TS.notEmpty(cres)) {
         log.log("got dospec " + cres);
+        pdevices = null;
         if (cres.begins("controldef")) {
           log.log("pre swspec");
           haspecs.put(did, "1,p2.gsh.4");
@@ -1362,6 +1363,23 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
+   getSecQ(Map conf) {
+     slots {
+       Map secQs;
+     }
+     if (undef(secQs)) { secQs = Map.new(); }
+     String did = conf["ondid"];
+     String spass = conf["spass"];
+     if (secQs.has(did)) { return(secQs[did]); }
+     if (TS.notEmpty(did) && TS.notEmpty(spass)) {
+       String tosec = spass.substring(0, 8) + did;
+       String sq = prot.sha1hex(tosec).substring(0, 12);
+     } else {
+       sq = "Q";
+     }
+     secQs.put(did, sq);
+   }
+
    getLastEvents(String confs) {
      //log.log("in getLastEvents");
 
@@ -1371,7 +1389,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        log.elog("error in gle", e);
        return(null);
      }
-     String cmds = "getlastevents e";
+     String cmds = "getlastevents " + getSecQ(conf) + " e";
      //log.log("cmds " + cmds);
 
      //getting the name
@@ -1452,14 +1470,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
         currentEvents.put(leid, cres);
-        auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-        //haspecs.delete(leid);
-        unless (haspecs.has(leid)) {
-          pendingSpecs.put(leid);
-          //log.log("no have haspec");
-        } //else {
-          //log.log("have haspec " + haspecs.get(leid));
-        //}
       } else {
         //log.log("getlastevents cres empty");
       }
@@ -1495,7 +1505,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        String sws = haspecs.get(did);
        if (TS.notEmpty(sws) && sws.has("q,")) {
-         cmds = "dostate Q " + dpd + " getsw e";
+         cmds = "dostate " + getSecQ(conf) + " " + dpd + " getsw e";
          //log.log("cmds " + cmds);
          mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
        } else {
@@ -1596,9 +1606,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String sws = haspecs.get(did);
        if (TS.notEmpty(sws) && sws.has("q,")) {
          if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
-           cmds = "getstatexd Q " + dpd + " e";
+           cmds = "getstatexd " + getSecQ(conf) + " " + dpd + " e";
          } else {
-           cmds = "dostate Q " + dpd + " getrgb e";
+           cmds = "dostate " + getSecQ(conf) + " " + dpd + " getrgb e";
          }
          //log.log("cmds " + cmds);
          mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
@@ -1731,7 +1741,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        String sws = haspecs.get(did);
        if (TS.notEmpty(sws) && sws.has("q,")) {
-         String cmds = "getstatexd Q " + dpd + " e";
+         String cmds = "getstatexd " + getSecQ(conf) + " " + dpd + " e";
          //log.log("cmds " + cmds);
          Map mcmd = Maps.from("cb", "updateTempStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
        } else {
@@ -1843,9 +1853,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String sws = haspecs.get(did);
        if (TS.notEmpty(sws) && sws.has("q,")) {
          if (itype == "gdim") {
-          cmds = "getstatexd Q " + dpd + " e";
+          cmds = "getstatexd " + getSecQ(conf) + " " + dpd + " e";
          } else {
-          cmds = "dostate Q " + dpd + " getlvl e";
+          cmds = "dostate " + getSecQ(conf) + " " + dpd + " getlvl e";
          }
          //log.log("cmds " + cmds);
          mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "itype", itype, "cname", cname, "cmds", cmds);
@@ -2031,6 +2041,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        Map currentEvents;
        Int pcount;
        Map pdevices; //hadevs cpy
+       Map pspecs; //haspecs cpy
        Map pdcount; //id to last getlastevents count
        //Int lastRun;
      }
@@ -2067,6 +2078,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (undef(pdevices)) {
        auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
        pdevices = hadevs.getMap();
+       auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+       pspecs = haspecs.getMap();
      }
 
      if (pcount % 2 == 0) {
@@ -2127,8 +2140,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           if (undef(dc) || dc < pcount) {
             dc = pcount + 16 + System:Random.getIntMax(16); //(secs * 4), was 12
             pdcount.put(pdc.key, dc);
-            getLastEvents(pdc.value);
-            break;
+            Map conf = Json:Unmarshaller.unmarshall(pdc.value);
+            String did = conf["id"];
+            if (TS.notEmpty(did) && pspecs.has(did)) {
+              getLastEvents(pdc.value);
+              break;
+            } elseIf (TS.notEmpty(did)) {
+              pendingSpecs.put(did);
+            }
           }
         }
       }
@@ -2472,10 +2491,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
-     //if (def(pendingSpecs)) {
-     //  pendingSpecs.put(did);
-     //}
-     //updateSpec(did);
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
 

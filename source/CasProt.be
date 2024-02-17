@@ -194,23 +194,7 @@ class CasNic:CasProt {
            insec += cmdl[j] += sp;
          }
          //log.log("insec |" + insec + "|");
-         String outsec;
-         ifEmit(jv) {
-          Digest:SHA1 ds = Digest:SHA1.new();
-          outsec = ds.digestToHex(insec).lowerValue();
-         }
-         ifEmit(apwk) {
-          String jspw = "getSha1Hex:" + insec;
-          emit(js) {
-          """
-          var jsres = prompt(bevl_jspw.bems_toJsString());
-          bevl_jspw = new be_$class/Text:String$().bems_new(jsres);
-          """
-          }
-          if (TS.notEmpty(jspw)) {
-            outsec = jspw.lowerValue();
-          }
-         }
+         String outsec = sha1hex(insec);
          //log.log("insec " + insec);
          //log.log("outsec " + outsec);
          String fcmds = Text:Strings.new().join(Text:Strings.new().space, cmdl);
@@ -225,6 +209,27 @@ class CasNic:CasProt {
          log.log("MY IP EMPTY");
        }
        return(cmds);
+   }
+
+   sha1hex(String insec) String {
+      String outsec;
+      ifEmit(jv) {
+      Digest:SHA1 ds = Digest:SHA1.new();
+      outsec = ds.digestToHex(insec).lowerValue();
+      }
+      ifEmit(apwk) {
+      String jspw = "getSha1Hex:" + insec;
+      emit(js) {
+      """
+      var jsres = prompt(bevl_jspw.bems_toJsString());
+      bevl_jspw = new be_$class/Text:String$().bems_new(jsres);
+      """
+      }
+      if (TS.notEmpty(jspw)) {
+        outsec = jspw.lowerValue();
+      }
+      }
+      return(outsec);
    }
 
    getMyOutIp() String {

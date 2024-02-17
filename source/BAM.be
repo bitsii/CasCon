@@ -1317,11 +1317,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             self.invoke(mcmd["cb"], Lists.from(mcmd, null));
           }
         } else {
-          sendDeviceMcmd(mcmd, 2);
+          sendDeviceMcmd(mcmd, 3);
         }
        }
        ifNotEmit(wajv) {
-        sendDeviceMcmd(mcmd, 2);
+        sendDeviceMcmd(mcmd, 3);
        }
 
      } else {
@@ -2472,9 +2472,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
-     if (def(pendingSpecs)) {
-       pendingSpecs.put(did);
-     }
+     //if (def(pendingSpecs)) {
+     //  pendingSpecs.put(did);
+     //}
+     //updateSpec(did);
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
@@ -2515,9 +2516,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           checkStartMqtt();
         }
       }
-      if (def(request)) {
-        return(CallBackUI.reloadResponse());
-      }
+      //if (def(request)) {
+      //  return(CallBackUI.reloadResponse());
+      //}
+      updateSpec(did);
       return(null);
    }
 

@@ -975,8 +975,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     auto uhex = Hex.encode(account.user);
     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device aid to config
     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+    auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
     auto hasw = app.kvdbs.get("HASW"); //hasw - device aid to switch state
     auto halv = app.kvdbs.get("HALV"); //halv - device aid to lvl
+    auto hacw = app.kvdbs.get("HACW"); //hargb - device id to rgb
+    auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
     auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device aids
     auto haknc = app.kvdbs.get("HAKNC"); //kdname to addr
     
@@ -1001,8 +1004,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       for (Int i = 1;i < ctll.size;i++=) {
         hasw.delete(did + "-" + i);
         halv.delete(did + "-" + i);
+        hargb.delete(did + "-" + i);
+        hacw.delete(did + "-" + i);
       }
       hactls.delete(did);
+      haspecs.delete(did);
     }
     return(CallBackUI.reloadResponse());
    }
@@ -1379,6 +1385,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        sq = "Q";
      }
      secQs.put(did, sq);
+     return(sq);
    }
 
    getLastEvents(String confs) {

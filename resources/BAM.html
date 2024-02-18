@@ -439,7 +439,7 @@
 
               <f7-row tag="p">
               <div id="discoTxt" style="display: none;">To setup your device - unplug and re plug it in (setup is only available for first 30 minutes of power), go to your phone's Settings, click Wifi, connect to the network that begins with Casnic and includes your device type.  Then return here and wait for name and type to appear. If the device was already setup on another phone, open the device on that phone and click Share instead.</div>
-              <div id="wiskyTxt" style="display: none;">It's recommended you setup devices using the mobile app and then share them to this app.  To setup here - unplug and re plug it in (setup is only available for first 30 minutes of power), and connect the computer to the Wifi network that begins with Casnic and includes your device type. Then return here and wait for name and type to appear. If the device was already setup on a phone, open the device on that phone and click Share and Share with Homeassistant instead.</div>
+              <div id="wiskyTxt" style="display: none;">It's recommended you setup devices using the mobile app and then share them to this app.  To setup here - unplug and re plug it in (setup is only available for first 30 minutes of power), and connect the computer to the Wifi network that begins with Casnic and includes your device type. Then return here and wait for name and type to appear. If the device was already setup on a phone, open the device on that phone and click Share instead.</div>
             <!-- The password for the network is the set of letters in the network name following CasnicI, between the first set of hyphens (-). -->
             <div id="siscoTxt" style="display: none;">To setup your device - unplug and re plug it in (setup is only available for first 30 minutes of power).  If the device was already setup on another phone, open the device on that phone and click Share to share it instead.</div>
             <div id="foundiTxt" style="display: none;">A device has been found - change the name if you like and click Begin Setup.</div>
@@ -587,15 +587,17 @@
                 <!--<f7-list-item>Admin Password</f7-list-item>
                 <f7-list-input
                     input-id="devPass"
-                  type="hidden"
+                  type="text"
                   placeholder=""
+                  autocapitalize="off"
                 ></f7-list-input>-->
                 <input type="hidden" id="devSpass" value=""/>
                 <!--<f7-list-item>State Password</f7-list-item>
                 <f7-list-input
                     input-id="devSpass"
-                  type="hidden"
+                  type="text"
                   placeholder=""
+                  autocapitalize="off"
                 ></f7-list-input>-->
                 <input type="hidden" id="devIp" value=""/>
                 <!--<f7-list-item>Device Address</f7-list-item>

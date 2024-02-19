@@ -296,11 +296,14 @@ class CasNic:CasProt {
                   List addrl = fer.get("address");
                   if (def(addrl)) {
                     log.log("got addrl");
-                    log.log(addrl[0]);
-                    auto adll = addrl.get(0).split("/");
-                    String sip = adll.get(0);
-                    ip = sip;
-                    wajvip = ip;
+                    if (addrl.size > 0) {
+                      log.log("addrl got size");
+                      log.log(addrl[0]);
+                      auto adll = addrl.get(0).split("/");
+                      String sip = adll.get(0);
+                      ip = sip;
+                      wajvip = ip;
+                    }
                   }
                 }
               }

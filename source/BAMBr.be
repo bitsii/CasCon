@@ -285,27 +285,27 @@ use class IUHub:Eui {
       Int discoCounts;
     }
 
-    auto imd = HD.getEle("informMessageDiv");
+    var imd = HD.getEle("informMessageDiv");
     if (imd.exists && TS.notEmpty(mustInform)) {
       HD.getElementById("informMessageDiv").innerHTML = mustInform;
     }
 
      //log.log("in checkNexts");
      //showDeviceButton disDevPin
-     auto sde = HD.getEle("showDeviceButton");
-     auto ddtf = HD.getEle("disDevTypeFriendly");
+     var sde = HD.getEle("showDeviceButton");
+     var ddtf = HD.getEle("disDevTypeFriendly");
      unless (sde.exists && ddtf.exists) {
        inDeviceSetup = false;
      }
      if (def(inDeviceSetup) && inDeviceSetup) {
        log.log("in devsetup");
-       auto wfd = HD.getEle("wifisholder");
-       auto wgb = HD.getEle("wifiGivenButton");
+       var wfd = HD.getEle("wifisholder");
+       var wgb = HD.getEle("wifiGivenButton");
        if (wfd.exists && wgb.exists) {
          if (def(visnets)  && visnets.notEmpty && TS.isEmpty(wfd.innerHTML)) {
-           auto ehvs = Encode:Hex.new();
+           var ehvs = Encode:Hex.new();
            String netch = "<fieldset><legend>Select a network:</legend>";
-           for (auto kv in visnets) {
+           for (var kv in visnets) {
              String kvv = kv.value;
              String kvve = ehvs.encode(kvv);
              netch += "<div><input type=\"radio\" id=\"pswi" += kvve += "\" name=\"drone\" value=\"huey\"/><label for=\"pswi" += kvve += "\">" += kvv += "</label></div>";
@@ -367,8 +367,8 @@ use class IUHub:Eui {
      }
 
      //devId nextDevButton
-     auto ndb = HD.getEle("nextDevButton");
-     auto ddf = HD.getEle("devId");
+     var ndb = HD.getEle("nextDevButton");
+     var ddf = HD.getEle("devId");
      if (ndb.exists && ddf.exists) {
        if (TS.notEmpty(lastCx)) {
          HD.getElementById("shBlob").value = lastCx;
@@ -385,7 +385,7 @@ use class IUHub:Eui {
        }
      }
 
-     auto bs = HD.getEle("setBrightSlide");
+     var bs = HD.getEle("setBrightSlide");
      if (bs.exists) {
        if (def(setCurrLvl) && setCurrLvl && def(currLvl)) {
          log.log("setting currLvl");
@@ -408,7 +408,7 @@ use class IUHub:Eui {
        }
      }
 
-     auto ts = HD.getEle("setTempSlide");
+     var ts = HD.getEle("setTempSlide");
      if (ts.exists) {
        if (def(setCurrTemp) && setCurrTemp && def(currTemp)) {
          log.log("setting currTemp");
@@ -487,8 +487,8 @@ use class IUHub:Eui {
      String chssid;
      String chsec;
      chsec = HD.getElementById("pwsnetname").value;
-     auto ehvs = Encode:Hex.new();
-     for (auto kv in visnets) {
+     var ehvs = Encode:Hex.new();
+     for (var kv in visnets) {
         String kvv = kv.value;
         String kvve = ehvs.encode(kvv);
         //netch += "<div><input type=\"radio\" id=\"pswi" += kvve += "\" name=\"drone\" value=\"huey\"/><label for=\"pswi" += kvve += "\">" += kvv += "</label></div>";
@@ -998,7 +998,7 @@ use class IUHub:Eui {
            ctl = "controldef,empty"
          }
          if (TS.notEmpty(ctl)) {
-         auto ctll = ctl.split(",");
+         var ctll = ctl.split(",");
          log.log("got ctl " + ctl);
          for (Int i = 1;i < ctll.size;i++=) {
            String itype = ctll.get(i);

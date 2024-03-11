@@ -36,7 +36,7 @@ use class BA:BS {
     }
 
     sendWifiUrl(String addr, String ssid, String sec, String furl) {
-      auto client = App:TCPClient.new(addr, 5308);
+      var client = App:TCPClient.new(addr, 5308);
       client.open().write("from bambs");
       Time:Sleep.sleepSeconds(2);
       client.close();

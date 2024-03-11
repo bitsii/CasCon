@@ -186,7 +186,7 @@ class CasNic:CasProt {
          if (TS.notEmpty(tesh)) {
            insec += tesh += ",";
          }
-         auto cmdl = cmds.split(" ");
+         var cmdl = cmds.split(" ");
          cmdl[1] = "X";
          Int toc = cmdl.size - 1;
          String sp = " ";
@@ -299,7 +299,7 @@ class CasNic:CasProt {
                     if (addrl.size > 0) {
                       log.log("addrl got size");
                       log.log(addrl[0]);
-                      auto adll = addrl.get(0).split("/");
+                      var adll = addrl.get(0).split("/");
                       String sip = adll.get(0);
                       ip = sip;
                       wajvip = ip;
@@ -316,7 +316,7 @@ class CasNic:CasProt {
       } else {
         log.log("NO SBT");
         String defadd = Net:Gateway.defaultAddress;
-          auto inter = Net:Interface.interfaceForNetwork(defadd);
+          var inter = Net:Interface.interfaceForNetwork(defadd);
           if (def(inter)) {
             String addr = inter.address;
             if (TS.notEmpty(addr)) {

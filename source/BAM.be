@@ -415,7 +415,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (undef(mqtt) || mqtt.isOpen!) {
           if (def(mqtt)) {
             log.log("closing mqtt");
-            auto mqtt2 = mqtt;
+            var mqtt2 = mqtt;
             mqtt = null;
             mqtt2.close();
           }
@@ -486,12 +486,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     setupMqttDevices() {
       ifEmit(wajv) {
-        auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-        auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-        auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-        auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-        auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
-        auto hacw = app.kvdbs.get("HACW");
+        var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+        var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+        var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+        var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+        var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
+        var hacw = app.kvdbs.get("HACW");
         Map devices = Map.new();
         Map ctls = Map.new();
         Map topubs = Map.new();
@@ -503,7 +503,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String ctl = hactls.get(did);
           if (TS.notEmpty(ctl)) {
             ctls.put(did, ctl);
-            auto ctll = ctl.split(",");
+            var ctll = ctl.split(",");
             log.log("got ctl " + ctl);
             for (Int i = 1;i < ctll.size;i++=) {
               String itype = ctll.get(i);
@@ -591,7 +591,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   if (TS.isEmpty(rgb)) {
                     rgb = "255,255,255";
                   }
-                  auto rgbl = rgb.split(",");
+                  var rgbl = rgb.split(",");
                   Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
                   dps.put("color", rgbm);
                 }
@@ -618,10 +618,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             checkStartMqtt();
           } elseIf (topic.begins("homeassistant/switch/") && topic.ends("/set")) {
             log.log("ha switched");
-            auto ll = topic.split("/");
+            var ll = topic.split("/");
             String didpos = ll[2];
             log.log("ha got didpos " + didpos);
-            auto dp = didpos.split("-");
+            var dp = didpos.split("-");
             Map mcmd = setDeviceSwMcmd(dp[0], dp[1], payload.lower());
             mcmd["runSync"] = true;
             processDeviceMcmd(mcmd);
@@ -759,7 +759,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     showDeviceConfigRequest(String did, request) Map {
       log.log("in showDeviceConfigRequest ");
 
-      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
       String confs = hadevs.get(did);
       return(CallBackUI.showDeviceConfigResponse(addFtype(confs), getCachedIp(confs)));
 
@@ -775,11 +775,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         retnext = true;
       }
       Account account = request.context.get("account");
-      auto uhex = Hex.encode(account.user);
-      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-      auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-      auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-      auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
+      var uhex = Hex.encode(account.user);
+      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+      var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+      var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+      var haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
       
       
        for (dyn kv in haowns.getMap(uhex + ".")) {
@@ -827,7 +827,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (def(knc) && knc.has(kdname)) {
           kdaddr = knc.get(kdname);
       } else {
-        auto haknc = app.kvdbs.get("HAKNC"); //kdname to addr
+        var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
         String tkda = haknc.get(kdname);
         if (TS.notEmpty(tkda)) {
           kdaddr = tkda;
@@ -851,7 +851,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (knc.has(kdname)) {
           kdaddr = knc.get(kdname);
      } else {
-        auto haknc = app.kvdbs.get("HAKNC"); //kdname to addr
+        var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
         String tkda = haknc.get(kdname);
         if (TS.notEmpty(tkda)) {
           kdaddr = tkda;
@@ -903,7 +903,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     goGetAddr(String kdname) {
       app.configManager;
-      auto haknc = app.kvdbs.get("HAKNC"); //kdname to addr
+      var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
       String tkda = haknc.get(kdname);
       if (TS.isEmpty(tkda)) {
         ifEmit(apwk) {
@@ -950,7 +950,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      conf["id"] = System:Random.getString(11);
      String controlDef = conf["controlDef"];
      if (TS.notEmpty(controlDef)) {
-       auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+       var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
        hactls.put(conf["id"], controlDef);
        conf.delete("controlDef");
      }
@@ -972,16 +972,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      log.log("in removeDeviceRequest " + did);
      
     Account account = request.context.get("account");
-    auto uhex = Hex.encode(account.user);
-    auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device aid to config
-    auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-    auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-    auto hasw = app.kvdbs.get("HASW"); //hasw - device aid to switch state
-    auto halv = app.kvdbs.get("HALV"); //halv - device aid to lvl
-    auto hacw = app.kvdbs.get("HACW"); //hargb - device id to rgb
-    auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
-    auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device aids
-    auto haknc = app.kvdbs.get("HAKNC"); //kdname to addr
+    var uhex = Hex.encode(account.user);
+    var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device aid to config
+    var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+    var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+    var hasw = app.kvdbs.get("HASW"); //hasw - device aid to switch state
+    var halv = app.kvdbs.get("HALV"); //halv - device aid to lvl
+    var hacw = app.kvdbs.get("HACW"); //hargb - device id to rgb
+    var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
+    var haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device aids
+    var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
     
     String confs = hadevs.get(did);
     if (TS.notEmpty(confs)) {
@@ -999,7 +999,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     String ctl = hactls.get(did);
     if (TS.notEmpty(ctl)) {
-      auto ctll = ctl.split(",");
+      var ctll = ctl.split(",");
       log.log("got ctl " + ctl);
       for (Int i = 1;i < ctll.size;i++=) {
         hasw.delete(did + "-" + i);
@@ -1018,11 +1018,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //not checking user rn
      Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
+     var uhex = Hex.encode(account.user);
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     var haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -1083,16 +1083,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //not checking user rn
      Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
+     var uhex = Hex.encode(account.user);
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     var haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
-     auto cmdl = cmdline.split(" ");
+     var cmdl = cmdline.split(" ");
      Int pt = 0;
      String tp = "";
      if (cmdl.size > 1) {
@@ -1146,12 +1146,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      log.log("in saveDeviceRequest");
      
      Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     //auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-     //auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     //auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
+     var uhex = Hex.encode(account.user);
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     //var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     //var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     //var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     var haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
      
      //String did = System:Random.getString(16);
      
@@ -1166,8 +1166,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    loadWifiRequest(request) Map {
      Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
-     auto hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
+     var uhex = Hex.encode(account.user);
+     var hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
 
      String ssid = hawifi.get(uhex + ".ssid.0");
      String sec = hawifi.get(uhex + ".sec.0");
@@ -1191,8 +1191,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    saveWifiRequest(String ssid, String sec, Bool reloadAfter, request) Map {
 
      Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
-     auto hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
+     var uhex = Hex.encode(account.user);
+     var hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
 
      if (TS.notEmpty(ssid) && TS.notEmpty(sec)) {
       hawifi.put(uhex + ".ssid.0", ssid);
@@ -1236,14 +1236,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    getDevicesRequest(request) Map {
      log.log("in getDevicesRequest");
      Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
-     auto hacw = app.kvdbs.get("HACW");
-     auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
+     var uhex = Hex.encode(account.user);
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
+     var hacw = app.kvdbs.get("HACW");
+     var haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
      Map devices = Map.new();
      Map ctls = Map.new();
      Map states = Map.new();
@@ -1257,7 +1257,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String ctl = hactls.get(did);
        if (TS.notEmpty(ctl)) {
          ctls.put(did, ctl);
-        auto ctll = ctl.split(",");
+        var ctll = ctl.split(",");
         log.log("got ctl " + ctl);
         for (Int i = 1;i < ctll.size;i++=) {
           String itype = ctll.get(i);
@@ -1300,7 +1300,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateSpec(String did) {
      log.log("in updateSpec " + did);
 
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -1341,8 +1341,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateSpecCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String did = mcmd["did"];
-     auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-     auto hadevs = app.kvdbs.get("HADEVS");
+     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+     var hadevs = app.kvdbs.get("HADEVS");
      if (TS.notEmpty(cres)) {
         log.log("got dospec " + cres);
         pdevices = null;
@@ -1352,7 +1352,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         } elseIf (cres.has("p2.")) {
           log.log("got swspec");
           haspecs.put(did, cres);
-          auto sl = cres.split(".");
+          var sl = cres.split(".");
           String dt = sl[1];
           String confs = hadevs.get(did);
           Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -1441,15 +1441,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         String ores = currentEvents.get(leid);
         if (TS.notEmpty(ores)) {
           if (cres != ores) {
-            auto ol = ores.split(";");
-            auto cl = cres.split(";");
+            var ol = ores.split(";");
+            var cl = cres.split(";");
             if (ol.size == cl.size) {
               for (Int i = 0;i < cl.size;i++=) {
                 String ci = cl.get(i);
                 String oi = ol.get(i);
                 if (TS.notEmpty(ci) && TS.notEmpty(oi) && ci != oi) {
                   log.log("found diffed events " + ci + " " + oi);
-                  auto de = ci.split(",");
+                  var de = ci.split(",");
                   if (def(pendingStateUpdates)) {
                     Int pos = Int.new(de.get(1));
                     pos++=;
@@ -1487,12 +1487,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateSwState(String did, Int dp, String cname) {
      log.log("in updateSwState " + did + " " + dp);
 
-     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
      String ctl = hactls.get(did);
-     auto ctll = ctl.split(",");
+     var ctll = ctl.split(",");
      String itype = ctll.get(dp);
 
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -1510,7 +1510,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      if (def(kdaddr)) {
 
-       auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        String sws = haspecs.get(did);
        if (TS.notEmpty(sws) && sws.has("q,")) {
          cmds = "dostate " + getSecQ(conf) + " " + dpd + " getsw e";
@@ -1549,7 +1549,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String did = mcmd["did"];
      String itype = mcmd["itype"];
      Int dp = mcmd["dp"];
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      if (TS.notEmpty(cres)) {
         log.log("got getsw " + cres);
         unless (cres.has("undefined")) {
@@ -1591,12 +1591,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateRgbState(String did, Int dp, String cname) {
      log.log("in updateRgbState " + did + " " + dp);
 
-     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
      String ctl = hactls.get(did);
-     auto ctll = ctl.split(",");
+     var ctll = ctl.split(",");
      String itype = ctll.get(dp);
 
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -1610,7 +1610,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      if (def(kdaddr)) {
 
-       auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        String sws = haspecs.get(did);
        if (TS.notEmpty(sws) && sws.has("q,")) {
          if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
@@ -1659,17 +1659,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String did = mcmd["did"];
      String itype = mcmd["itype"];
      Int dp = mcmd["dp"];
-     auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto hacw = app.kvdbs.get("HACW");
+     var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     var hacw = app.kvdbs.get("HACW");
 
      if (TS.notEmpty(cres)) {
         log.log("got getrgb " + cres);
         unless (cres.has("undefined")) {
           if (cres.has(",")) {
             if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
-              auto crl = cres.split(",");
+              var crl = cres.split(",");
               cres = crl[0] + "," + crl[1] + "," + crl[2];
               String lv = crl[3];
               String lvl = halv.get(did + "-" + dp);
@@ -1711,7 +1711,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                     }
                   }
                 }
-                auto rgbl = cres.split(",");
+                var rgbl = cres.split(",");
                 Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
                 dps.put("color", rgbm);
                 String stpp = "homeassistant/light/" + did + "-" + dp + "/state";
@@ -1727,12 +1727,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateTempState(String did, Int dp, String cname) {
      log.log("in updateRgbState " + did + " " + dp);
 
-     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
      String ctl = hactls.get(did);
-     auto ctll = ctl.split(",");
+     var ctll = ctl.split(",");
      String itype = ctll.get(dp);
 
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -1746,7 +1746,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      if (def(kdaddr)) {
 
-       auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        String sws = haspecs.get(did);
        if (TS.notEmpty(sws) && sws.has("q,")) {
          String cmds = "getstatexd " + getSecQ(conf) + " " + dpd + " e";
@@ -1787,16 +1787,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String did = mcmd["did"];
      String itype = mcmd["itype"];
      Int dp = mcmd["dp"];
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto hacw = app.kvdbs.get("HACW");
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     var hacw = app.kvdbs.get("HACW");
 
      if (TS.notEmpty(cres)) {
         log.log("got gettemp " + cres);
         unless (cres.has("undefined")) {
           if (cres.has(",")) {
             if (itype == "cwgd") {
-              auto crl = cres.split(",");
+              var crl = cres.split(",");
               String lv = crl[1];
               String lvl = halv.get(did + "-" + dp);
               if (TS.isEmpty(lvl) || lvl != lv) {
@@ -1838,12 +1838,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateLvlState(String did, Int dp, String cname) {
      log.log("in updateLvlState " + did + " " + dp);
 
-     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
      String ctl = hactls.get(did);
-     auto ctll = ctl.split(",");
+     var ctll = ctl.split(",");
      String itype = ctll.get(dp);
 
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -1857,7 +1857,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      if (def(kdaddr)) {
 
-       auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        String sws = haspecs.get(did);
        if (TS.notEmpty(sws) && sws.has("q,")) {
          if (itype == "gdim") {
@@ -1904,8 +1904,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String did = mcmd["did"];
      Int dp = mcmd["dp"];
      String itype = mcmd["itype"];
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
      if (TS.notEmpty(cres)) {
         log.log("got getlvl " + cres);
         unless (cres.has("undefined")) {
@@ -2084,9 +2084,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        pdcount = Map.new();
      }
      if (undef(pdevices)) {
-       auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+       var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
        pdevices = hadevs.getMap();
-       auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        pspecs = haspecs.getMap();
      }
 
@@ -2097,7 +2097,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             if (TS.notEmpty(k)) {
               try {
                 log.log("doing updateXState for " + k);
-                auto ks = k.split(",");
+                var ks = k.split(",");
                 if (ks[0] == "sw") {
                   updateSwState(ks[1], Int.new(ks[2]), ks[0]);
                 } elseIf (ks[0] == "dim" || ks[0] == "gdim") {
@@ -2143,7 +2143,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       Map lpd = pdevices;
       Map lpc = pdcount;
       if (def(lpd) && def (lpc)) {
-        for (auto pdc in pdevices) {
+        for (var pdc in pdevices) {
           Int dc = pdcount.get(pdc.key);
           if (undef(dc) || dc < pcount) {
             dc = pcount + 16 + System:Random.getIntMax(16); //(secs * 4), was 12
@@ -2289,13 +2289,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      log.log("in updateWifiRequest " + did);
 
      Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
+     var uhex = Hex.encode(account.user);
 
-     auto hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
+     var hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
      String devSsid = Hex.encode(hawifi.get(uhex + ".ssid.0"));
      String devSec = Hex.encode(hawifi.get(uhex + ".sec.0"));
 
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -2336,8 +2336,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String ipr = rsc.substring(fd + 1, rsc.size);
      log.log("shcd " + shcd + " ipr " + ipr);
      String myip = prot.getMyOutIp();
-     auto iprl = ipr.split("-");
-     auto myipl = myip.split(".");
+     var iprl = ipr.split("-");
+     var myipl = myip.split(".");
      Int mye = myipl.size - iprl.size;
      String dip = "";
      for (Int i = 0;i < mye;i++=) {
@@ -2363,7 +2363,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(cress)) {
       log.log("got cress in shdefCb " + cress);
       if (cress.begins("shdef:")) {
-        auto cres = cress.split(":");
+        var cres = cress.split(":");
         //have it all, make and save, put in for controldef
 
         Map conf = Map.new();
@@ -2388,7 +2388,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    haShareRequest(String did, request) Map {
      log.log("in haShareRequest " + did);
 
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -2396,7 +2396,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.isEmpty(nm)) { nm = "Nameless"; }
      nm = Hex.encode(nm);
 
-     auto sr = System:Random.new();
+     var sr = System:Random.new();
      String shcd = "" + sr.getString(4).lower();
 
      String cmds = "shcd " + conf["pass"] + " " + shcd + " " + nm + " e";//just a lie for now. will make a pin and send it
@@ -2435,8 +2435,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String shcd = mcmd["shcd"];
      if (TS.notEmpty(myip) && TS.notEmpty(kdaddr) && TS.notEmpty(shcd)) {
       log.log("haShareCb myip " + myip + " kdaddr " + kdaddr);
-      auto mi = myip.split(".");
-      auto ki = kdaddr.split(".");
+      var mi = myip.split(".");
+      var ki = kdaddr.split(".");
       String ce = "";
       for (Int i = 0;i < mi.size;i++=) {
         String mp = mi[i];
@@ -2464,7 +2464,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    restartDevRequest(String did, request) Map {
      log.log("in restartDevRequest " + did);
 
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -2500,7 +2500,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    rectlDeviceRequest(String did, request) Map {
      log.log("in rectlDeviceRequest " + did);
 
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -2532,7 +2532,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
 
       if (TS.notEmpty(controlDef)) {
-        auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+        var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
         hactls.put(did, controlDef);
         ifEmit(wajv) {
           if (def(mqtt)) {
@@ -2563,14 +2563,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    setDeviceSwMcmd(String did, String iposs, String state) Map {
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
 
      Int ipos = Int.new(iposs);
 
      String ctl = hactls.get(did);
-     auto ctll = ctl.split(",");
+     var ctll = ctl.split(",");
      String itype = ctll.get(ipos);
 
      ipos--=;
@@ -2601,7 +2601,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String rpos = mcmd["rpos"];
      String rstate = mcmd["rstate"];
      String itype = mcmd["itype"];
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      if (TS.notEmpty(cres) && cres.has("ok")) {
        hasw.put(rhan + "-" + rpos, rstate);
        ifEmit(wajv) {
@@ -2641,19 +2641,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    setDeviceRgbMcmd(String rhanpos, String rgb) Map {
 
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto hacw = app.kvdbs.get("HACW");
-     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     var hacw = app.kvdbs.get("HACW");
+     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
 
-     auto rhp = rhanpos.split("-");
+     var rhp = rhanpos.split("-");
      String rhan = rhp.get(0);
 
      Int rpos = Int.new(rhp.get(1));
 
      String ctl = hactls.get(rhan);
-     auto ctll = ctl.split(",");
+     var ctll = ctl.split(",");
      String itype = ctll.get(rpos);
 
      rpos--=;
@@ -2716,9 +2716,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String rhanpos = mcmd["rhanpos"];
      String rgb = mcmd["rgb"];
      String itype = mcmd["itype"];
-     auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto hacw = app.kvdbs.get("HACW");
+     var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var hacw = app.kvdbs.get("HACW");
      if (TS.notEmpty(cres) && cres.has("ok")) {
        //Map tb = trueRgb(rgb);
        //rgb = "" + tb["r"] + "," + tb["g"] + "," + tb["b"];
@@ -2732,7 +2732,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (def(mqtt)) {
           if (TS.notEmpty(itype)) {
             if (itype == "rgb" || itype == "rgbgdim") {
-              auto rgbl = rgb.split(",");
+              var rgbl = rgb.split(",");
               Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
               Map dps = Map.new();
               dps.put("state", "ON");
@@ -2770,20 +2770,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    setDeviceTempMcmd(String rhanpos, String rstate) Map {
 
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-     auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
-     auto hacw = app.kvdbs.get("HACW"); //hargb - device id to rgb
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
+     var hacw = app.kvdbs.get("HACW"); //hargb - device id to rgb
 
-     auto rhp = rhanpos.split("-");
+     var rhp = rhanpos.split("-");
      String rhan = rhp.get(0);
 
      Int rpos = Int.new(rhp.get(1));
 
      String ctl = hactls.get(rhan);
-     auto ctll = ctl.split(",");
+     var ctll = ctl.split(",");
      String itype = ctll.get(rpos);
 
      rpos--=;
@@ -2839,9 +2839,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String rhanpos = mcmd["rhanpos"];
      String cw = mcmd["cw"];
      String itype = mcmd["itype"];
-     auto hacw = app.kvdbs.get("HACW"); //hargb - device id to rgb
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
+     var hacw = app.kvdbs.get("HACW"); //hargb - device id to rgb
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
      if (TS.notEmpty(cres) && cres.has("ok")) {
        //Map tb = trueRgb(rgb);
        //rgb = "" + tb["r"] + "," + tb["g"] + "," + tb["b"];
@@ -2864,7 +2864,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 dps.put("color_temp", lsToMired(Int.new(cw)));
               }
               if (TS.notEmpty(mcmd["rgb"])) {
-                auto rgbl = mcmd.get("rgb").split(",");
+                var rgbl = mcmd.get("rgb").split(",");
                 Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
                 dps.put("color", rgbm);
               }
@@ -2911,20 +2911,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    setDeviceLvlMcmd(String rhanpos, String rstate) Map {
 
-     auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-     auto hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
-     auto hacw = app.kvdbs.get("HACW"); //hargb - device id to rgb
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
+     var hacw = app.kvdbs.get("HACW"); //hargb - device id to rgb
 
-     auto rhp = rhanpos.split("-");
+     var rhp = rhanpos.split("-");
      String rhan = rhp.get(0);
 
      Int rpos = Int.new(rhp.get(1));
 
      String ctl = hactls.get(rhan);
-     auto ctll = ctl.split(",");
+     var ctll = ctl.split(",");
      String itype = ctll.get(rpos);
 
      rpos--=;
@@ -3009,7 +3009,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      log.log("in trueRgb");
      log.log("rgb " + rgb);
      Float tff = Float.intNew(255);
-     auto rgbl = rgb.split(",");
+     var rgbl = rgb.split(",");
      Int r = Int.new(rgbl[0]);
      Int g = Int.new(rgbl[1]);
      Int b = Int.new(rgbl[2]);
@@ -3142,8 +3142,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String rhanpos = mcmd["rhanpos"];
      String rstate = mcmd["rstate"];
      String itype = mcmd["itype"];
-     auto halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     auto hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
+     var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
+     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      if (TS.notEmpty(cres) && cres.has("ok")) {
        halv.put(rhanpos, rstate);
        hasw.put(rhanpos, "on");
@@ -3249,7 +3249,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          if (def(cmdQueue)) {
           Map mcmd = cmdQueue.get(0);
           if (def(mcmd)) {
-            auto n = cmdQueue.getNode(0);
+            var n = cmdQueue.getNode(0);
             n.delete();
             cmdsRes = null;
             aptrs = null;
@@ -3285,7 +3285,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
 
 
-     auto haknc = app.kvdbs.get("HAKNC"); //kdname to addr
+     var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
      if (TS.notEmpty(kdname)) {
       log.log("SHOULD NOW EJECT " + kdname);
       haknc.delete(kdname);
@@ -3307,7 +3307,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String kdn = kac.get(kdaddr);
           if (TS.notEmpty(kdn)) {
             //clear pending
-            for (auto kv in cmdQueues) {
+            for (var kv in cmdQueues) {
               Container:LinkedList cmdQueue = kv.value;
               if (def(cmdQueue)) {
                 for (Map mcmdcl in cmdQueue) {
@@ -3352,7 +3352,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
         //max waiting per kdaddr
         Int wct = 0;
-        for (auto i = cmdQueue.iterator;i.hasNext;;) {
+        for (var i = cmdQueue.iterator;i.hasNext;;) {
           Map mc = i.next;
           if (mc["kdaddr"] == mcmd["kdaddr"]) {
             wct++=;
@@ -3371,8 +3371,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    /*
      //tcp edition
-     auto client = App:TCPClient.new("CasNic" + conf["id"] + ".local", 6420);
-     //auto client = App:TCPClient.new("192.168.1.243", 6420);
+     var client = App:TCPClient.new("CasNic" + conf["id"] + ".local", 6420);
+     //var client = App:TCPClient.new("192.168.1.243", 6420);
      client.open();
      client.write(cmds + "\r\n");
      String tres = client.checkGetPayload(512, "\n");
@@ -3390,7 +3390,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      log.log("cmds enc " + cmds);
      String ucmd = "http://ym" + conf["id"] + ".local/?cmdform=cmdform&cmd=" + cmds;
      log.log("ucmd " + ucmd);
-     auto client = Web:Client.new();
+     var client = Web:Client.new();
      client.url = ucmd;
      String res = client.openInput().readString();
      client.close();
@@ -3401,7 +3401,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //log.log("in processDeviceMcmd");
 
      if (mcmd.has("did") && TS.notEmpty(mcmd["did"])) {
-      auto haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
       String sws = haspecs.get(mcmd["did"]);
       if (TS.notEmpty(sws) && sws.has("p3,")) {
         //log.log("adding tesh in processDeviceMcmd");
@@ -3506,8 +3506,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Int wait = 1000;
 
      Account account = request.context.get("account");
-     auto uhex = Hex.encode(account.user);
-     auto hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
+     var uhex = Hex.encode(account.user);
+     var hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
 
      String ssid = hawifi.get(uhex + ".ssid.0");
      String sec = hawifi.get(uhex + ".sec.0");
@@ -3702,14 +3702,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
 
       Account account = request.context.get("account");
-      auto uhex = Hex.encode(account.user);
+      var uhex = Hex.encode(account.user);
 
       if (TS.isEmpty(devPass)) {
         Int dps = System:Random.getIntMax(4) + 16;
         devPass = System:Random.getString(dps);
       }
 
-      auto hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
 
       if (TS.isEmpty(devSpass)) {
         dps = System:Random.getIntMax(4) + 16;
@@ -3721,7 +3721,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
 
       if (TS.isEmpty(devSsid)) {
-        auto hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
+        var hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
         devSsid = Hex.encode(hawifi.get(uhex + ".ssid.0"));
         devSec = Hex.encode(hawifi.get(uhex + ".sec.0"));
       }
@@ -3793,7 +3793,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        if (TS.notEmpty(cres) && cres.has("controldef")) {
          log.log("got controldef " + cres);
          String controlDef = cres;
-         auto hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+         var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
          hactls.put(disDevId, controlDef);
          alStep = "setwifi";
        }
@@ -3870,7 +3870,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(controlDef)) {
       String ssid = controlDef;
       if (ssid.begins("OCasnic-") || ssid.begins("Casnic")) {
-        auto pts = ssid.split("-");
+        var pts = ssid.split("-");
         if (pts.size == 4) {
           String type = pts[2];
           String pina = pts[1];
@@ -3900,7 +3900,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           if (TS.notEmpty(ssid)) {
             log.log("in fndr be ssid " + ssid);
             if (ssid.begins("OCasnic-") || ssid.begins("Casnic")) {
-              auto pts = ssid.split("-");
+              var pts = ssid.split("-");
               if (pts.size == 4) {
                 String type = pts[2];
                 String pina = pts[1];

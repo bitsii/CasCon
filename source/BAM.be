@@ -9,45 +9,45 @@
  *
  */
 
-use IO:File:Path;
-use IO:File;
-use Math:Float;
-use System:Random;
-use UI:WebBrowser as WeBr;
-use Test:Assertions as Assert;
-use Db:KeyValue as KvDb;
-use System:Thread:Lock;
-use System:Thread:ContainerLocker as CLocker;
-use System:Command as Com;
-use Time:Sleep;
-use Container:Pair;
-use System:CurrentPlatform as Plat;
+import IO:File:Path;
+import IO:File;
+import Math:Float;
+import System:Random;
+import UI:WebBrowser as WeBr;
+import Test:Assertions as Assert;
+import Db:KeyValue as KvDb;
+import System:Thread:Lock;
+import System:Thread:ContainerLocker as CLocker;
+import System:Command as Com;
+import Time:Sleep;
+import Container:Pair;
+import System:CurrentPlatform as Plat;
 
-use Crypto:Symmetric as Crypt;
+import Crypto:Symmetric as Crypt;
 
-use App:Alert;
-use App:Account;
+import App:Alert;
+import App:Account;
 
-use System:Exceptions as E;
+import System:Exceptions as E;
 
-use App:LocalWebApp;
-use App:RemoteWebApp;
-use App:WebApp;
-use Text:String;
-use App:CallBackUI;
-use CasNic:CasProt;
+import App:LocalWebApp;
+import App:RemoteWebApp;
+import App:WebApp;
+import Text:String;
+import App:CallBackUI;
+import CasNic:CasProt;
 
-use System:Thread:Lock;
-use System:Thread:ObjectLocker as OLocker;
+import System:Thread:Lock;
+import System:Thread:ObjectLocker as OLocker;
 
-use System:Parameters;
-use Encode:Hex as Hex;
-use Time:Interval;
+import System:Parameters;
+import Encode:Hex as Hex;
+import Time:Interval;
 
-use App:Mqtt;
+import App:Mqtt;
 
 
-use BAM:BamAuthPlugin;
+import BAM:BamAuthPlugin;
 
 class BamAuthPlugin(App:AuthPlugin) {
 
@@ -161,7 +161,7 @@ import casnic.control.MainActivity;
 """
 }
 }
-use class BA:BamPlugin(App:AjaxPlugin) {
+import class BA:BamPlugin(App:AjaxPlugin) {
 
   ifEmit(jvad) {
   emit(jv) {

@@ -9,13 +9,13 @@
  *
  */
 
-use IO:File:Path;
-use IO:File;
+import IO:File:Path;
+import IO:File;
 
-use System:Parameters;
-use Encode:Hex as Hex;
+import System:Parameters;
+import Encode:Hex as Hex;
 
-use class BA:BS {
+import class BA:BS {
 
      new() self {
        slots {

@@ -5,6 +5,8 @@ Casnic Control is a hybrid desktop application written in the [Brace](https://gi
 
 Hybrid Mobile Apps are available in the Google Play Store [Casnic Android App](https://play.google.com/store/apps/details?id=casnic.control&gl=US) and the Apple App Store [CasCon IOS App](https://apps.apple.com/us/app/cascon/id6458984046) - which are based on this shared codebase.
 
+Instructions for using the application with your devices are available [here](https://gitlab.com/bitsii/CasCon/-/wikis/home).
+
 ## Getting Started
 
 First - quick Getting Started! (more about Casnic Control below...)

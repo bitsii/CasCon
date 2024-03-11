@@ -225,7 +225,7 @@ use class IUHub:Eui {
    }
 
    toggleDevDetails() {
-     any da = HD.getEle("divDevDetails");
+     dyn da = HD.getEle("divDevDetails");
      if (da.display == "block") {
        da.display = "none";
      } else {
@@ -234,8 +234,8 @@ use class IUHub:Eui {
    }
 
    toggleAdvanced() {
-     any da = HD.getEle("divAdvanced");
-     any dma = HD.getEle("divMqttAdvanced");
+     dyn da = HD.getEle("divAdvanced");
+     dyn dma = HD.getEle("divMqttAdvanced");
      if (da.display == "block") {
        da.display = "none";
      } else {
@@ -991,7 +991,7 @@ use class IUHub:Eui {
         <ul>
         ''';
 
-       for (any ds in devices) {
+       for (dyn ds in devices) {
 
          String ctl = ctls.get(ds.key);
          if (TS.isEmpty(ctl) || ctl == "controldef,") {
@@ -1049,7 +1049,7 @@ use class IUHub:Eui {
        try {
          HD.getElementById("hadsList").innerHTML = ih;
          HD.getEle("devErr").display = "none";
-       } catch (any e) {
+       } catch (dyn e) {
          log.log("got except writing  hadsList");
          HD.reload();
        }

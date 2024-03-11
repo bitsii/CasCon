@@ -30,7 +30,7 @@ use class BA:BS {
         log.log("In BA:BS main");
         Parameters params = Parameters.new(System:Process.new().args);
         sendWifiUrl(params.getFirst("addr"), params.getFirst("ssid"), params.getFirst("sec"), params.getFirst("furl"));
-      } catch (any e) {
+      } catch (dyn e) {
         log.elog("fail in appstart main", e);
       }
     }

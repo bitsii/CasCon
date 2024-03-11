@@ -90,7 +90,7 @@ class BamAuthPlugin(App:AuthPlugin) {
           if (TS.notEmpty(resm["result"]) && resm["result"] == "ok") {
             authOk = true;
           }
-        } catch (any e) {
+        } catch (dyn e) {
           log.log("auth call excepted and failed");
         }
         if (authOk) {
@@ -240,7 +240,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      new() self {
        fields {
           String homePage = "/App/" + self.name + "/BAM.html";
-          any app;
+          dyn app;
           Map cmdQueues = Map.new();
           CasProt prot = CasProt.new();
           OLocker discoverNow = OLocker.new(true);
@@ -257,7 +257,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         IO:Logs.turnOnAll();
      }
      
-     appSet(any _app) {
+     appSet(dyn _app) {
        "in appset".print();
        app = _app;
        if (app.can("heightSet", 0)) {
@@ -305,7 +305,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         while (true) {
           try {
             haDoUpInner();
-          } catch (any e) {
+          } catch (dyn e) {
             log.elog("except in haDoUp", e);
           }
           //if (cnt < 6) {
@@ -403,7 +403,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           Time:Sleep.sleepSeconds(15);
           try {
             checkStartMqtt();
-          } catch (any e) {
+          } catch (dyn e) {
             log.elog("except in keepMqttUp", e);
           }
         }
@@ -495,7 +495,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         Map devices = Map.new();
         Map ctls = Map.new();
         Map topubs = Map.new();
-        for (any kv in hadevs.getMap()) {
+        for (dyn kv in hadevs.getMap()) {
           String did = kv.key;
           String confs = kv.value;
           Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -601,7 +601,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
         Time:Sleep.sleepMilliseconds(200);
-        for (any pkv in topubs) {
+        for (dyn pkv in topubs) {
           mqtt.publish(pkv.key, pkv.value);
         }
       }
@@ -782,7 +782,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       auto haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
       
       
-       for (any kv in haowns.getMap(uhex + ".")) {
+       for (dyn kv in haowns.getMap(uhex + ".")) {
          String did = kv.value;
          String confs = hadevs.get(did);
          if (retnext) {
@@ -1250,7 +1250,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map levels = Map.new();
      Map rgbs = Map.new();
      Map cws = Map.new();
-     for (any kv in haowns.getMap(uhex + ".")) {
+     for (dyn kv in haowns.getMap(uhex + ".")) {
        String did = kv.value;
        String confs = hadevs.get(did);
        devices.put(did, confs);
@@ -1393,7 +1393,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      try {
        Map conf = Json:Unmarshaller.unmarshall(confs);
-     } catch (any e) {
+     } catch (dyn e) {
        log.elog("error in gle", e);
        return(null);
      }
@@ -2033,7 +2033,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             if (backgroundPulse) {
               pulseDevices();
             }
-          } catch (any e) {
+          } catch (dyn e) {
             log.elog("except in pulseDevices");
           }
         }
@@ -2093,7 +2093,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (pcount % 2 == 0) {
       Set toDel = Set.new();
       if (def(pendingStateUpdates)) {
-        for (any k in pendingStateUpdates) {
+        for (dyn k in pendingStateUpdates) {
             if (TS.notEmpty(k)) {
               try {
                 log.log("doing updateXState for " + k);
@@ -2112,7 +2112,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   updateSwState(ks[1], Int.new(ks[2]), ks[0]);
                   updateTempState(ks[1], Int.new(ks[2]), ks[0]);
                 }
-              } catch (any e) {
+              } catch (dyn e) {
                 log.elog("Error updating device states", e);
               }
               toDel += k;

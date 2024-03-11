@@ -346,7 +346,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
             if (def(ads)) {
               log.log("got ads");
               for (Map ad in ads) {
-                if (TS.notEmpty(ad["slug"]) && ad["slug"].has("casnic")) {
+                if (TS.notEmpty(ad["slug"]) && ad["slug"].contains("casnic")) {
                   log.log("got casnic ad " + ad["slug"]);
                   String ver = ad["version"];
                   String verlat = ad["version_latest"];
@@ -625,7 +625,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
             Map mcmd = setDeviceSwMcmd(dp[0], dp[1], payload.lower());
             mcmd["runSync"] = true;
             processDeviceMcmd(mcmd);
-            if (mcmd.has("cb")) {
+            if (mcmd.contains("cb")) {
               self.invoke(mcmd["cb"], Lists.from(mcmd, null));
             }
             stDiffed = true;
@@ -638,34 +638,34 @@ import class BA:BamPlugin(App:AjaxPlugin) {
             Map incmd = Json:Unmarshaller.unmarshall(payload);
             //if has brightness, do brightness
             //else state
-            if (incmd.has("brightness")) {
+            if (incmd.contains("brightness")) {
               mcmd = setDeviceLvlMcmd(dp[0] + "-" + dp[1], incmd.get("brightness").toString());
               mcmd["runSync"] = true;
               processDeviceMcmd(mcmd);
-              if (mcmd.has("cb")) {
+              if (mcmd.contains("cb")) {
                 self.invoke(mcmd["cb"], Lists.from(mcmd, null));
               }
-            } elseIf (incmd.has("color")) {
+            } elseIf (incmd.contains("color")) {
               Map rgb = incmd.get("color");
               String rgbs = "" + rgb["r"] + "," + rgb["g"] + "," + rgb["b"];
               mcmd = setDeviceRgbMcmd(dp[0] + "-" + dp[1], rgbs);
               mcmd["runSync"] = true;
               processDeviceMcmd(mcmd);
-              if (mcmd.has("cb")) {
+              if (mcmd.contains("cb")) {
                 self.invoke(mcmd["cb"], Lists.from(mcmd, null));
               }
-            } elseIf (incmd.has("color_temp")) {
+            } elseIf (incmd.contains("color_temp")) {
               mcmd = setDeviceTempMcmd(dp[0] + "-" + dp[1], miredToLs(incmd.get("color_temp")).toString());
               mcmd["runSync"] = true;
               processDeviceMcmd(mcmd);
-              if (mcmd.has("cb")) {
+              if (mcmd.contains("cb")) {
                 self.invoke(mcmd["cb"], Lists.from(mcmd, null));
               }
-            } elseIf (incmd.has("state")) {
+            } elseIf (incmd.contains("state")) {
               mcmd = setDeviceSwMcmd(dp[0], dp[1], incmd.get("state").lower());
               mcmd["runSync"] = true;
               processDeviceMcmd(mcmd);
-              if (mcmd.has("cb")) {
+              if (mcmd.contains("cb")) {
                 self.invoke(mcmd["cb"], Lists.from(mcmd, null));
               }
             }
@@ -824,7 +824,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
 
     getCashedAddr(String kdname) {
       String kdaddr;
-      if (def(knc) && knc.has(kdname)) {
+      if (def(knc) && knc.contains(kdname)) {
           kdaddr = knc.get(kdname);
       } else {
         var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
@@ -848,7 +848,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
         kac = Map.new();
       }
 
-     if (knc.has(kdname)) {
+     if (knc.contains(kdname)) {
           kdaddr = knc.get(kdname);
      } else {
         var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
@@ -1053,22 +1053,22 @@ import class BA:BamPlugin(App:AjaxPlugin) {
        log.log("reset got no cres");
        throw(Alert.new("Device did not respond to reset request"));
      } else {
-       if (cres.has("Device reset")) {
+       if (cres.contains("Device reset")) {
          log.log("reset worked");
-         if (mcmd.has("did")) {
+         if (mcmd.contains("did")) {
          log.log("will delete device");
           return(deleteDeviceRequest(mcmd["did"], request));
          }
        } else {
         log.log("reset failed");
-        unless (mcmd.has("did")) {
-         if (cres.has("resetbypin not enabled")) {
+        unless (mcmd.contains("did")) {
+         if (cres.contains("resetbypin not enabled")) {
            throw(Alert.new("Device does not support unconfigured software reset, check device for physical reset option (possibly >30s long push of button, if present)"));
          }
         }
        }
      }
-     unless (mcmd.has("did")) {
+     unless (mcmd.contains("did")) {
         return(CallBackUI.reloadResponse());
      }
      return(null);
@@ -1320,7 +1320,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
         if (backgroundPulse) {
           mcmd["runSync"] = true;
           processDeviceMcmd(mcmd);
-          if (mcmd.has("cb")) {
+          if (mcmd.contains("cb")) {
             self.invoke(mcmd["cb"], Lists.from(mcmd, null));
           }
         } else {
@@ -1349,7 +1349,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
         if (cres.begins("controldef")) {
           log.log("pre swspec");
           haspecs.put(did, "1,p2.gsh.4");
-        } elseIf (cres.has("p2.")) {
+        } elseIf (cres.contains("p2.")) {
           log.log("got swspec");
           haspecs.put(did, cres);
           var sl = cres.split(".");
@@ -1377,7 +1377,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      if (undef(secQs)) { secQs = Map.new(); }
      String did = conf["ondid"];
      String spass = conf["spass"];
-     if (secQs.has(did)) { return(secQs[did]); }
+     if (secQs.contains(did)) { return(secQs[did]); }
      if (TS.notEmpty(did) && TS.notEmpty(spass)) {
        String tosec = spass.substring(0, 8) + did;
        String sq = prot.sha1hex(tosec).substring(0, 12);
@@ -1412,7 +1412,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
          if (backgroundPulse) {
           mcmd["runSync"] = true;
           processDeviceMcmd(mcmd);
-          if (mcmd.has("cb")) {
+          if (mcmd.contains("cb")) {
             self.invoke(mcmd["cb"], Lists.from(mcmd, null));
           }
          } else {
@@ -1436,7 +1436,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
    getLastEventsCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String leid = mcmd["did"];
-     if (TS.notEmpty(cres) && cres.has(";")) {
+     if (TS.notEmpty(cres) && cres.contains(";")) {
         //log.log("getlastevents cres |" + cres + "|");
         String ores = currentEvents.get(leid);
         if (TS.notEmpty(ores)) {
@@ -1512,7 +1512,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
 
        var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        String sws = haspecs.get(did);
-       if (TS.notEmpty(sws) && sws.has("q,")) {
+       if (TS.notEmpty(sws) && sws.contains("q,")) {
          cmds = "dostate " + getSecQ(conf) + " " + dpd + " getsw e";
          //log.log("cmds " + cmds);
          mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
@@ -1526,7 +1526,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
          if (backgroundPulse) {
           mcmd["runSync"] = true;
           processDeviceMcmd(mcmd);
-          if (mcmd.has("cb")) {
+          if (mcmd.contains("cb")) {
             self.invoke(mcmd["cb"], Lists.from(mcmd, null));
           }
          } else {
@@ -1552,7 +1552,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      if (TS.notEmpty(cres)) {
         log.log("got getsw " + cres);
-        unless (cres.has("undefined")) {
+        unless (cres.contains("undefined")) {
           String cset = hasw.get(did + "-" + dp);
           if (TS.isEmpty(cset) || cset != cres) {
             hasw.put(did + "-" + dp, cres);
@@ -1612,7 +1612,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
 
        var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        String sws = haspecs.get(did);
-       if (TS.notEmpty(sws) && sws.has("q,")) {
+       if (TS.notEmpty(sws) && sws.contains("q,")) {
          if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
            cmds = "getstatexd " + getSecQ(conf) + " " + dpd + " e";
          } else {
@@ -1634,7 +1634,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
          if (backgroundPulse) {
           mcmd["runSync"] = true;
           processDeviceMcmd(mcmd);
-          if (mcmd.has("cb")) {
+          if (mcmd.contains("cb")) {
             self.invoke(mcmd["cb"], Lists.from(mcmd, null));
           }
          } else {
@@ -1666,8 +1666,8 @@ import class BA:BamPlugin(App:AjaxPlugin) {
 
      if (TS.notEmpty(cres)) {
         log.log("got getrgb " + cres);
-        unless (cres.has("undefined")) {
-          if (cres.has(",")) {
+        unless (cres.contains("undefined")) {
+          if (cres.contains(",")) {
             if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
               var crl = cres.split(",");
               cres = crl[0] + "," + crl[1] + "," + crl[2];
@@ -1689,7 +1689,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
               }
             }
             String cset = hargb.get(did + "-" + dp);
-            if (TS.isEmpty(cset) || cset.has(",")! || cset != cres) {
+            if (TS.isEmpty(cset) || cset.contains(",")! || cset != cres) {
               log.log("got rgb update");
               hargb.put(did + "-" + dp, cres);
               stDiffed = true;
@@ -1748,7 +1748,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
 
        var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        String sws = haspecs.get(did);
-       if (TS.notEmpty(sws) && sws.has("q,")) {
+       if (TS.notEmpty(sws) && sws.contains("q,")) {
          String cmds = "getstatexd " + getSecQ(conf) + " " + dpd + " e";
          //log.log("cmds " + cmds);
          Map mcmd = Maps.from("cb", "updateTempStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
@@ -1762,7 +1762,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
          if (backgroundPulse) {
           mcmd["runSync"] = true;
           processDeviceMcmd(mcmd);
-          if (mcmd.has("cb")) {
+          if (mcmd.contains("cb")) {
             self.invoke(mcmd["cb"], Lists.from(mcmd, null));
           }
          } else {
@@ -1793,8 +1793,8 @@ import class BA:BamPlugin(App:AjaxPlugin) {
 
      if (TS.notEmpty(cres)) {
         log.log("got gettemp " + cres);
-        unless (cres.has("undefined")) {
-          if (cres.has(",")) {
+        unless (cres.contains("undefined")) {
+          if (cres.contains(",")) {
             if (itype == "cwgd") {
               var crl = cres.split(",");
               String lv = crl[1];
@@ -1859,7 +1859,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
 
        var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        String sws = haspecs.get(did);
-       if (TS.notEmpty(sws) && sws.has("q,")) {
+       if (TS.notEmpty(sws) && sws.contains("q,")) {
          if (itype == "gdim") {
           cmds = "getstatexd " + getSecQ(conf) + " " + dpd + " e";
          } else {
@@ -1881,7 +1881,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
          if (backgroundPulse) {
           mcmd["runSync"] = true;
           processDeviceMcmd(mcmd);
-          if (mcmd.has("cb")) {
+          if (mcmd.contains("cb")) {
             self.invoke(mcmd["cb"], Lists.from(mcmd, null));
           }
         } else {
@@ -1908,7 +1908,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
      if (TS.notEmpty(cres)) {
         log.log("got getlvl " + cres);
-        unless (cres.has("undefined")) {
+        unless (cres.contains("undefined")) {
           String cset = halv.get(did + "-" + dp);
           Int cresi = Int.new(cres);
           if (TS.notEmpty(cset)) {
@@ -1979,7 +1979,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      if (def(cmdsFailMcmd)) {
        Map mcmd = cmdsFailMcmd;
        cmdsFailMcmd = null;
-       if (mcmd.has("cb")) {
+       if (mcmd.contains("cb")) {
         return(self.invoke(mcmd["cb"], Lists.from(mcmd, request)));
       }
      }
@@ -2150,7 +2150,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
             pdcount.put(pdc.key, dc);
             Map conf = Json:Unmarshaller.unmarshall(pdc.value);
             String did = conf["id"];
-            if (TS.notEmpty(did) && pspecs.has(did)) {
+            if (TS.notEmpty(did) && pspecs.contains(did)) {
               getLastEvents(pdc.value);
               break;
             } elseIf (TS.notEmpty(did)) {
@@ -2526,7 +2526,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
    rectlDeviceCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String did = mcmd["did"];
-     if (TS.notEmpty(cres) && cres.has("controldef")) {
+     if (TS.notEmpty(cres) && cres.contains("controldef")) {
         log.log("got controldef " + cres);
         String controlDef = cres;
       }
@@ -2602,7 +2602,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      String rstate = mcmd["rstate"];
      String itype = mcmd["itype"];
      var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     if (TS.notEmpty(cres) && cres.has("ok")) {
+     if (TS.notEmpty(cres) && cres.contains("ok")) {
        hasw.put(rhan + "-" + rpos, rstate);
        ifEmit(wajv) {
         if (def(mqtt)) {
@@ -2719,7 +2719,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
      var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      var hacw = app.kvdbs.get("HACW");
-     if (TS.notEmpty(cres) && cres.has("ok")) {
+     if (TS.notEmpty(cres) && cres.contains("ok")) {
        //Map tb = trueRgb(rgb);
        //rgb = "" + tb["r"] + "," + tb["g"] + "," + tb["b"];
        log.log("hargb putting " + rhanpos + " " + rgb);
@@ -2842,7 +2842,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      var hacw = app.kvdbs.get("HACW"); //hargb - device id to rgb
      var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
-     if (TS.notEmpty(cres) && cres.has("ok")) {
+     if (TS.notEmpty(cres) && cres.contains("ok")) {
        //Map tb = trueRgb(rgb);
        //rgb = "" + tb["r"] + "," + tb["g"] + "," + tb["b"];
        log.log("hacw putting " + rhanpos + " " + cw);
@@ -3144,7 +3144,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      String itype = mcmd["itype"];
      var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
      var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     if (TS.notEmpty(cres) && cres.has("ok")) {
+     if (TS.notEmpty(cres) && cres.contains("ok")) {
        halv.put(rhanpos, rstate);
        hasw.put(rhanpos, "on");
        ifEmit(wajv) {
@@ -3240,7 +3240,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
        mcmd["cres"] = cmdsRes;
        cmdsRes = null;
        currCmds = null;
-       if (mcmd.has("cb")) {
+       if (mcmd.contains("cb")) {
          return(self.invoke(mcmd["cb"], Lists.from(mcmd, request)));
        }
      } elseIf (undef(currCmds)) {
@@ -3280,7 +3280,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      String kdaddr = mcmd["kdaddr"];
      String kdname = mcmd["kdname"];
 
-     if (mcmd.has("cb")) {
+     if (mcmd.contains("cb")) {
        cmdsFailMcmd = mcmd;
      }
 
@@ -3400,10 +3400,10 @@ import class BA:BamPlugin(App:AjaxPlugin) {
    processDeviceMcmd(Map mcmd) {
      //log.log("in processDeviceMcmd");
 
-     if (mcmd.has("did") && TS.notEmpty(mcmd["did"])) {
+     if (mcmd.contains("did") && TS.notEmpty(mcmd["did"])) {
       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
       String sws = haspecs.get(mcmd["did"]);
-      if (TS.notEmpty(sws) && sws.has("p3,")) {
+      if (TS.notEmpty(sws) && sws.contains("p3,")) {
         //log.log("adding tesh in processDeviceMcmd");
         Int teshi = Time:Interval.now().seconds;
         //teshi -= 300;
@@ -3514,7 +3514,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      if (undef(ssid)) { ssid = ""; }
      if (undef(sec)) { sec = ""; }
 
-     if (TS.notEmpty(ssid) && TS.notEmpty(sec) && visnets.has(ssid)) {
+     if (TS.notEmpty(ssid) && TS.notEmpty(sec) && visnets.contains(ssid)) {
        log.log("have wifi setup and found my ssid, moving to allset");
        count.setValue(tries);
        return(CallBackUI.getDevWifisResponse(count, tries, wait));
@@ -3545,8 +3545,8 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(cres)) {
        log.log("previsnetsCb cres " + cres);
      }
-     if (TS.notEmpty(cres) && cres.has("ssids")) {
-        if (cres.has(":")) {
+     if (TS.notEmpty(cres) && cres.contains("ssids")) {
+        if (cres.contains(":")) {
            List ssp = cres.split(":");
            for (Int i = 1;i < ssp.size;i++=) {
              String vna = Encode:Hex.decode(ssp[i]);
@@ -3781,16 +3781,16 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      String cres = mcmd["cres"];
      String disDevId = mcmd["disDevId"];
      if (alStep == "allset") {
-       if (TS.notEmpty(cres) && cres.has("allset done")) {
+       if (TS.notEmpty(cres) && cres.contains("allset done")) {
           log.log("allset expected result");
           alStep = "getcontroldef";
-       } elseIf (TS.notEmpty(cres) && cres.has("pass is incorrect")) {
+       } elseIf (TS.notEmpty(cres) && cres.contains("pass is incorrect")) {
           throw(Alert.new("Device is already configured, reset before setting up again."));
-       } elseIf (TS.notEmpty(cres) && cres.has("mins of power on")) {
+       } elseIf (TS.notEmpty(cres) && cres.contains("mins of power on")) {
           throw(Alert.new("Error, must setup w/in 30 mins of power on. Unplug and replug in device and try again"));
        }
      } elseIf (alStep == "getcontroldef") {
-       if (TS.notEmpty(cres) && cres.has("controldef")) {
+       if (TS.notEmpty(cres) && cres.contains("controldef")) {
          log.log("got controldef " + cres);
          String controlDef = cres;
          var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
@@ -3798,12 +3798,12 @@ import class BA:BamPlugin(App:AjaxPlugin) {
          alStep = "setwifi";
        }
      } elseIf (alStep == "setwifi") {
-       if (TS.notEmpty(cres) && cres.has("Wifi Setup Written")) {
+       if (TS.notEmpty(cres) && cres.contains("Wifi Setup Written")) {
          log.log("wifi setup worked");
          alStep = "restart";
        }
      } elseIf (alStep == "restart") {
-       if (TS.notEmpty(cres) && cres.has("Will restart")) {
+       if (TS.notEmpty(cres) && cres.contains("Will restart")) {
           log.log("restart worked");
           ifEmit(platDroid) {
               emit(jv) {
@@ -3960,7 +3960,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      }
      ref = ref.substring(pos);
      log.log("okForPageToken " + ref);
-     if (ref.has("?")) {
+     if (ref.contains("?")) {
       ref = ref.substring(0, ref.find("?"));
      }
      log.log("okForPageToken second " + ref);

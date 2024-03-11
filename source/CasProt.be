@@ -290,7 +290,7 @@ class CasNic:CasProt {
             if (def(ifc)) {
               log.log("got interfaces");
               for (Map ifm in ifc) {
-                if (ifm.has("ipv4")) {
+                if (ifm.contains("ipv4")) {
                   log.log("got ipv4");
                   Map fer = ifm.get("ipv4");
                   List addrl = fer.get("address");

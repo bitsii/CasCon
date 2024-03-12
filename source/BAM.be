@@ -505,7 +505,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
             ctls.put(did, ctl);
             var ctll = ctl.split(",");
             log.log("got ctl " + ctl);
-            for (Int i = 1;i < ctll.length;i++=) {
+            for (Int i = 1;i < ctll.length;i++) {
               String itype = ctll.get(i);
               log.log("got ctled itype " + itype + " pos " + i);
               if (itype == "sw") {
@@ -1001,7 +1001,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
     if (TS.notEmpty(ctl)) {
       var ctll = ctl.split(",");
       log.log("got ctl " + ctl);
-      for (Int i = 1;i < ctll.length;i++=) {
+      for (Int i = 1;i < ctll.length;i++) {
         hasw.delete(did + "-" + i);
         halv.delete(did + "-" + i);
         hargb.delete(did + "-" + i);
@@ -1259,7 +1259,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
          ctls.put(did, ctl);
         var ctll = ctl.split(",");
         log.log("got ctl " + ctl);
-        for (Int i = 1;i < ctll.length;i++=) {
+        for (Int i = 1;i < ctll.length;i++) {
           String itype = ctll.get(i);
           String psu = itype + "," + did + "," + i;
           //pendingStateUpdates += psu;
@@ -1444,7 +1444,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
             var ol = ores.split(";");
             var cl = cres.split(";");
             if (ol.length == cl.length) {
-              for (Int i = 0;i < cl.length;i++=) {
+              for (Int i = 0;i < cl.length;i++) {
                 String ci = cl.get(i);
                 String oi = ol.get(i);
                 if (TS.notEmpty(ci) && TS.notEmpty(oi) && ci != oi) {
@@ -1452,7 +1452,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
                   var de = ci.split(",");
                   if (def(pendingStateUpdates)) {
                     Int pos = Int.new(de.get(1));
-                    pos++=;
+                    pos++;
                     String psu = de.get(0) + "," + leid + "," + pos;
                     pendingStateUpdates += psu;
                   }
@@ -1463,14 +1463,14 @@ import class BA:BamPlugin(App:AjaxPlugin) {
         } else {
           log.log("not found in currentEvents, getting all states");
           cl = cres.split(";");
-          for (i = 0;i < cl.length;i++=) {
+          for (i = 0;i < cl.length;i++) {
             ci = cl.get(i);
             if (TS.notEmpty(ci)) {
               log.log("found new events " + ci);
               de = ci.split(",");
               if (def(pendingStateUpdates)) {
                 pos = Int.new(de.get(1));
-                pos++=;
+                pos++;
                 psu = de.get(0) + "," + leid + "," + pos;
                 pendingStateUpdates += psu;
               }
@@ -2070,7 +2070,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
        pcount = 0;
        pdcount = null;
      }
-     pcount++=;
+     pcount++;
      if (undef(pendingStateUpdates)) {
        pendingStateUpdates = Set.new();
      }
@@ -2340,11 +2340,11 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      var myipl = myip.split(".");
      Int mye = myipl.length - iprl.length;
      String dip = "";
-     for (Int i = 0;i < mye;i++=) {
+     for (Int i = 0;i < mye;i++) {
         if (TS.notEmpty(dip)) { dip += "."; }
         dip += myipl[i];
      }
-     for (i = 0;i < iprl.length;i++=) {
+     for (i = 0;i < iprl.length;i++) {
        if (TS.notEmpty(dip)) { dip += "."; }
        dip += iprl[i];
      }
@@ -2438,7 +2438,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
       var mi = myip.split(".");
       var ki = kdaddr.split(".");
       String ce = "";
-      for (Int i = 0;i < mi.length;i++=) {
+      for (Int i = 0;i < mi.length;i++) {
         String mp = mi[i];
         String kp = ki[i];
         if (mp != kp) {
@@ -3176,7 +3176,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
       if (undef(aptrs)) {
         aptrs = 1;
       } else {
-        aptrs++=;
+        aptrs++;
       }
       if (aptrs > 16) {
         //timed out
@@ -3209,7 +3209,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
           if (def(jspw)) {
             Int jic = Int.new();
             Bool gotone = false;
-            for (Int ji = 0;ji < jspw.length;ji++=) {
+            for (Int ji = 0;ji < jspw.length;ji++) {
               jspw.getCode(ji, jic);
               if (jic == 0 || jic == 13 || jic == 10) {
                 //log.log("found first end at " + ji);
@@ -3244,7 +3244,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
          return(self.invoke(mcmd["cb"], Lists.from(mcmd, request)));
        }
      } elseIf (undef(currCmds)) {
-       for (Int i = 0;i < 10;i++=) {
+       for (Int i = 0;i < 10;i++) {
          Container:LinkedList cmdQueue = cmdQueues.get(i);
          if (def(cmdQueue)) {
           Map mcmd = cmdQueue.get(0);
@@ -3355,7 +3355,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
         for (var i = cmdQueue.iterator;i.hasNext;;) {
           Map mc = i.next;
           if (mc["kdaddr"] == mcmd["kdaddr"]) {
-            wct++=;
+            wct++;
             if (wct > 6) {
               log.log("too many waiting no adding to cmdQueue");
               return(false);
@@ -3548,11 +3548,11 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(cres) && cres.contains("ssids")) {
         if (cres.contains(":")) {
            List ssp = cres.split(":");
-           for (Int i = 1;i < ssp.length;i++=) {
+           for (Int i = 1;i < ssp.length;i++) {
              String vna = Encode:Hex.decode(ssp[i]);
              log.log("got vna " + vna);
              visnets.put(vna, vna);
-             visnetsPos++=;
+             visnetsPos++;
            }
         } else {
           //done
@@ -3562,7 +3562,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
       } else {
         //failed
         log.log("got a fail in previsnetsCb");
-        visnetsFails++=;
+        visnetsFails++;
       }
       return(null);
    }
@@ -3683,10 +3683,10 @@ import class BA:BamPlugin(App:AjaxPlugin) {
       Int ic = Int.new();
       Int length = toCheck.length;
       String ret = String.new(toCheck.length);
-      for (Int j = 0;j < length;j++=;) {
+      for (Int j = 0;j < length;j++;) {
         toCheck.getInt(j, ic);
         if ((ic > 47 && ic < 58) || (ic > 64 && ic < 91) || (ic > 96 && ic < 123) || ic == 32) {
-            ret.length = ret.length++;
+            ret.length = ret.length + 1;
             ret.setInt(j, ic);
         }
       }
@@ -3696,7 +3696,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
    allsetRequest(Int count, String devName, String devType, String devPin, String disDevSsid, String disDevId, String devPass, String devSpass, String devDid, String devSsid, String devSec, request) {
       Int tries = 200;
       Int wait = 1000;
-      count++=;
+      count++;
       slots {
         String alStep;
       }
@@ -3955,7 +3955,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
       return(false);
      }
      Int pos = 0;
-     for (Int i = 0;i < 3;i++=) {
+     for (Int i = 0;i < 3;i++) {
        pos = ref.find("/", pos + 1);
      }
      ref = ref.substring(pos);

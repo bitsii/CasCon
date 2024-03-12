@@ -108,7 +108,7 @@ import class IUHub:Eui {
      /*if (undef(lctr)) {
        lctr = 1;
      } else {
-       lctr = lctr++;
+       lctr = lctr + 1;
        if (lctr > 20000) {
          lctr = 1;
        }
@@ -327,7 +327,7 @@ import class IUHub:Eui {
           if (undef(discoCounts) || discoCounts > 3000) {
             discoCounts = 0;
           } else {
-            discoCounts++=;
+            discoCounts++;
           }
         if (discoCounts % 7 == 0) {
             log.log("in checkNexts hitting findNewDevices");
@@ -649,7 +649,7 @@ import class IUHub:Eui {
 
    getOnWifiResponse(Int count, Int tries, Int wait) {
      if (count < tries) {
-       count++=;
+       count++;
        HC.callAppLater(Lists.from("getOnWifiRequest", count, disDevPin, disDevSsid), wait);
      } else {
        count.setValue(0);
@@ -659,7 +659,7 @@ import class IUHub:Eui {
 
    getDevWifisResponse(Int count, Int tries, Int wait) {
      if (count < tries) {
-       count++=;
+       count++;
        HC.callAppLater(Lists.from("getDevWifisRequest", count, false), wait);
      } else {
        count.setValue(0);
@@ -669,7 +669,7 @@ import class IUHub:Eui {
 
    allsetResponse(Int count, Int tries, Int wait, _disDevPass, _disDevSpass, _disDevDid, devSsid, devSec, _disDevId, _devName) {
      if (count < tries) {
-       count++=;
+       count++;
        disDevPass = _disDevPass;
        disDevSpass = _disDevSpass;
        disDevDid = _disDevDid;
@@ -1000,7 +1000,7 @@ import class IUHub:Eui {
          if (TS.notEmpty(ctl)) {
          var ctll = ctl.split(",");
          log.log("got ctl " + ctl);
-         for (Int i = 1;i < ctll.length;i++=) {
+         for (Int i = 1;i < ctll.length;i++) {
            String itype = ctll.get(i);
            log.log("got itype " + itype);
             log.log("got dev " + ds.key + " " + ds.value);

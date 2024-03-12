@@ -190,7 +190,7 @@ class CasNic:CasProt {
          cmdl[1] = "X";
          Int toc = cmdl.length - 1;
          String sp = " ";
-         for (Int j = 0;j < toc;j++=) {
+         for (Int j = 0;j < toc;j++) {
            insec += cmdl[j] += sp;
          }
          //log.log("insec |" + insec + "|");

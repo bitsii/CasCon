@@ -188,7 +188,7 @@ class CasNic:CasProt {
          }
          var cmdl = cmds.split(" ");
          cmdl[1] = "X";
-         Int toc = cmdl.size - 1;
+         Int toc = cmdl.length - 1;
          String sp = " ";
          for (Int j = 0;j < toc;j++=) {
            insec += cmdl[j] += sp;
@@ -296,8 +296,8 @@ class CasNic:CasProt {
                   List addrl = fer.get("address");
                   if (def(addrl)) {
                     log.log("got addrl");
-                    if (addrl.size > 0) {
-                      log.log("addrl got size");
+                    if (addrl.length > 0) {
+                      log.log("addrl got length");
                       log.log(addrl[0]);
                       var adll = addrl.get(0).split("/");
                       String sip = adll.get(0);

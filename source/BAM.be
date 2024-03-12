@@ -505,7 +505,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
             ctls.put(did, ctl);
             var ctll = ctl.split(",");
             log.log("got ctl " + ctl);
-            for (Int i = 1;i < ctll.size;i++=) {
+            for (Int i = 1;i < ctll.length;i++=) {
               String itype = ctll.get(i);
               log.log("got ctled itype " + itype + " pos " + i);
               if (itype == "sw") {
@@ -1001,7 +1001,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
     if (TS.notEmpty(ctl)) {
       var ctll = ctl.split(",");
       log.log("got ctl " + ctl);
-      for (Int i = 1;i < ctll.size;i++=) {
+      for (Int i = 1;i < ctll.length;i++=) {
         hasw.delete(did + "-" + i);
         halv.delete(did + "-" + i);
         hargb.delete(did + "-" + i);
@@ -1095,7 +1095,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      var cmdl = cmdline.split(" ");
      Int pt = 0;
      String tp = "";
-     if (cmdl.size > 1) {
+     if (cmdl.length > 1) {
        Bool didpass = false;
        if (cmdl[1] == "pass") {
          cmdl[1] = conf["pass"];
@@ -1259,7 +1259,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
          ctls.put(did, ctl);
         var ctll = ctl.split(",");
         log.log("got ctl " + ctl);
-        for (Int i = 1;i < ctll.size;i++=) {
+        for (Int i = 1;i < ctll.length;i++=) {
           String itype = ctll.get(i);
           String psu = itype + "," + did + "," + i;
           //pendingStateUpdates += psu;
@@ -1443,8 +1443,8 @@ import class BA:BamPlugin(App:AjaxPlugin) {
           if (cres != ores) {
             var ol = ores.split(";");
             var cl = cres.split(";");
-            if (ol.size == cl.size) {
-              for (Int i = 0;i < cl.size;i++=) {
+            if (ol.length == cl.length) {
+              for (Int i = 0;i < cl.length;i++=) {
                 String ci = cl.get(i);
                 String oi = ol.get(i);
                 if (TS.notEmpty(ci) && TS.notEmpty(oi) && ci != oi) {
@@ -1463,7 +1463,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
         } else {
           log.log("not found in currentEvents, getting all states");
           cl = cres.split(";");
-          for (i = 0;i < cl.size;i++=) {
+          for (i = 0;i < cl.length;i++=) {
             ci = cl.get(i);
             if (TS.notEmpty(ci)) {
               log.log("found new events " + ci);
@@ -2333,18 +2333,18 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      Int fd = rsc.find("-");
      if (undef(fd)) { throw(Alert.new("malformed sharecode, pls check and try again")); }
      String shcd = rsc.substring(0, fd);
-     String ipr = rsc.substring(fd + 1, rsc.size);
+     String ipr = rsc.substring(fd + 1, rsc.length);
      log.log("shcd " + shcd + " ipr " + ipr);
      String myip = prot.getMyOutIp();
      var iprl = ipr.split("-");
      var myipl = myip.split(".");
-     Int mye = myipl.size - iprl.size;
+     Int mye = myipl.length - iprl.length;
      String dip = "";
      for (Int i = 0;i < mye;i++=) {
         if (TS.notEmpty(dip)) { dip += "."; }
         dip += myipl[i];
      }
-     for (i = 0;i < iprl.size;i++=) {
+     for (i = 0;i < iprl.length;i++=) {
        if (TS.notEmpty(dip)) { dip += "."; }
        dip += iprl[i];
      }
@@ -2438,7 +2438,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
       var mi = myip.split(".");
       var ki = kdaddr.split(".");
       String ce = "";
-      for (Int i = 0;i < mi.size;i++=) {
+      for (Int i = 0;i < mi.length;i++=) {
         String mp = mi[i];
         String kp = ki[i];
         if (mp != kp) {
@@ -3209,7 +3209,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
           if (def(jspw)) {
             Int jic = Int.new();
             Bool gotone = false;
-            for (Int ji = 0;ji < jspw.size;ji++=) {
+            for (Int ji = 0;ji < jspw.length;ji++=) {
               jspw.getCode(ji, jic);
               if (jic == 0 || jic == 13 || jic == 10) {
                 //log.log("found first end at " + ji);
@@ -3548,7 +3548,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(cres) && cres.contains("ssids")) {
         if (cres.contains(":")) {
            List ssp = cres.split(":");
-           for (Int i = 1;i < ssp.size;i++=) {
+           for (Int i = 1;i < ssp.length;i++=) {
              String vna = Encode:Hex.decode(ssp[i]);
              log.log("got vna " + vna);
              visnets.put(vna, vna);
@@ -3681,12 +3681,12 @@ import class BA:BamPlugin(App:AjaxPlugin) {
 
    toAlphaNumSpace(String toCheck) String {
       Int ic = Int.new();
-      Int size = toCheck.size;
-      String ret = String.new(toCheck.size);
-      for (Int j = 0;j < size;j++=;) {
+      Int length = toCheck.length;
+      String ret = String.new(toCheck.length);
+      for (Int j = 0;j < length;j++=;) {
         toCheck.getInt(j, ic);
         if ((ic > 47 && ic < 58) || (ic > 64 && ic < 91) || (ic > 96 && ic < 123) || ic == 32) {
-            ret.size = ret.size++;
+            ret.length = ret.length++;
             ret.setInt(j, ic);
         }
       }
@@ -3871,7 +3871,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
       String ssid = controlDef;
       if (ssid.begins("OCasnic-") || ssid.begins("Casnic")) {
         var pts = ssid.split("-");
-        if (pts.size == 4) {
+        if (pts.length == 4) {
           String type = pts[2];
           String pina = pts[1];
           log.log("found dev " + type + " " + pina);
@@ -3901,7 +3901,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
             log.log("in fndr be ssid " + ssid);
             if (ssid.begins("OCasnic-") || ssid.begins("Casnic")) {
               var pts = ssid.split("-");
-              if (pts.size == 4) {
+              if (pts.length == 4) {
                 String type = pts[2];
                 String pina = pts[1];
                 log.log("found dev " + type + " " + pina);

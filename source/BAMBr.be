@@ -627,7 +627,7 @@ import class IUHub:Eui {
      if (TS.isEmpty(disDevPin)) {
        inform("No device detected yet, cannot begin setup.  Verify that an unconfigured device is powered on and that this client is connecting to it's wifi network");
        return(self);
-     } elseIf (disDevPin.size == 8) {
+     } elseIf (disDevPin.length == 8) {
        disDevPin = disDevPin + disDevPin;
      }
      disDevPin = disDevPin.lowerValue();
@@ -731,7 +731,7 @@ import class IUHub:Eui {
    displayNextDeviceResponse(String typeFriendly, String type, String pino, String ssid) {
      HD.getEle("disDevTypeFriendly").value = typeFriendly;
      HD.getEle("disDevType").value = type;
-     if (TS.notEmpty(pino) && pino.size == 16) {
+     if (TS.notEmpty(pino) && pino.length == 16) {
        pino = pino.substring(0, 8);
      } elseIf (pino == "UU") {
        pino = "";
@@ -944,7 +944,7 @@ import class IUHub:Eui {
        nextInform = Interval.new(nsecs, 0);
      }
      HD.getEle("hider").display = "none";
-     if (def(devices) && devices.size > 0) {
+     if (def(devices) && devices.length > 0) {
      Encode:Hex eh = Encode:Hex.new();
 
        String li = '''
@@ -1000,7 +1000,7 @@ import class IUHub:Eui {
          if (TS.notEmpty(ctl)) {
          var ctll = ctl.split(",");
          log.log("got ctl " + ctl);
-         for (Int i = 1;i < ctll.size;i++=) {
+         for (Int i = 1;i < ctll.length;i++=) {
            String itype = ctll.get(i);
            log.log("got itype " + itype);
             log.log("got dev " + ds.key + " " + ds.value);

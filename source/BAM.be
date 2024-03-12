@@ -1498,7 +1498,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
      //dostate eek setsw on e
-     Int dpd = dp--;
+     Int dpd = dp - 1;
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -1602,7 +1602,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
      //dostate eek setsw on e
-     Int dpd = dp--;
+     Int dpd = dp - 1;
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -1738,7 +1738,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
      //dostate eek setsw on e
-     Int dpd = dp--;
+     Int dpd = dp - 1;
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -1849,7 +1849,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      Map conf = Json:Unmarshaller.unmarshall(confs);
 
      //dostate eek setsw on e
-     Int dpd = dp--;
+     Int dpd = dp - 1;
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -2573,7 +2573,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      var ctll = ctl.split(",");
      String itype = ctll.get(ipos);
 
-     ipos--=;
+     ipos--;
 
      String confs = hadevs.get(did);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -2656,7 +2656,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      var ctll = ctl.split(",");
      String itype = ctll.get(rpos);
 
-     rpos--=;
+     rpos--;
 
      String confs = hadevs.get(rhan);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -2786,7 +2786,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      var ctll = ctl.split(",");
      String itype = ctll.get(rpos);
 
-     rpos--=;
+     rpos--;
 
      String confs = hadevs.get(rhan);
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -2927,7 +2927,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      var ctll = ctl.split(",");
      String itype = ctll.get(rpos);
 
-     rpos--=;
+     rpos--;
 
      String confs = hadevs.get(rhan);
      Map conf = Json:Unmarshaller.unmarshall(confs);

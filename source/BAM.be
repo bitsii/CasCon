@@ -952,7 +952,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(controlDef)) {
        var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
        hactls.put(conf["id"], controlDef);
-       conf.delete("controlDef");
+       conf.remove("controlDef");
      }
      confs = Json:Marshaller.marshall(conf);
      saveDeviceRequest(conf["id"], confs, request);
@@ -989,12 +989,12 @@ import class BA:BamPlugin(App:AjaxPlugin) {
       //getting the name
       if (TS.notEmpty(conf["ondid"])) {
         String kdname = "CasNic" + conf["ondid"];
-        haknc.delete(kdname);
+        haknc.remove(kdname);
       }
     }
 
-    haowns.delete(uhex + "." + did);
-    hadevs.delete(did);
+    haowns.remove(uhex + "." + did);
+    hadevs.remove(did);
     pdevices = null;
 
     String ctl = hactls.get(did);
@@ -1002,13 +1002,13 @@ import class BA:BamPlugin(App:AjaxPlugin) {
       var ctll = ctl.split(",");
       log.log("got ctl " + ctl);
       for (Int i = 1;i < ctll.length;i++) {
-        hasw.delete(did + "-" + i);
-        halv.delete(did + "-" + i);
-        hargb.delete(did + "-" + i);
-        hacw.delete(did + "-" + i);
+        hasw.remove(did + "-" + i);
+        halv.remove(did + "-" + i);
+        hargb.remove(did + "-" + i);
+        hacw.remove(did + "-" + i);
       }
-      hactls.delete(did);
-      haspecs.delete(did);
+      hactls.remove(did);
+      haspecs.remove(did);
     }
     return(CallBackUI.reloadResponse());
    }
@@ -1199,8 +1199,8 @@ import class BA:BamPlugin(App:AjaxPlugin) {
       hawifi.put(uhex + ".sec.0", sec);
       //log.log("saved " + ssid + " " + sec + " for wifi for user hex " + uhex);
      } elseIf (TS.isEmpty(ssid) && TS.isEmpty(sec)) {
-      hawifi.delete(uhex + ".ssid.0");
-      hawifi.delete(uhex + ".sec.0");
+      hawifi.remove(uhex + ".ssid.0");
+      hawifi.remove(uhex + ".sec.0");
       log.log("cleared wifi");
      }
 
@@ -1218,9 +1218,9 @@ import class BA:BamPlugin(App:AjaxPlugin) {
       app.configManager.put("mqtt.pass", mqttPass);
       log.log("saved mqtt");
      } else {
-      app.configManager.delete("mqtt.broker");
-      app.configManager.delete("mqtt.user");
-      app.configManager.delete("mqtt.pass");
+      app.configManager.remove("mqtt.broker");
+      app.configManager.remove("mqtt.user");
+      app.configManager.remove("mqtt.pass");
       log.log("cleared mqtt");
      }
      ifEmit(wajv) {
@@ -1426,7 +1426,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      } else {
       log.log("getlastevents kdaddr empty");
       if (def(currentEvents)) {
-        currentEvents.delete(conf["id"]);
+        currentEvents.remove(conf["id"]);
       }
      }
 
@@ -2121,7 +2121,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
         for (k in toDel) {
-          pendingStateUpdates.delete(k);
+          pendingStateUpdates.remove(k);
         }
         if (toDel.notEmpty) {
           return(null);
@@ -2135,7 +2135,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
           break;
        }
        for (String spk in spToDel) {
-         pendingSpecs.delete(spk);
+         pendingSpecs.remove(spk);
          return(null);
        }
      }
@@ -3250,7 +3250,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
           Map mcmd = cmdQueue.get(0);
           if (def(mcmd)) {
             var n = cmdQueue.getNode(0);
-            n.delete();
+            n.remove();
             cmdsRes = null;
             aptrs = null;
             if (TS.notEmpty(mcmd["kdaddr"])) {
@@ -3288,9 +3288,9 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
      if (TS.notEmpty(kdname)) {
       log.log("SHOULD NOW EJECT " + kdname);
-      haknc.delete(kdname);
+      haknc.remove(kdname);
       if (def(knc)) {
-        knc.delete(kdname);
+        knc.remove(kdname);
       }
       ifEmit(jvad) {
         emit(jv) {
@@ -3320,10 +3320,10 @@ import class BA:BamPlugin(App:AjaxPlugin) {
              }
             String kda = knc.get(kdn);
             if (TS.notEmpty(kda)) {
-              knc.delete(kdn);
-              haknc.delete(kdn);
+              knc.remove(kdn);
+              haknc.remove(kdn);
              }
-            kac.delete(kdaddr);
+            kac.remove(kdaddr);
            }
          }
        }

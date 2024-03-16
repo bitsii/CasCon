@@ -795,7 +795,9 @@ import class IUHub:Eui {
        "not really is curr lvl".print();
      } else {
        currLvl = value;
-       HD.getEle("hat" + setBrightDid + "-" + setBrightPos).checked = true;
+       if (HD.getEle("hat" + setBrightDid + "-" + setBrightPos).exists) {
+         HD.getEle("hat" + setBrightDid + "-" + setBrightPos).checked = true;
+       }
        HD.getEle("devErr").display = "none";
        HC.callApp(Lists.from("setDeviceLvlRequest", setBrightDid + "-" + setBrightPos, currLvl.toString()));
      }
@@ -1005,9 +1007,9 @@ import class IUHub:Eui {
            log.log("got itype " + itype);
             log.log("got dev " + ds.key + " " + ds.value);
             Map conf = Json:Unmarshaller.unmarshall(ds.value);
-            if (itype == "dim" || itype == "gdim" || itype == "sw" || itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd" || itype == "empty") {
+            if (itype == "pwm" || itype == "dim" || itype == "gdim" || itype == "sw" || itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd" || itype == "empty") {
               String lin = li.swap("NAMEOFDEVICE", conf["name"]);
-              if (itype == "empty") {
+              if (itype == "empty" || itype == "pwm") {
                 lin = lin.swap("FORSW", "");
               } else {
                 lin = lin.swap("FORSW", forsw);
@@ -1017,7 +1019,7 @@ import class IUHub:Eui {
               } else {
                 lin = lin.swap("FORCOL", "");
               }
-              if (itype == "dim" || itype == "gdim" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
+              if (itype == "pwm" || itype == "dim" || itype == "gdim" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
                 lin = lin.swap("FORDIM", fordim);
               } else {
                 lin = lin.swap("FORDIM", "");

@@ -408,6 +408,29 @@ import class IUHub:Eui {
        }
      }
 
+     var ps = HD.getEle("setPwmSlide");
+     if (ps.exists) {
+       if (def(setCurrPwm) && setCurrPwm && def(currPwm)) {
+         log.log("setting currPwm");
+         setCurrPwm = false;
+         Int prli = currPwm;
+         emit(js) {
+           """
+           /*-attr- -noreplace-*/
+           //console.log(vapp);
+           //console.log(vapp.$f7);
+           //var range = vapp.$f7.range.get('.range-slider');
+           var range = vapp.$f7.range.get('#bpwmRange');
+           //console.log("rv");
+           //console.log(range.value);
+           //console.log(range.setValue(5));
+           //console.log(range.getValue());
+           range.setValue(bevl_prli.bevi_int);
+           """
+         }
+       }
+     }
+
      var ts = HD.getEle("setTempSlide");
      if (ts.exists) {
        if (def(setCurrTemp) && setCurrTemp && def(currTemp)) {
@@ -760,6 +783,34 @@ import class IUHub:Eui {
      HC.callApp(Lists.from("setDeviceLvlRequest", dname + "-" + pos, statet.toString()));
    }*/
 
+   pwmChanged(Int value) {
+     log.log("pwm changed " + value);
+     if (def(currPwm) && currPwm == value) {
+       "not really is curr pwm".print();
+     } else {
+       currPwm = value;
+       HD.getEle("devErr").display = "none";
+       HC.callApp(Lists.from("setDeviceLvlRequest", setPwmDid + "-" + setPwmPos, currPwm.toString()));
+     }
+   }
+
+   setForPwm(String did, String pos) {
+     log.log("in setForPwm " + did + " " + pos);
+     String lvl = levels.get(did + "-" + pos);
+     if (TS.notEmpty(lvl)) {
+       log.log("lvl " + lvl);
+     } else {
+       log.log("no lvl");
+       lvl = "255";
+     }
+     slots {
+        Int currPwm = Int.new(lvl);
+        Bool setCurrPwm = true;
+        String setPwmDid = did;
+        String setPwmPos = pos;
+     }
+   }
+
    tempChanged(Int value) {
      log.log("temp changed " + value);
      if (def(currTemp) && currTemp == value) {
@@ -956,6 +1007,7 @@ import class IUHub:Eui {
            FORCOL
            FORCW
            FORDIM
+           FORPWM
            FORSW
          </div>
        </li>
@@ -970,6 +1022,12 @@ import class IUHub:Eui {
        String forcw = '''
            <div class="item-after">
            <a href="#" data-popup="#settemp" onclick="callUI('setForTemp', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">fire</i></a>
+           </div>
+       ''';
+
+       String forpwm = '''
+           <div class="item-after">
+           <a href="#" data-popup="#setpwm" onclick="callUI('setForPwm', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">graph_round</i></a>
            </div>
        ''';
 
@@ -1019,7 +1077,12 @@ import class IUHub:Eui {
               } else {
                 lin = lin.swap("FORCOL", "");
               }
-              if (itype == "pwm" || itype == "dim" || itype == "gdim" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
+              if (itype == "pwm") {
+                lin = lin.swap("FORPWM", forpwm);
+              } else {
+                lin = lin.swap("FORPWM", "");
+              }
+              if (itype == "dim" || itype == "gdim" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
                 lin = lin.swap("FORDIM", fordim);
               } else {
                 lin = lin.swap("FORDIM", "");

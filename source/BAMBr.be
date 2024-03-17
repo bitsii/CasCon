@@ -846,9 +846,7 @@ import class IUHub:Eui {
        "not really is curr lvl".print();
      } else {
        currLvl = value;
-       if (HD.getEle("hat" + setBrightDid + "-" + setBrightPos).exists) {
-         HD.getEle("hat" + setBrightDid + "-" + setBrightPos).checked = true;
-       }
+       HD.getEle("hat" + setBrightDid + "-" + setBrightPos).checked = true;
        HD.getEle("devErr").display = "none";
        HC.callApp(Lists.from("setDeviceLvlRequest", setBrightDid + "-" + setBrightPos, currLvl.toString()));
      }

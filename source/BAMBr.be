@@ -605,7 +605,7 @@ use class IUHub:Eui {
        conf["pass"] = devPass;
      }
      conf["spass"] = devSpass;
-     if (TS.notEmpty(devId) def(devCtls) && devCtls.contains(devId)) {
+     if (TS.notEmpty(devId) def(devCtls) && devCtls.has(devId)) {
        String controlDef = devCtls.get(devId);
        if (TS.notEmpty(controlDef)) {
          conf["controlDef"] = controlDef;
@@ -826,7 +826,7 @@ use class IUHub:Eui {
    setForTemp(String did, String pos) {
      log.log("in setForTemp " + did + " " + pos);
      String cw = cws.get(did + "-" + pos);
-     if (TS.notEmpty(cw) && cw.contains(",")!) {
+     if (TS.notEmpty(cw) && cw.has(",")!) {
        log.log("cw " + cw);
      } else {
        log.log("no cw");

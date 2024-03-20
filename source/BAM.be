@@ -9,45 +9,45 @@
  *
  */
 
-import IO:File:Path;
-import IO:File;
-import Math:Float;
-import System:Random;
-import UI:WebBrowser as WeBr;
-import Test:Assertions as Assert;
-import Db:KeyValue as KvDb;
-import System:Thread:Lock;
-import System:Thread:ContainerLocker as CLocker;
-import System:Command as Com;
-import Time:Sleep;
-import Container:Pair;
-import System:CurrentPlatform as Plat;
+use IO:File:Path;
+use IO:File;
+use Math:Float;
+use System:Random;
+use UI:WebBrowser as WeBr;
+use Test:Assertions as Assert;
+use Db:KeyValue as KvDb;
+use System:Thread:Lock;
+use System:Thread:ContainerLocker as CLocker;
+use System:Command as Com;
+use Time:Sleep;
+use Container:Pair;
+use System:CurrentPlatform as Plat;
 
-import Crypto:Symmetric as Crypt;
+use Crypto:Symmetric as Crypt;
 
-import App:Alert;
-import App:Account;
+use App:Alert;
+use App:Account;
 
-import System:Exceptions as E;
+use System:Exceptions as E;
 
-import App:LocalWebApp;
-import App:RemoteWebApp;
-import App:WebApp;
-import Text:String;
-import App:CallBackUI;
-import CasNic:CasProt;
+use App:LocalWebApp;
+use App:RemoteWebApp;
+use App:WebApp;
+use Text:String;
+use App:CallBackUI;
+use CasNic:CasProt;
 
-import System:Thread:Lock;
-import System:Thread:ObjectLocker as OLocker;
+use System:Thread:Lock;
+use System:Thread:ObjectLocker as OLocker;
 
-import System:Parameters;
-import Encode:Hex as Hex;
-import Time:Interval;
+use System:Parameters;
+use Encode:Hex as Hex;
+use Time:Interval;
 
-import App:Mqtt;
+use App:Mqtt;
 
 
-import BAM:BamAuthPlugin;
+use BAM:BamAuthPlugin;
 
 class BamAuthPlugin(App:AuthPlugin) {
 
@@ -90,7 +90,7 @@ class BamAuthPlugin(App:AuthPlugin) {
           if (TS.notEmpty(resm["result"]) && resm["result"] == "ok") {
             authOk = true;
           }
-        } catch (dyn e) {
+        } catch (any e) {
           log.log("auth call excepted and failed");
         }
         if (authOk) {
@@ -161,7 +161,7 @@ import casnic.control.MainActivity;
 """
 }
 }
-import class BA:BamPlugin(App:AjaxPlugin) {
+use class BA:BamPlugin(App:AjaxPlugin) {
 
   ifEmit(jvad) {
   emit(jv) {
@@ -240,7 +240,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      new() self {
        fields {
           String homePage = "/App/" + self.name + "/BAM.html";
-          dyn app;
+          any app;
           Map cmdQueues = Map.new();
           CasProt prot = CasProt.new();
           OLocker discoverNow = OLocker.new(true);
@@ -257,7 +257,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
         IO:Logs.turnOnAll();
      }
      
-     appSet(dyn _app) {
+     appSet(any _app) {
        "in appset".print();
        app = _app;
        if (app.can("heightSet", 0)) {
@@ -305,7 +305,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
         while (true) {
           try {
             haDoUpInner();
-          } catch (dyn e) {
+          } catch (any e) {
             log.elog("except in haDoUp", e);
           }
           //if (cnt < 6) {
@@ -403,7 +403,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
           Time:Sleep.sleepSeconds(15);
           try {
             checkStartMqtt();
-          } catch (dyn e) {
+          } catch (any e) {
             log.elog("except in keepMqttUp", e);
           }
         }
@@ -495,7 +495,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
         Map devices = Map.new();
         Map ctls = Map.new();
         Map topubs = Map.new();
-        for (dyn kv in hadevs.getMap()) {
+        for (any kv in hadevs.getMap()) {
           String did = kv.key;
           String confs = kv.value;
           Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -601,7 +601,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
         Time:Sleep.sleepMilliseconds(200);
-        for (dyn pkv in topubs) {
+        for (any pkv in topubs) {
           mqtt.publish(pkv.key, pkv.value);
         }
       }
@@ -782,7 +782,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
       var haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
       
       
-       for (dyn kv in haowns.getMap(uhex + ".")) {
+       for (any kv in haowns.getMap(uhex + ".")) {
          String did = kv.value;
          String confs = hadevs.get(did);
          if (retnext) {
@@ -1250,7 +1250,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      Map levels = Map.new();
      Map rgbs = Map.new();
      Map cws = Map.new();
-     for (dyn kv in haowns.getMap(uhex + ".")) {
+     for (any kv in haowns.getMap(uhex + ".")) {
        String did = kv.value;
        String confs = hadevs.get(did);
        devices.put(did, confs);
@@ -1393,7 +1393,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
 
      try {
        Map conf = Json:Unmarshaller.unmarshall(confs);
-     } catch (dyn e) {
+     } catch (any e) {
        log.elog("error in gle", e);
        return(null);
      }
@@ -2033,7 +2033,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
             if (backgroundPulse) {
               pulseDevices();
             }
-          } catch (dyn e) {
+          } catch (any e) {
             log.elog("except in pulseDevices");
           }
         }
@@ -2093,7 +2093,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
      if (pcount % 2 == 0) {
       Set toDel = Set.new();
       if (def(pendingStateUpdates)) {
-        for (dyn k in pendingStateUpdates) {
+        for (any k in pendingStateUpdates) {
             if (TS.notEmpty(k)) {
               try {
                 log.log("doing updateXState for " + k);
@@ -2112,7 +2112,7 @@ import class BA:BamPlugin(App:AjaxPlugin) {
                   updateSwState(ks[1], Int.new(ks[2]), ks[0]);
                   updateTempState(ks[1], Int.new(ks[2]), ks[0]);
                 }
-              } catch (dyn e) {
+              } catch (any e) {
                 log.elog("Error updating device states", e);
               }
               toDel += k;

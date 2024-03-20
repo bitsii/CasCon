@@ -9,13 +9,13 @@
  *
  */
 
-import IO:File:Path;
-import IO:File;
+use IO:File:Path;
+use IO:File;
 
-import System:Parameters;
-import Encode:Hex as Hex;
+use System:Parameters;
+use Encode:Hex as Hex;
 
-import class BA:BS {
+use class BA:BS {
 
      new() self {
        slots {
@@ -30,7 +30,7 @@ import class BA:BS {
         log.log("In BA:BS main");
         Parameters params = Parameters.new(System:Process.new().args);
         sendWifiUrl(params.getFirst("addr"), params.getFirst("ssid"), params.getFirst("sec"), params.getFirst("furl"));
-      } catch (dyn e) {
+      } catch (any e) {
         log.elog("fail in appstart main", e);
       }
     }

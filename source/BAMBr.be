@@ -9,16 +9,16 @@
  *
  */
 
-import System:Exception as Exc;
-import IO:File:Path;
-import IO:File;
-import System:Random;
+use System:Exception as Exc;
+use IO:File:Path;
+use IO:File;
+use System:Random;
 
-import UI:HtmlDom:Document as HD;
-import UI:HtmlDom:Element as HE;
-import UI:HtmlDom:Call as HC;
+use UI:HtmlDom:Document as HD;
+use UI:HtmlDom:Element as HE;
+use UI:HtmlDom:Call as HC;
 
-import Time:Interval;
+use Time:Interval;
 
 emit(js) {
   """
@@ -30,7 +30,7 @@ emit(js) {
   """
 }
 
-import class IUHub:Eui {
+use class IUHub:Eui {
 
   new() self {
         fields {
@@ -225,7 +225,7 @@ import class IUHub:Eui {
    }
 
    toggleDevDetails() {
-     dyn da = HD.getEle("divDevDetails");
+     any da = HD.getEle("divDevDetails");
      if (da.display == "block") {
        da.display = "none";
      } else {
@@ -234,8 +234,8 @@ import class IUHub:Eui {
    }
 
    toggleAdvanced() {
-     dyn da = HD.getEle("divAdvanced");
-     dyn dma = HD.getEle("divMqttAdvanced");
+     any da = HD.getEle("divAdvanced");
+     any dma = HD.getEle("divMqttAdvanced");
      if (da.display == "block") {
        da.display = "none";
      } else {
@@ -1049,7 +1049,7 @@ import class IUHub:Eui {
         <ul>
         ''';
 
-       for (dyn ds in devices) {
+       for (any ds in devices) {
 
          String ctl = ctls.get(ds.key);
          if (TS.isEmpty(ctl) || ctl == "controldef,") {
@@ -1112,7 +1112,7 @@ import class IUHub:Eui {
        try {
          HD.getElementById("hadsList").innerHTML = ih;
          HD.getEle("devErr").display = "none";
-       } catch (dyn e) {
+       } catch (any e) {
          log.log("got except writing  hadsList");
          HD.reload();
        }

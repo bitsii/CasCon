@@ -1244,12 +1244,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
      var hacw = app.kvdbs.get("HACW");
      var haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
+     var haof = app.kvdbs.get("HAOF"); //haof - device id pos to oif
      Map devices = Map.new();
      Map ctls = Map.new();
      Map states = Map.new();
      Map levels = Map.new();
      Map rgbs = Map.new();
      Map cws = Map.new();
+     Map oifs = Map.new();
      for (any kv in haowns.getMap(uhex + ".")) {
        String did = kv.value;
        String confs = hadevs.get(did);
@@ -1286,6 +1288,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             log.log("got cw " + cw);
             cws.put(did + "-" + i, cw);
           }
+          log.log("getting oif for " + did + "-" + i);
+          String oif = haof.get(did + "-" + i);
+          if (TS.notEmpty(oif)) {
+            log.log("got oif " + oif);
+            oifs.put(did + "-" + i, oif);
+          }
         }
        }
      }
@@ -1294,7 +1302,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      } else {
        nsecs = 0;
      }
-     return(CallBackUI.getDevicesResponse(devices, ctls, states, levels, rgbs, cws, nsecs));
+     return(CallBackUI.getDevicesResponse(devices, ctls, states, levels, rgbs, cws, oifs, nsecs));
    }
 
    updateSpec(String did) {
@@ -1946,6 +1954,86 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
+   updateOifState(String did, Int dp, String cname) {
+     log.log("in updateOifState " + did + " " + dp);
+
+     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     String ctl = hactls.get(did);
+     var ctll = ctl.split(",");
+     String itype = ctll.get(dp);
+
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+
+     String confs = hadevs.get(did);
+     Map conf = Json:Unmarshaller.unmarshall(confs);
+
+     //dostate eek setsw on e
+     Int dpd = dp - 1;
+
+     //getting the name
+     String kdname = "CasNic" + conf["ondid"];
+     String kdaddr = getCashedAddr(kdname);
+
+     if (def(kdaddr)) {
+
+       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+       String sws = haspecs.get(did);
+       if (TS.notEmpty(sws) && sws.has("q,")) {
+         cmds = "dostate " + getSecQ(conf) + " " + dpd + " getoif e";
+         //log.log("cmds " + cmds);
+         mcmd = Maps.from("cb", "updateOifStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
+       } else {
+         String cmds = "dostate " + conf["spass"] + " " + dpd + " getoif e";
+         //log.log("cmds " + cmds);
+         Map mcmd = Maps.from("cb", "updateOifStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+       }
+
+       ifEmit(wajv) {
+         if (backgroundPulse) {
+          mcmd["runSync"] = true;
+          processDeviceMcmd(mcmd);
+          if (mcmd.has("cb")) {
+            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
+          }
+        } else {
+          sendDeviceMcmd(mcmd, 4);
+        }
+       }
+       ifNotEmit(wajv) {
+        sendDeviceMcmd(mcmd, 4);
+       }
+
+     } else {
+      log.log("getoif kdaddr empty");
+     }
+
+     return(null);
+   }
+
+   updateOifStateCb(Map mcmd, request) Map {
+     String cres = mcmd["cres"];
+     String did = mcmd["did"];
+     Int dp = mcmd["dp"];
+     String itype = mcmd["itype"];
+     var haof = app.kvdbs.get("HAOF"); //haof - device id pos to oif
+     if (TS.notEmpty(cres)) {
+        log.log("got getoif " + cres);
+        unless (cres.has("undefined")) {
+          String cset = haof.get(did + "-" + dp);
+          if (TS.notEmpty(cset)) {
+            if (cset != cres) {
+              haof.put(did + "-" + dp, cres);
+              stDiffed = true;
+            }
+          } else {
+            haof.put(did + "-" + dp, cres);
+            stDiffed = true;
+          }
+        }
+      }
+      return(null);
+   }
+
    didInformRequest(request) Map {
      slots {
        Interval nextInform = Interval.now().addSeconds(75);
@@ -2111,6 +2199,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 } elseIf (ks[0] == "cwgd") {
                   updateSwState(ks[1], Int.new(ks[2]), ks[0]);
                   updateTempState(ks[1], Int.new(ks[2]), ks[0]);
+                } elseIf (ks[0] == "oui") {
+                  updateOifState(ks[1], Int.new(ks[2]), ks[0]);
+                  //updateOuiState(ks[1], Int.new(ks[2]), ks[0]);
                 }
               } catch (any e) {
                 log.elog("Error updating device states", e);

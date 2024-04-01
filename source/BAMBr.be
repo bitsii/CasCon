@@ -983,13 +983,14 @@ use class IUHub:Eui {
      }
    }
    
-   getDevicesResponse(Map devices, Map ctls, Map states, Map _levels, Map _rgbs, Map _cws, Int nsecs) {
+   getDevicesResponse(Map devices, Map ctls, Map states, Map _levels, Map _rgbs, Map _cws, Map _oifs, Int nsecs) {
      log.log("in getDevicesResponse");
      slots {
        Map devCtls = ctls;
        Map levels = _levels;
        Map rgbs = _rgbs;
        Map cws = _cws;
+       Map oifs = _oifs;
      }
      if (nsecs > 0) {
        nextInform = Interval.new(nsecs, 0);
@@ -1063,9 +1064,9 @@ use class IUHub:Eui {
            log.log("got itype " + itype);
             log.log("got dev " + ds.key + " " + ds.value);
             Map conf = Json:Unmarshaller.unmarshall(ds.value);
-            if (itype == "pwm" || itype == "dim" || itype == "gdim" || itype == "sw" || itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd" || itype == "empty") {
+            if (itype == "pwm" || itype == "dim" || itype == "gdim" || itype == "sw" || itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd" || itype == "empty" || itype == "oui") {
               String lin = li.swap("NAMEOFDEVICE", conf["name"]);
-              if (itype == "empty" || itype == "pwm") {
+              if (itype == "empty" || itype == "pwm" || itype == "oui") {
                 lin = lin.swap("FORSW", "");
               } else {
                 lin = lin.swap("FORSW", forsw);

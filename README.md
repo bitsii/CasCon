@@ -3,7 +3,7 @@
 
 Casnic Control is a hybrid desktop application written in the [Brace](https://github.com/bitsii/beBase) programming language licensed under the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/) - open source license which provides a application for controlling [Brace Embedded](https://github.com/bitsii/beEmb) devices.
 
-Hybrid Mobile Apps are available in the Google Play Store [Casnic Android App](https://play.google.com/store/apps/details?id=casnic.control&gl=US) and the Apple App Store [CasCon IOS App](https://apps.apple.com/us/app/cascon/id6458984046) - which are based on this shared codebase.
+Hybrid Mobile Apps which include this codebase are available in the Google Play Store [Casnic Android App](https://play.google.com/store/apps/details?id=casnic.control&gl=US) and the Apple App Store [CasCon IOS App](https://apps.apple.com/us/app/cascon/id6458984046).
 
 Instructions for using the application with your devices are available [here](https://gitlab.com/bitsii/CasCon/-/wikis/home).
 

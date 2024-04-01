@@ -811,6 +811,14 @@ use class IUHub:Eui {
      }
    }
 
+   setForPup(String did, String pos) {
+     log.log("in setForPup " + did + " " + pos);
+     slots {
+        String setPupDid = did;
+        String setPupPos = pos;
+     }
+   }
+
    tempChanged(Int value) {
      log.log("temp changed " + value);
      if (def(currTemp) && currTemp == value) {
@@ -1007,6 +1015,7 @@ use class IUHub:Eui {
            FORCW
            FORDIM
            FORPWM
+           FORPUP
            FORSW
          </div>
        </li>
@@ -1027,6 +1036,12 @@ use class IUHub:Eui {
        String forpwm = '''
            <div class="item-after">
            <a href="#" data-popup="#setpwm" onclick="callUI('setForPwm', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">graph_round</i></a>
+           </div>
+       ''';
+
+       String forpup = '''
+           <div class="item-after">
+           <a href="#" data-popup="#PUPUI" onclick="callUI('setForPup', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">F7I</i></a>
            </div>
        ''';
 
@@ -1080,6 +1095,21 @@ use class IUHub:Eui {
                 lin = lin.swap("FORPWM", forpwm);
               } else {
                 lin = lin.swap("FORPWM", "");
+              }
+              if (itype == "oui") {
+                lin = lin.swap("FORPUP", forpup);
+                String oui = oifs.get(ds.key + "-" + i);
+                if (TS.notEmpty(oui)) {
+                  log.log("got oui " + oui);
+                  //f7i,move,pup,twccui
+                  var ol = oui.split(",");
+                  lin = lin.swap("F7I", ol[1]);
+                  lin = lin.swap("PUPUI", ol[3]);
+                } else {
+                  log.log("oui empty");
+                }
+              } else {
+                lin = lin.swap("FORPUP", "");
               }
               if (itype == "dim" || itype == "gdim" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
                 lin = lin.swap("FORDIM", fordim);

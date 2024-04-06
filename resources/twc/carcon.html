@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Car Controller</title>
+<style>
+  body {
+    margin-top: 25vh; /* Move everything down by 25% of the viewport height */
+  }
+
+  #car-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  #steering-wheel {
+    width: 120px;
+    height: 120px;
+    background-image: url('https://lhp.bitsii.org:28314/steering-wheel.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    transform: translate(-50%, -50%) rotate(0deg); /* Initial rotation set to 180 degrees */
+  }
+
+  #control-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .input-container {
+    width: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .input-container label {
+    width: 30%;
+    text-align: right;
+    margin-right: 10px;
+  }
+
+  .input-container input {
+    width: 60%;
+  }
+
+  .conbutton {
+    width: 210px;
+    height: 40px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+  }
+
+</style>
+</head>
+<body>
+
+<div id="car-container">
+  <div id="steering-wheel"></div>
+</div>
+
+<div id="control-container">
+  <div class="input-container">
+    <label for="steerer">Direction</label>
+    <input type="range" id="steerer" min="0" max="180" value="90">
+  </div>
+  <button class="conbutton" id="center-button">Straight</button>
+  <div class="input-container">
+    <label for="accelerator">Speed</label>
+    <input type="range" id="accelerator" min="0" max="255" value="0">
+  </div>
+  <button class="conbutton" id="reverse-button">Forward (click to Reverse)</button>
+  <button class="conbutton" id="stop-button">Stop</button>
+</div>
+
+<script>
+  const steeringWheel = document.getElementById('steering-wheel');
+  const steerer = document.getElementById('steerer');
+  const accelerator = document.getElementById('accelerator');
+  const reverseButton = document.getElementById('reverse-button');
+  const centerButton = document.getElementById('center-button');
+  const stopButton = document.getElementById('stop-button');
+  var direction = "F";
+  var turn;
+  var acceleration;
+
+  reverseButton.style.backgroundColor = '#4CAF50'; // Default color: Green
+  centerButton.style.backgroundColor = '#ADD8E6'; //
+  stopButton.style.backgroundColor = '#FF0000'; //
+
+  function processState() {
+     turn = parseInt(steerer.value) - 90;
+     acceleration = parseInt(accelerator.value);
+     console.log("turn: " + turn + " acceleration: " + acceleration + " direction: " + direction);
+  }
+
+  function updateSteeringWheelRotation() {
+    var rotation = parseInt(steerer.value);
+    //if (rotation >= 90) { rotation = rotation - 90; }
+    //else { rotation = 270 + rotation; }
+    rotation = rotation - 90;
+    steeringWheel.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+    //console.log('Steering angle:', rotation);
+  }
+
+  steerer.addEventListener('input', function() {
+    updateSteeringWheelRotation();
+    processState();
+  });
+
+  accelerator.addEventListener('input', function() {
+    // Log accelerator position
+    const position = parseInt(this.value);
+    //console.log('Accelerator position:', position);
+    processState();
+  });
+
+  reverseButton.addEventListener('click', function() {
+    // Toggle between Forward and Reverse
+    accelerator.value = 0;
+    if (this.textContent === 'Forward (click to Reverse)') {
+      this.textContent = 'Reverse (click for Forward)';
+      this.style.backgroundColor = '#FFD700'; // Yellow color for Reverse
+      direction = "R";
+      processState();
+      //console.log('Reverse mode: ON');
+    } else {
+      this.textContent = 'Forward (click to Reverse)';
+      this.style.backgroundColor = '#4CAF50'; // Green color for Forward
+      direction = "F";
+      processState();
+      //console.log('Reverse mode: OFF');
+    }
+  });
+
+  stopButton.addEventListener('click', function() {
+    // Toggle between Forward and Reverse
+    accelerator.value = 0;
+    processState();
+  });
+
+  centerButton.addEventListener('click', function() {
+    steerer.value = 90;
+    updateSteeringWheelRotation();
+    processState();
+  });
+</script>
+
+</body>
+</html>

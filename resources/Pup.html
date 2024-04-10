@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>title</title>
+  <script>
+  window.onmessage = function(e) {
+    var data = e.data;
+    console.log("got msg " + data);
+    if (data == 'close') {
+      console.log("got close, closing");
+      window.location = "BAM.html";
+    }
+  };
+  </script>
+  </head>
+  <body>
+  <div style="width:100%; height:100%; position:fixed; left:0;top:0;overflow:hidden;">
+    <iframe src="https://bitsii.github.io/Bitsii/carcon.html"
+    frameborder="0"
+    marginheight="0"
+    marginwidth="0"
+    width="100%"
+    height="100%"
+    scrolling="auto" id="innerf"></iframe >
+    </div>
+    <!-- src="http://192.168.1.184:8080/twc/carcon.html" -->
+  </body>
+</html>

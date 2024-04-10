@@ -1041,9 +1041,15 @@ use class IUHub:Eui {
 
        String forpup = '''
            <div class="item-after">
-           <a href="#" data-popup="#PUPUI" onclick="callUI('setForPup', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">F7I</i></a>
+           <a href="Pup.html" onclick="callUI('setForPup', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button external"><i class="icon f7-icons">F7I</i></a>
            </div>
        ''';
+
+       /*String forpup = '''
+           <div class="item-after">
+           <a href="#" data-popup="#PUPUI" onclick="callUI('setForPup', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">F7I</i></a>
+           </div>
+       ''';*/
 
       String fordim = '''
        <div class="item-after">
@@ -1104,7 +1110,7 @@ use class IUHub:Eui {
                   //f7i,move,pup,twccui
                   var ol = oui.split(",");
                   lin = lin.swap("F7I", ol[1]);
-                  lin = lin.swap("PUPUI", ol[3]);
+                  //lin = lin.swap("PUPUI", ol[3]);
                 } else {
                   log.log("oui empty");
                 }

@@ -811,11 +811,12 @@ use class IUHub:Eui {
      }
    }
 
-   setForPup(String did, String pos) {
-     log.log("in setForPup " + did + " " + pos);
+   setForPup(String did, String pos, String ui) {
+     log.log("in setForPup " + did + " " + pos + " " + ui);
      slots {
         String setPupDid = did;
         String setPupPos = pos;
+        String setPupUi = ui;
      }
    }
 
@@ -1041,15 +1042,9 @@ use class IUHub:Eui {
 
        String forpup = '''
            <div class="item-after">
-           <a href="Pup.html" onclick="callUI('setForPup', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button external"><i class="icon f7-icons">F7I</i></a>
+           <a href="Pup.html" onclick="callUI('setForPup', 'IDOFDEVICE', 'POSOFDEVICE', 'PUPUI');return true;" class="col button external"><i class="icon f7-icons">F7I</i></a>
            </div>
        ''';
-
-       /*String forpup = '''
-           <div class="item-after">
-           <a href="#" data-popup="#PUPUI" onclick="callUI('setForPup', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">F7I</i></a>
-           </div>
-       ''';*/
 
       String fordim = '''
        <div class="item-after">
@@ -1107,10 +1102,10 @@ use class IUHub:Eui {
                 String oui = oifs.get(ds.key + "-" + i);
                 if (TS.notEmpty(oui)) {
                   log.log("got oui " + oui);
-                  //f7i,move,pup,twccui
+                  //1,move,http://192.168.1.184:8080/twc/carcon.html
                   var ol = oui.split(",");
                   lin = lin.swap("F7I", ol[1]);
-                  //lin = lin.swap("PUPUI", ol[3]);
+                  lin = lin.swap("PUPUI", ol[2]);
                 } else {
                   log.log("oui empty");
                 }

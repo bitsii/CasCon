@@ -1,7 +1,7 @@
 
 ## Casnic Control
 
-Casnic Control is a hybrid desktop application written in the [Beysant](https://github.com/bitsii/beBase) programming language licensed under the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/) - open source license which provides a application for controlling [Beysant Embedded](https://github.com/bitsii/beEmb) devices.
+Casnic Control is a hybrid desktop application written in the [Bennt](https://github.com/bitsii/beBase) programming language licensed under the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/) - open source license which provides a application for controlling [Bennt Embedded](https://github.com/bitsii/beEmb) devices.
 
 Hybrid Mobile Apps which include this codebase are available in the Google Play Store [Casnic Android App](https://play.google.com/store/apps/details?id=casnic.control&gl=US) and the Apple App Store [CasCon IOS App](https://apps.apple.com/us/app/cascon/id6458984046).
 

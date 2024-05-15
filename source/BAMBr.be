@@ -174,27 +174,11 @@ use class IUHub:Eui {
       HD.getEle("loginButton").click();
    }
 
-   togglePwnet() {
-     if (HD.getElementById("pwsnetname").type == "text") {
-      HD.getElementById("pwsnetname").type = "password";
+   togglePw(String eid) {
+     if (HD.getElementById(eid).type == "text") {
+      HD.getElementById(eid).type = "password";
      } else {
-      HD.getElementById("pwsnetname").type = "text";
-     }
-   }
-
-   toggleWsec() {
-     if (HD.getElementById("wifiSec").type == "text") {
-      HD.getElementById("wifiSec").type = "password";
-     } else {
-      HD.getElementById("wifiSec").type = "text";
-     }
-   }
-
-   toggleMqp() {
-     if (HD.getElementById("mqttPass").type == "text") {
-      HD.getElementById("mqttPass").type = "password";
-     } else {
-      HD.getElementById("mqttPass").type = "text";
+      HD.getElementById(eid).type = "text";
      }
    }
 
@@ -210,11 +194,6 @@ use class IUHub:Eui {
      HD.getEle("hasharediv").display = "block";
      HD.getEle("hasharefshcd").innerHTML = fshcd;
    }
-
-   hideShareExtra() {
-     HD.getEle("hasharediv").display = "none";
-     HD.getEle("qrerr").display = "none";
-   }
    
    loggedInResponse(Map arg) {
      log.log("logged in res is fl");
@@ -224,23 +203,8 @@ use class IUHub:Eui {
      HC.callApp(Lists.from("getDevicesRequest"));
    }
 
-   toggleDevDetails() {
-     any da = HD.getEle("divDevDetails");
-     if (da.display == "block") {
-       da.display = "none";
-     } else {
-       da.display = "block";
-     }
-   }
-
    toggleAdvanced() {
-     any da = HD.getEle("divAdvanced");
      any dma = HD.getEle("divMqttAdvanced");
-     if (da.display == "block") {
-       da.display = "none";
-     } else {
-       da.display = "block";
-     }
      ifEmit(wajv) {
       if (dma.display == "block") {
         dma.display = "none";
@@ -261,22 +225,6 @@ use class IUHub:Eui {
      }
      HD.getEle("devErr").display = "none";
      HC.callApp(Lists.from("setDeviceSwRequest", dname, pos, state));
-   }
-
-   checkBrt(String dname, String pos) {
-     log.log("checkBrt " + dname + " " + pos);
-     Int statet = HD.getEle("brt" + dname + "-" + pos).value;
-     log.log("slidState " + statet);
-     HD.getEle("devErr").display = "none";
-     HC.callApp(Lists.from("setDeviceRgbcwRequest", dname + "-" + pos, "brt", statet.toString()));
-   }
-
-   checkTemp(String dname, String pos) {
-     log.log("checkTemp " + dname + " " + pos);
-     Int statet = HD.getEle("temp" + dname + "-" + pos).value;
-     log.log("slidState " + statet);
-     HD.getEle("devErr").display = "none";
-     HC.callApp(Lists.from("setDeviceRgbcwRequest", dname + "-" + pos, "temp", statet.toString()));
    }
 
    checkNexts() {
@@ -480,11 +428,6 @@ use class IUHub:Eui {
      HC.callApp(Lists.from("showNextDeviceConfigRequest", lastDeviceId));
    }
 
-   discover() {
-     //inform("Hey there");
-     HD.getEle("openDiscover").click();
-   }
-
    getDiscoveredDeviceResponse() {
      slots {
        String lastDiscoveredDevice;
@@ -497,13 +440,6 @@ use class IUHub:Eui {
      }
 
      HD.getEle("settleWifiButton").click();
-   }
-
-   //wifiSsid wifiSec
-   saveWifi() {
-     String wifiSsid = HD.getElementById("wifiSsid").value;
-     String wifiSec = HD.getElementById("wifiSec").value;
-     HC.callApp(Lists.from("saveWifiRequest", wifiSsid, wifiSec, true));
    }
 
    wifiGiven() {
@@ -537,13 +473,6 @@ use class IUHub:Eui {
      } else {
        HD.getEle("giveWifiTxt").display = "block";
      }
-   }
-
-   saveMqtt() {
-     String mqttBroker = HD.getElementById("mqttBroker").value;
-     String mqttUser = HD.getElementById("mqttUser").value;
-     String mqttPass = HD.getElementById("mqttPass").value;
-     HC.callApp(Lists.from("saveMqttRequest", mqttBroker, mqttUser, mqttPass));
    }
 
    saveDevice() {
@@ -773,15 +702,6 @@ use class IUHub:Eui {
        String wantSettingsFor = did;
      }
    }
-
-   /*checkSlid(String dname, String pos) {
-     log.log("checkSlid " + dname + " " + pos);
-     Int statet = HD.getEle("sli" + dname + "-" + pos).value;
-     log.log("slidState " + statet);
-     HD.getEle("hat" + dname + "-" + pos).checked = true;
-     HD.getEle("devErr").display = "none";
-     HC.callApp(Lists.from("setDeviceLvlRequest", dname + "-" + pos, statet.toString()));
-   }*/
 
    pwmChanged(Int value) {
      log.log("pwm changed " + value);

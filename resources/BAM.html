@@ -137,7 +137,7 @@
           </f7-navbar>
           <f7-toolbar bottom>
               <f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('discover');return false;" large fill raised>Setup a Device</f7-button>
+                  <f7-button class="col" onclick="callEle('openDiscover', 'click');return false;" large fill raised>Setup a Device</f7-button>
                 </f7-row>
 
           </f7-toolbar>
@@ -374,7 +374,7 @@
           <f7-page>
             <f7-navbar title="Share your Device">
               <f7-nav-right>
-                <f7-link onclick="callUI('clearQrShare');callUI('hideShareExtra');return false;" popup-close>Close</f7-link>
+                <f7-link onclick="callUI('clearQrShare');callEle('hasharediv', 'displaySet', 'none');callEle('qrerr', 'displaySet', 'none');return false;" popup-close>Close</f7-link>
               </f7-nav-right>
             </f7-navbar>
             <f7-block>Share your device with Casnic on another phone or tablet.  Make sure Casnic is installed on the destination, then click Display Code. Point the the camera application on the ther phone at the square code on this screen, accept the camera apps prompt to open casnic / go to Web Address when it appears, and accept the share in Casnic when it opens. For more information click <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#sharing-a-device');return false;" href='#'>here for Help.</f7-link> <b>To share with Homeassistant</b> <f7-link onclick="callUI('haShare');return false;" href='#'>click here</f7-link></f7-block>
@@ -421,7 +421,7 @@
                     input-id="pwsnetname"
                   type="password"
                   placeholder=""
-                ></f7-list-input><f7-button onclick="callUI('togglePwnet');return false;" id="pwsnetshow" icon-f7='eye_fill'></f7-button></f7-list-item>
+                ></f7-list-input><f7-button onclick="callUI('togglePw', 'pwsnetname');return false;" id="pwsnetshow" icon-f7='eye_fill'></f7-button></f7-list-item>
                 </f7-list>
                 </f7-block>
               <f7-row tag="p">
@@ -585,7 +585,7 @@
                   <f7-button class="col" onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic');return false;" outline back>Help</f7-button>
                 </f7-row>
                 <f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('toggleDevDetails');callUI('toggleAdvanced');return false;" outline>More</f7-button>
+                  <f7-button class="col" onclick="callUI('toggleDisplay', 'divDevDetails');callUI('toggleDisplay', 'divAdvanced');callUI('toggleAdvanced');return false;" outline>More</f7-button>
                 </f7-row>
                 <div id="divDevDetails" style="display: none;">
                 <f7-list> <f7-list-item>Sharing Code</f7-list-item>
@@ -695,9 +695,6 @@
                 </f7-row>
                 </f7-block>
                 </div>
-                <!--<f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('toggleAdvanced');return false;" outline>More</f7-button>
-                </f7-row>-->
         <div id="divAdvanced" style="display: none;">
             </f7-list>
                 <f7-list>
@@ -716,10 +713,10 @@
                 ></f7-list-input>
                 </f7-list>
                 <f7-row tag="p">
-                  <f7-button onclick="callUI('toggleWsec');return false;" id="wsecshow" icon-f7='eye_fill'></f7-button>
+                  <f7-button onclick="callUI('togglePw', 'wifiSec');return false;" id="wsecshow" icon-f7='eye_fill'></f7-button>
                 </f7-row>
               <f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('saveWifi');return false;" outline>Save Wifi</f7-button>
+                  <f7-button class="col" onclick="callApp('saveWifiRequest', document.getElementById('wifiSsid').value, document.getElementById('wifiSec').value, true);return false;" outline>Save Wifi</f7-button>
                 </f7-row>
         </div>
         <div id="divMqttAdvanced" style="display: none;">
@@ -746,10 +743,10 @@
         ></f7-list-input>
         </f7-list>
         <f7-row tag="p">
-                  <f7-button onclick="callUI('toggleMqp');return false;" id="mqpshow" icon-f7='eye_fill'></f7-button>
+                  <f7-button onclick="callUI('togglePw', 'mqttPass');return false;" id="mqpshow" icon-f7='eye_fill'></f7-button>
                 </f7-row>
       <f7-row tag="p">
-          <f7-button class="col" onclick="callUI('saveMqtt');return false;" outline>Save MQTT</f7-button>
+          <f7-button class="col" onclick="callApp('saveMqttRequest', document.getElementById('mqttBroker').value, document.getElementById('mqttUser').value, document.getElementById('mqttPass').value);return false;" outline>Save MQTT</f7-button>
         </f7-row>
         </div>
         <f7-list>

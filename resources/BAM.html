@@ -349,7 +349,7 @@
             <f7-block>Are you sure you want to delete device?  This cannot be undone.  Unless it is active in another application it will be unusable and will need to be reset and resetup before it can be used again.</f7-block>
             <f7-button class="col" popup-close outline>Nevermind, cancel</f7-button>
             <f7-button class="col" popup-close outline>I'm not sure, cancel</f7-button>
-            <f7-button class="col" onclick="callUI('deleteDevice');return false;" outline>Yes, really do Delete Device</f7-button>
+            <f7-button class="col" onclick="callApp('deleteDeviceRequest', document.getElementById('devId').value);return false;" outline>Yes, really do Delete Device</f7-button>
           </f7-page>
         </f7-view>
       </f7-popup>
@@ -398,7 +398,7 @@
             <f7-block>Are you sure you want to reset device?  This cannot be undone.  Device will be restored to initial state and must be resetup before it can be used again.  Existing application entries for this device will no longer work.</f7-block>
             <f7-button class="col" popup-close outline>Nevermind, cancel</f7-button>
             <f7-button class="col" popup-close outline>I'm not sure, cancel</f7-button>
-            <f7-button class="col" onclick="callUI('resetDevice');return false;" outline>Yes, really do Reset Device</f7-button>
+            <f7-button class="col" onclick="callApp('resetDeviceRequest', document.getElementById('devId').value);return false;" outline>Yes, really do Reset Device</f7-button>
           </f7-page>
         </f7-view>
       </f7-popup>
@@ -600,10 +600,10 @@
                   <f7-button id="receiveShareButton" class="col" onclick="callUI('receiveShare');return false;" outline>Receive Share</f7-button>
                 </f7-row>
                 <f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('updateWifi');return false;" outline>Update Wifi</f7-button>
+                  <f7-button class="col" onclick="callApp('updateWifiRequest', document.getElementById('devId').value);return false;" outline>Update Wifi</f7-button>
                 </f7-row>
                 <f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('restartDev');return false;" outline>Restart</f7-button>
+                  <f7-button class="col" onclick="callApp('restartDevRequest', document.getElementById('devId').value);return false;" outline>Restart</f7-button>
                 </f7-row>
                  <f7-row tag="p">
                   <f7-button class="col" popup-open="#verreset" outline>Reset</f7-button>
@@ -612,7 +612,7 @@
                   <f7-button class="col" popup-open="#verdelete" outline>Delete</f7-button>
                 </f7-row>
                 <f7-row tag="p">
-          <f7-button class="col" onclick="callUI('rectlDevice');return false;" outline>Reload Controls</f7-button>
+          <f7-button class="col" onclick="callApp('rectlDeviceRequest', document.getElementById('devId').value);return false;" outline>Reload Controls</f7-button>
         </f7-row>
                 <f7-list> <f7-list-item>Sharing Blob</f7-list-item>
             <f7-list-input

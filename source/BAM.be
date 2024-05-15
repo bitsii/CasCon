@@ -2647,7 +2647,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map mcmd = setDeviceSwMcmd(rhan, rpos, rstate);
      if (sendDeviceMcmd(mcmd, 0)!) {
        if (def(request)) {
-         return(CallBackUI.showDevErrorResponse());
+         return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
        }
      }
      return(null);
@@ -2722,7 +2722,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map mcmd = setDeviceRgbMcmd(rhanpos, rgb);
      if (sendDeviceMcmd(mcmd, 0)!) {
        if (def(request)) {
-         //return(CallBackUI.showDevErrorResponse());
+         //return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
          //return(CallBackUI.reloadResponse());
        }
      }
@@ -2853,7 +2853,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map mcmd = setDeviceTempMcmd(rhanpos, rstate);
      if (sendDeviceMcmd(mcmd, 0)!) {
        if (def(request)) {
-         return(CallBackUI.showDevErrorResponse());
+         return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
        }
      }
      return(null);
@@ -2994,7 +2994,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Map mcmd = setDeviceLvlMcmd(rhanpos, rstate);
      if (sendDeviceMcmd(mcmd, 0)!) {
        if (def(request)) {
-         return(CallBackUI.showDevErrorResponse());
+         return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
        }
      }
      return(null);

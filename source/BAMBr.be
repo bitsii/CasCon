@@ -231,6 +231,7 @@ use class IUHub:Eui {
     unless (loggedIn) { return(self); }
     slots {
       Int discoCounts;
+      String wantSettingsFor;
     }
 
     var imd = HD.getEle("informMessageDiv");
@@ -426,12 +427,6 @@ use class IUHub:Eui {
        String lastDeviceId;
      }
      HC.callApp(Lists.from("showNextDeviceConfigRequest", lastDeviceId));
-   }
-
-   getDiscoveredDeviceResponse() {
-     slots {
-       String lastDiscoveredDevice;
-     }
    }
 
    settleWifiResponse(Map _visnets, String ssid, String sec) {
@@ -630,31 +625,6 @@ use class IUHub:Eui {
        HC.callAppLater(Lists.from("allsetRequest", count, disDevName, disDevType, disDevPin, disDevSsid, disDevId, disDevPass, disDevSpass, disDevDid, devSsid, devSec), wait);
      }
    }
-
-   deleteDevice() {
-     String devId = HD.getElementById("devId").value;
-     HC.callApp(Lists.from("deleteDeviceRequest", devId));
-   }
-
-   rectlDevice() {
-     String devId = HD.getElementById("devId").value;
-     HC.callApp(Lists.from("rectlDeviceRequest", devId));
-   }
-
-   updateWifi() {
-     String devId = HD.getElementById("devId").value;
-     HC.callApp(Lists.from("updateWifiRequest", devId));
-   }
-
-   restartDev() {
-     String devId = HD.getElementById("devId").value;
-     HC.callApp(Lists.from("restartDevRequest", devId));
-   }
-
-   resetDevice() {
-     String devId = HD.getElementById("devId").value;
-     HC.callApp(Lists.from("resetDeviceRequest", devId));
-   }
    
    showDeviceConfigResponse(String confs, String ip) {
      Map conf = Json:Unmarshaller.unmarshall(confs);
@@ -696,13 +666,6 @@ use class IUHub:Eui {
      }
    }
 
-   wantSettings(String did) {
-     log.log("want settings for " + did);
-     slots {
-       String wantSettingsFor = did;
-     }
-   }
-
    pwmChanged(Int value) {
      log.log("pwm changed " + value);
      if (def(currPwm) && currPwm == value) {
@@ -728,15 +691,6 @@ use class IUHub:Eui {
         Bool setCurrPwm = true;
         String setPwmDid = did;
         String setPwmPos = pos;
-     }
-   }
-
-   setForPup(String did, String pos, String ui) {
-     log.log("in setForPup " + did + " " + pos + " " + ui);
-     slots {
-        String setPupDid = did;
-        String setPupPos = pos;
-        String setPupUi = ui;
      }
    }
 
@@ -795,6 +749,15 @@ use class IUHub:Eui {
         Bool setCurrLvl = true;
         String setBrightDid = did;
         String setBrightPos = pos;
+     }
+   }
+
+   setForPup(String did, String pos, String ui) {
+     log.log("in setForPup " + did + " " + pos + " " + ui);
+     slots {
+        String setPupDid = did;
+        String setPupPos = pos;
+        String setPupUi = ui;
      }
    }
 
@@ -1071,14 +1034,6 @@ use class IUHub:Eui {
      }
    }
    
-   hideSaveBusy() {
-     HD.getElementById("saveBusy").display = "none";
-   }
-
-   showDevErrorResponse() {
-     HD.getEle("devErr").display = "block";
-   }
-   
    openToUrl(String url) {
      ifEmit(bnbr) {
      emit(js) {
@@ -1137,24 +1092,16 @@ use class IUHub:Eui {
      }
      nextInform = Time:Interval.now().addSeconds(75); //comment to see all the informs
      if (TS.notEmpty(r)) {
-      //HD.getElementById("informMessageDiv").innerHTML = r;
-      //HD.getElementById("informDiv").display = "block";
-      // log.log("can't inform");
        fields {
          String mustInform;
        }
        mustInform = r;
-       //HD.getEle("lres").value = r;
        HD.getEle("openInform").click();
        if (def(r)) {
          log.log(r);
        }
      }
      HC.callApp(Lists.from("didInformRequest"));
-   }
-   
-   hideInform() {
-     HD.getElementById("informDiv").display = "none";
    }
    
 }

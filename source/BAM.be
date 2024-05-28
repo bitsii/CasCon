@@ -62,6 +62,30 @@ class BamAuthPlugin(App:AuthPlugin) {
     }
   }
 
+  doFakeAuth(Map arg, request) Bool {
+    unless (app.params.isTrue("fakeAuth")) { return(false); }
+    Account a = self.accountManager.getAccount(arg["accountName"]);
+    if (def(a)) {
+      log.log("got account");
+      if (a.checkPass(arg["accountPass"])) {
+        log.log("pass good");
+      } else {
+        log.log("pass needs update");
+        a.pass = arg["accountPass"];
+        self.accountManager.putAccount(a);
+      }
+    } else {
+      log.log("no account yet");
+      a = Account.new();
+      a.user = arg["accountName"];
+      a.pass = arg["accountPass"];
+      a.perms.put("admin");
+      request.context.put("account", a);
+      self.accountManager.putAccount(a);
+    }
+    return(true);
+  }
+
   loginRequest(Map arg, request) {
     ifEmit(wajv) {
     //Account a = self.accountManager.getAccount(arg["accountName"]);
@@ -69,7 +93,9 @@ class BamAuthPlugin(App:AuthPlugin) {
     //check pass against ha if present
     //set pass if it doesn't checkPass (it's changed), or if account missing
     Bool authOk = false;
-    if (TS.notEmpty(prot.supTok) && TS.notEmpty(prot.supUrl) && prot.doSupAuth) {
+    if (doFakeAuth(arg, request)) {
+      authOk = true;
+    } elseIf (TS.notEmpty(prot.supTok) && TS.notEmpty(prot.supUrl) && prot.doSupAuth) {
         //log.log("GOT supTok " + prot.supTok);
         log.log("got supTok");
         Web:Client client = Web:Client.new();

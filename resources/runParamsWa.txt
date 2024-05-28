@@ -24,3 +24,5 @@ yes
 CasCon
 --logSinkDir
 Logs
+#--fakeAuth
+#true

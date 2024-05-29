@@ -321,51 +321,46 @@ use class IUHub:Eui {
        }
      }
 
-     var bs = HD.getEle("setBrightSlide");
-     if (bs.exists) {
-       if (def(setCurrLvl) && setCurrLvl && def(currLvl)) {
-         log.log("setting currLvl");
-         setCurrLvl = false;
-         Int crli = currLvl;
-         emit(js) {
-           """
-           /*-attr- -noreplace-*/
-           //console.log(vapp);
-           //console.log(vapp.$f7);
-           //var range = vapp.$f7.range.get('.range-slider');
-           var range = vapp.$f7.range.get('#bsideRange');
-           //console.log("rv");
-           //console.log(range.value);
-           //console.log(range.setValue(5));
-           //console.log(range.getValue());
-           range.setValue(bevl_crli.bevi_int);
-           """
-         }
-       }
-     }
+      if (def(setCurrLvl) && setCurrLvl && def(currLvl)) {
+        //log.log("setting currLvl");
+        setCurrLvl = false;
+        Int crli = currLvl;
+        var bs = HD.getEle("setBrightSlide");
+        if (bs.exists) {
+          emit(js) {
+          """
+          /*-attr- -noreplace-*/
+          var range = vapp.$f7.range.get('#bsideRange');
+          range.setValue(bevl_crli.bevi_int);
+          """
+        }
+        }
+        var ps = HD.getEle("setPwmSlide");
+        if (ps.exists) {
+          emit(js) {
+          """
+          /*-attr- -noreplace-*/
+          var range = vapp.$f7.range.get('#bpwmRange');
+          range.setValue(bevl_crli.bevi_int);
+          """
+        }
+        }
+      }
 
-     var ps = HD.getEle("setPwmSlide");
-     if (ps.exists) {
-       if (def(setCurrPwm) && setCurrPwm && def(currPwm)) {
-         log.log("setting currPwm");
-         setCurrPwm = false;
-         Int prli = currPwm;
-         emit(js) {
-           """
-           /*-attr- -noreplace-*/
-           //console.log(vapp);
-           //console.log(vapp.$f7);
-           //var range = vapp.$f7.range.get('.range-slider');
-           var range = vapp.$f7.range.get('#bpwmRange');
-           //console.log("rv");
-           //console.log(range.value);
-           //console.log(range.setValue(5));
-           //console.log(range.getValue());
-           range.setValue(bevl_prli.bevi_int);
-           """
-         }
-       }
-     }
+      emit(js) {
+        """
+        /*-attr- -noreplace-*/
+        //console.log(vapp);
+        //console.log(vapp.$f7);
+        //var range = vapp.$f7.range.get('.range-slider');
+        //var range = vapp.$f7.range.get('#bsideRange');
+        //console.log("rv");
+        //console.log(range.value);
+        //console.log(range.setValue(5));
+        //console.log(range.getValue());
+        //range.setValue(bevl_crli.bevi_int);
+        """
+      }
 
      var ts = HD.getEle("setTempSlide");
      if (ts.exists) {
@@ -653,19 +648,21 @@ use class IUHub:Eui {
      }
    }
 
-   pwmChanged(Int value) {
-     log.log("pwm changed " + value);
-     if (def(currPwm) && currPwm == value) {
-       "not really is curr pwm".print();
+   lvlChanged(Int value) {
+     log.log("lvl changed " + value);
+     if (def(currLvl) && currLvl == value) {
+       "not really is curr lvl".print();
      } else {
-       currPwm = value;
+       currLvl = value;
+       any sw = HD.getEle("hat" + setLvlDid + "-" + setLvlPos);
+       if (sw.exists) { sw.checked = true; }
        HD.getEle("devErr").display = "none";
-       HC.callApp(Lists.from("setDeviceLvlRequest", setPwmDid + "-" + setPwmPos, currPwm.toString()));
+       HC.callApp(Lists.from("setDeviceLvlRequest", setLvlDid + "-" + setLvlPos, currLvl.toString()));
      }
    }
 
-   setForPwm(String did, String pos) {
-     log.log("in setForPwm " + did + " " + pos);
+   setForLvl(String did, String pos) {
+     log.log("in setForLvl " + did + " " + pos);
      String lvl = levels.get(did + "-" + pos);
      if (TS.notEmpty(lvl)) {
        log.log("lvl " + lvl);
@@ -674,10 +671,10 @@ use class IUHub:Eui {
        lvl = "255";
      }
      slots {
-        Int currPwm = Int.new(lvl);
-        Bool setCurrPwm = true;
-        String setPwmDid = did;
-        String setPwmPos = pos;
+        Int currLvl = Int.new(lvl);
+        Bool setCurrLvl = true;
+        String setLvlDid = did;
+        String setLvlPos = pos;
      }
    }
 
@@ -707,35 +704,6 @@ use class IUHub:Eui {
         Bool setCurrTemp = true;
         String setTempDid = did;
         String setTempPos = pos;
-     }
-   }
-
-   brightChanged(Int value) {
-     log.log("bright changed " + value);
-     if (def(currLvl) && currLvl == value) {
-       "not really is curr lvl".print();
-     } else {
-       currLvl = value;
-       HD.getEle("hat" + setBrightDid + "-" + setBrightPos).checked = true;
-       HD.getEle("devErr").display = "none";
-       HC.callApp(Lists.from("setDeviceLvlRequest", setBrightDid + "-" + setBrightPos, currLvl.toString()));
-     }
-   }
-
-   setForDim(String did, String pos) {
-     log.log("in setForDim " + did + " " + pos);
-     String lvl = levels.get(did + "-" + pos);
-     if (TS.notEmpty(lvl)) {
-       log.log("lvl " + lvl);
-     } else {
-       log.log("no lvl");
-       lvl = "255";
-     }
-     slots {
-        Int currLvl = Int.new(lvl);
-        Bool setCurrLvl = true;
-        String setBrightDid = did;
-        String setBrightPos = pos;
      }
    }
 
@@ -906,7 +874,7 @@ use class IUHub:Eui {
 
        String forpwm = '''
            <div class="item-after">
-           <a href="#" data-popup="#setpwm" onclick="callUI('setForPwm', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">graph_round</i></a>
+           <a href="#" data-popup="#setpwm" onclick="callUI('setForLvl', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">graph_round</i></a>
            </div>
        ''';
 
@@ -918,7 +886,7 @@ use class IUHub:Eui {
 
       String fordim = '''
        <div class="item-after">
-           <a href="#" data-popup="#setbright" onclick="callUI('setForDim', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">bulb</i></a>
+           <a href="#" data-popup="#setbright" onclick="callUI('setForLvl', 'IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button popup-open"><i class="icon f7-icons">bulb</i></a>
            </div>
       ''';
 

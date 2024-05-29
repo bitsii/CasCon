@@ -657,7 +657,7 @@ use class IUHub:Eui {
        any sw = HD.getEle("hat" + setLvlDid + "-" + setLvlPos);
        if (sw.exists) { sw.checked = true; }
        HD.getEle("devErr").display = "none";
-       HC.callApp(Lists.from("setDeviceLvlRequest", setLvlDid + "-" + setLvlPos, currLvl.toString()));
+       HC.callApp(Lists.from("devActRequest", "setLvl", setLvlDid, setLvlPos, currLvl.toString()));
      }
    }
 

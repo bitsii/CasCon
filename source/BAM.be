@@ -665,7 +665,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             //if has brightness, do brightness
             //else state
             if (incmd.has("brightness")) {
-              mcmd = setDeviceLvlMcmd(dp[0] + "-" + dp[1], incmd.get("brightness").toString());
+              mcmd = setDeviceLvlMcmd(dp[0], dp[1], incmd.get("brightness").toString());
               mcmd["runSync"] = true;
               processDeviceMcmd(mcmd);
               if (mcmd.has("cb")) {
@@ -2668,8 +2668,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    //callApp('devActRequest', 'setSw', 'IDOFDEVICE', 'POSOFDEVICE', document.getElementById('hatIDOFDEVICE-POSOFDEVICE').checked);
    devActRequest(String aType, String rhan, String rpos, String rstate, request) Map {
-     log.log("in devActRequest " + rhan + " " + rpos + " " + rstate);
-     Map mcmd = setDeviceSwMcmd(rhan, rpos, rstate);
+     log.log("in devActRequest " + aType + " " + rhan + " " + rpos + " " + rstate);
+
+     Map mcmd;
+
+     if (aType == "setSw") {
+      mcmd = setDeviceSwMcmd(rhan, rpos, rstate);
+     } elseIf (aType == "setLvl") {
+      mcmd = setDeviceLvlMcmd(rhan, rpos, rstate);
+     }
+
      if (sendDeviceMcmd(mcmd, 0)!) {
        if (def(request)) {
          return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
@@ -3012,20 +3020,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(res);
    }
 
-   setDeviceLvlRequest(String rhanpos, String rstate, request) Map {
-     log.log("in setDeviceLvlRequest " + rhanpos + " " + rstate);
-
-     //not checking user rn
-     Map mcmd = setDeviceLvlMcmd(rhanpos, rstate);
-     if (sendDeviceMcmd(mcmd, 0)!) {
-       if (def(request)) {
-         return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
-       }
-     }
-     return(null);
-   }
-
-   setDeviceLvlMcmd(String rhanpos, String rstate) Map {
+   setDeviceLvlMcmd(String rhan, String rposs, String rstate) Map {
 
      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
      var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
@@ -3034,10 +3029,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
      var hacw = app.kvdbs.get("HACW"); //hargb - device id to rgb
 
-     var rhp = rhanpos.split("-");
-     String rhan = rhp.get(0);
+     Int rpos = Int.new(rposs);
 
-     Int rpos = Int.new(rhp.get(1));
+     String rhanpos = rhan + "-" + rposs;
 
      String ctl = hactls.get(rhan);
      var ctll = ctl.split(",");

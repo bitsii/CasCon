@@ -55,6 +55,12 @@
      //console.log(range.detail.value);
      callUI('tempChanged', range.detail.value);
   }
+  var toOnOff = function(bval) {
+    if (bval === true) {
+      return('on');
+    }
+    return('off');
+  }
   </script>
 
 </head>

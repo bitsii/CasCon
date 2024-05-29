@@ -213,19 +213,6 @@ use class IUHub:Eui {
       }
      }
    }
-   
-   checkToggled(String dname, String pos) {
-     log.log("checkToggled " + dname + " " + pos);
-     Bool statet = HD.getEle("hat" + dname + "-" + pos).checked;
-     log.log("toggleState " + statet);
-     if (statet) {
-       String state = "on";
-     } else {
-       state = "off";
-     }
-     HD.getEle("devErr").display = "none";
-     HC.callApp(Lists.from("setDeviceSwRequest", dname, pos, state));
-   }
 
    checkNexts() {
     unless (loggedIn) { return(self); }
@@ -938,7 +925,7 @@ use class IUHub:Eui {
       String forsw = '''
         <div class="item-after">
              <label class="toggle">
-               <input type="checkbox" onclick="callUI('checkToggled', 'IDOFDEVICE', 'POSOFDEVICE');return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
+               <input type="checkbox" onclick="callApp('devActRequest', 'setSw', 'IDOFDEVICE', 'POSOFDEVICE', toOnOff(document.getElementById('hatIDOFDEVICE-POSOFDEVICE').checked));return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
                <span class="toggle-icon"></span>
              </label>
            </div>

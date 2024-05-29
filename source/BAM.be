@@ -2666,10 +2666,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
-   setDeviceSwRequest(String rhan, String rpos, String rstate, request) Map {
-     log.log("in setDeviceSwRequest " + rhan + " " + rpos + " " + rstate);
-
-     //not checking user rn
+   //callApp('devActRequest', 'setSw', 'IDOFDEVICE', 'POSOFDEVICE', document.getElementById('hatIDOFDEVICE-POSOFDEVICE').checked);
+   devActRequest(String aType, String rhan, String rpos, String rstate, request) Map {
+     log.log("in devActRequest " + rhan + " " + rpos + " " + rstate);
      Map mcmd = setDeviceSwMcmd(rhan, rpos, rstate);
      if (sendDeviceMcmd(mcmd, 0)!) {
        if (def(request)) {

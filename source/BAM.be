@@ -63,7 +63,7 @@ class BamAuthPlugin(App:AuthPlugin) {
   }
 
   doFakeAuth(Map arg, request) Bool {
-    unless (app.params.isTrue("fakeAuth")) { return(false); }
+    unless (app.params.isTrue("fakeAuth") && TS.notEmpty(System:Environment.getVariable("FAKE_AUTH"))) { return(false); }
     Account a = self.accountManager.getAccount(arg["accountName"]);
     if (def(a)) {
       log.log("got account");

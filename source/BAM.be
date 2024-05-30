@@ -681,7 +681,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 self.invoke(mcmd["cb"], Lists.from(mcmd, null));
               }
             } elseIf (incmd.has("color_temp")) {
-              mcmd = setDeviceTempMcmd(dp[0] + "-" + dp[1], miredToLs(incmd.get("color_temp")).toString());
+              mcmd = setDeviceTempMcmd(dp[0], dp[1], miredToLs(incmd.get("color_temp")).toString());
               mcmd["runSync"] = true;
               processDeviceMcmd(mcmd);
               if (mcmd.has("cb")) {
@@ -2676,6 +2676,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       mcmd = setDeviceSwMcmd(rhan, rpos, rstate);
      } elseIf (aType == "setLvl") {
       mcmd = setDeviceLvlMcmd(rhan, rpos, rstate);
+     } elseIf (aType == "setTemp") {
+      mcmd = setDeviceTempMcmd(rhan, rpos, rstate);
      }
 
      if (sendDeviceMcmd(mcmd, 0)!) {
@@ -2879,20 +2881,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
-   setDeviceTempRequest(String rhanpos, String rstate, request) Map {
-     log.log("in setDeviceTempRequest " + rhanpos + " " + rstate);
-
-     //not checking user rn
-     Map mcmd = setDeviceTempMcmd(rhanpos, rstate);
-     if (sendDeviceMcmd(mcmd, 0)!) {
-       if (def(request)) {
-         return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
-       }
-     }
-     return(null);
-   }
-
-   setDeviceTempMcmd(String rhanpos, String rstate) Map {
+   setDeviceTempMcmd(String rhan, String rposs, String rstate) Map {
 
      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
      var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
@@ -2901,10 +2890,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
      var hacw = app.kvdbs.get("HACW"); //hargb - device id to rgb
 
-     var rhp = rhanpos.split("-");
-     String rhan = rhp.get(0);
+     Int rpos = Int.new(rposs);
 
-     Int rpos = Int.new(rhp.get(1));
+     String rhanpos = rhan + "-" + rposs;
 
      String ctl = hactls.get(rhan);
      var ctll = ctl.split(",");

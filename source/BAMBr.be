@@ -686,7 +686,7 @@ use class IUHub:Eui {
        currTemp = value;
        HD.getEle("hat" + setTempDid + "-" + setTempPos).checked = true;
        HD.getEle("devErr").display = "none";
-       HC.callApp(Lists.from("setDeviceTempRequest", setTempDid + "-" + setTempPos, currTemp.toString()));
+       HC.callApp(Lists.from("devActRequest", "setTemp", setTempDid, setTempPos, currTemp.toString()));
      }
    }
 

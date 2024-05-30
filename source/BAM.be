@@ -674,7 +674,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             } elseIf (incmd.has("color")) {
               Map rgb = incmd.get("color");
               String rgbs = "" + rgb["r"] + "," + rgb["g"] + "," + rgb["b"];
-              mcmd = setDeviceRgbMcmd(dp[0] + "-" + dp[1], rgbs);
+              mcmd = setDeviceRgbMcmd(dp[0], dp[1], rgbs);
               mcmd["runSync"] = true;
               processDeviceMcmd(mcmd);
               if (mcmd.has("cb")) {
@@ -2678,6 +2678,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       mcmd = setDeviceLvlMcmd(rhan, rpos, rstate);
      } elseIf (aType == "setTemp") {
       mcmd = setDeviceTempMcmd(rhan, rpos, rstate);
+     } elseIf (aType == "setRgb") {
+      mcmd = setDeviceRgbMcmd(rhan, rpos, rstate);
      }
 
      if (sendDeviceMcmd(mcmd, 0)!) {
@@ -2750,22 +2752,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
-   setDeviceRgbRequest(String rhanpos, String rgb, request) Map {
-     log.log("in setDeviceRgbRequest " + rhanpos);
-
-     //not checking user rn
-     Map mcmd = setDeviceRgbMcmd(rhanpos, rgb);
-     if (sendDeviceMcmd(mcmd, 0)!) {
-       if (def(request)) {
-         //return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
-         //return(CallBackUI.reloadResponse());
-       }
-     }
-
-     return(null);
-   }
-
-   setDeviceRgbMcmd(String rhanpos, String rgb) Map {
+   setDeviceRgbMcmd(String rhan, String rposs, String rgb) Map {
 
      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
      var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
@@ -2773,10 +2760,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      var hacw = app.kvdbs.get("HACW");
      var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
 
-     var rhp = rhanpos.split("-");
-     String rhan = rhp.get(0);
+     Int rpos = Int.new(rposs);
 
-     Int rpos = Int.new(rhp.get(1));
+     String rhanpos = rhan + "-" + rposs;
 
      String ctl = hactls.get(rhan);
      var ctll = ctl.split(",");

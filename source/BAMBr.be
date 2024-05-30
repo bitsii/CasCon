@@ -746,7 +746,7 @@ use class IUHub:Eui {
         log.log("colorChanged r,g,b " + rgb);
         HD.getEle("devErr").display = "none";
         HD.getEle("hat" + setColorDid + "-" + setColorPos).checked = true;
-        HC.callApp(Lists.from("setDeviceRgbRequest", setColorDid + "-" + setColorPos, rgb));
+        HC.callApp(Lists.from("devActRequest", "setRgb", setColorDid, setColorPos, rgb));
        } else {
         log.log("colorChanged first ignored " + rgb);
         ignoreNextColorChange = false;

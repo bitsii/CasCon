@@ -2267,7 +2267,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             pdcount.put(pdc.key, dc);
             Map conf = Json:Unmarshaller.unmarshall(pdc.value);
             String did = conf["id"];
-            if (TS.notEmpty(did) && pspecs.has(did)) {
+            if (TS.notEmpty(did) && pspecs.has(did) && pspecs.get(did) != "1.p4,p2.phx.4") {
               getLastEvents(pdc.value);
               break;
             } elseIf (TS.notEmpty(did)) {
@@ -3481,28 +3481,27 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      log.log("res was " + res);
      */
 
-   processDeviceMcmd(Map mcmd) {
-     //log.log("in processDeviceMcmd");
-
-     if (mcmd.has("did") && TS.notEmpty(mcmd["did"])) {
+  processDeviceMcmd(Map mcmd) {
+    //log.log("in processDeviceMcmd");
+    mcmd["pver"] = 1;
+    //log.log("adding tesh in processDeviceMcmd");
+    Int teshi = Time:Interval.now().seconds;
+    //teshi -= 300;
+    mcmd["tesh"] = teshi.toString();
+    if (mcmd.has("did") && TS.notEmpty(mcmd["did"])) {
       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
       String sws = haspecs.get(mcmd["did"]);
-      if (TS.notEmpty(sws) && sws.has("p3,")) {
-        //log.log("adding tesh in processDeviceMcmd");
-        Int teshi = Time:Interval.now().seconds;
-        //teshi -= 300;
-        mcmd["tesh"] = teshi.toString();
-      } else {
-        //log.log("no p3 in  processDeviceMcmd");
+      if (TS.notEmpty(sws)) {
+        if (sws.has("p4,")) {
+          mcmd["pver"] = 4;
+        }
       }
-     } else {
-       log.log("no did in processDeviceMcmd");
-     }
+    }
 
-     String kdaddr = mcmd["kdaddr"];
-     prot.processDeviceMcmd(mcmd);
+    String kdaddr = mcmd["kdaddr"];
+    prot.processDeviceMcmd(mcmd);
 
-      return(null);
+    return(null);
    }
 
    checkCxRequest(request) Map {
@@ -3867,6 +3866,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (alStep == "allset") {
        if (TS.notEmpty(cres) && cres.has("allset done")) {
           log.log("allset expected result");
+          if (cres.has("p4")) {
+            log.log("has p4");
+            var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+            haspecs.put(disDevId, "1.p4,p2.phx.4");
+          }
           alStep = "getcontroldef";
        } elseIf (TS.notEmpty(cres) && cres.has("pass is incorrect")) {
           throw(Alert.new("Device is already configured, reset before setting up again."));

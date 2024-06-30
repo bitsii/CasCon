@@ -90,10 +90,9 @@ class CasNic:CasProt {
        Int pwt = mcmd["pwt"];
        String pw = mcmd["pw"];
        String cmds = mcmd["cmds"];
-       String tesh = mcmd["tesh"];
 
        if (true && pwt > 0 && TS.notEmpty(pw)) {
-         cmds = secCmds(kdaddr, pwt, pw, tesh, cmds, mcmd);
+         cmds = secCmds(kdaddr, pwt, pw, cmds, mcmd);
        }
 
        cmds += "\r\n";
@@ -163,52 +162,37 @@ class CasNic:CasProt {
       }
    }
 
-   secCmds(String kdaddr, Int pwt, String pw, String tesh, String cmds, Map mcmd) String {
-      String myip = getMyOutIp();
-       if (TS.notEmpty(myip)) {
-         log.log("MY IP IS " + myip);
-         if (def(mcmd)) {
-          mcmd["myOutIp"] = myip;
-         }
-         //return(cmds);
-         if (pwt == 1) {
-           String ncmd = "ap";
-         } else {
-           ncmd = "sp";
-         }
-         if (TS.isEmpty(tesh)) {
-           ncmd += "2";
-         } else {
-           ncmd += "3";
-         }
-         String iv = System:Random.getString(16);
-         String insec = iv + "," + myip + "," + pw + ",";
-         if (TS.notEmpty(tesh)) {
-           insec += tesh += ",";
-         }
-         var cmdl = cmds.split(" ");
-         cmdl[1] = "X";
-         Int toc = cmdl.length - 1;
-         String sp = " ";
-         for (Int j = 0;j < toc;j++) {
-           insec += cmdl[j] += sp;
-         }
-         //log.log("insec |" + insec + "|");
-         String outsec = sha1hex(insec);
-         //log.log("insec " + insec);
-         //log.log("outsec " + outsec);
-         String fcmds = Text:Strings.new().join(Text:Strings.new().space, cmdl);
-         String henres = ncmd + " " + iv + " " + outsec + " ";
-         if (TS.notEmpty(tesh)) {
-           henres += tesh += " ";
-         }
-         henres += fcmds;
-         log.log("secCmds " + henres);
-         return(henres);
-       } else {
-         log.log("MY IP EMPTY");
-       }
-       return(cmds);
+  secCmds(String kdaddr, Int pwt, String pw, String cmds, Map mcmd) String {
+    Int pver = mcmd["pver"];
+    String tesh = mcmd["tesh"];
+    if (pwt < 1 || pver < 4) {
+      //we are dropping everything pre-4 to simplify, and pwt < 1 is passwordless
+      return(cmds);
+    }
+    if (pwt == 1) {
+      String ncmd = "ap";
+    } else {
+      ncmd = "sp";
+    }
+    ncmd += pver;
+    String iv = System:Random.getString(16);
+    String insec = iv + "," + pw + "," + tesh + ",";
+    var cmdl = cmds.split(" ");
+    cmdl[1] = "X";
+    Int toc = cmdl.length - 1;
+    String sp = " ";
+    for (Int j = 0;j < toc;j++) {
+      insec += cmdl[j] += sp;
+    }
+    //log.log("insec |" + insec + "|");
+    String outsec = sha1hex(insec);
+    //log.log("insec " + insec);
+    //log.log("outsec " + outsec);
+    String fcmds = Text:Strings.new().join(Text:Strings.new().space, cmdl);
+    String henres = ncmd + " " + iv + " " + outsec + " " + tesh + " ";
+    henres += fcmds;
+    log.log("secCmds " + henres);
+    return(henres);
    }
 
    sha1hex(String insec) String {

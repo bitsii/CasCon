@@ -178,7 +178,7 @@ class CasNic:CasProt {
       ncmd = "sp";
     }
     ncmd += pver;
-    String iv = System:Random.getString(16);
+    String iv = mcmd["iv"];
     String insec = iv + "," + pw + "," + tesh + ",";
     var cmdl = cmds.split(" ");
     cmdl[1] = "X";

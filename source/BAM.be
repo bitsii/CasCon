@@ -651,9 +651,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             Map mcmd = setDeviceSwMcmd(dp[0], dp[1], payload.lower());
             mcmd["runSync"] = true;
             processDeviceMcmd(mcmd);
-            if (mcmd.has("cb")) {
-              self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-            }
+            processMcmdRes(mcmd, null);
             stDiffed = true;
           } elseIf (topic.begins("homeassistant/light/") && topic.ends("/set")) {
             log.log("ha light switched");
@@ -668,32 +666,24 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               mcmd = setDeviceLvlMcmd(dp[0], dp[1], incmd.get("brightness").toString());
               mcmd["runSync"] = true;
               processDeviceMcmd(mcmd);
-              if (mcmd.has("cb")) {
-                self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-              }
+              processMcmdRes(mcmd, null);
             } elseIf (incmd.has("color")) {
               Map rgb = incmd.get("color");
               String rgbs = "" + rgb["r"] + "," + rgb["g"] + "," + rgb["b"];
               mcmd = setDeviceRgbMcmd(dp[0], dp[1], rgbs);
               mcmd["runSync"] = true;
               processDeviceMcmd(mcmd);
-              if (mcmd.has("cb")) {
-                self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-              }
+              processMcmdRes(mcmd, null);
             } elseIf (incmd.has("color_temp")) {
               mcmd = setDeviceTempMcmd(dp[0], dp[1], miredToLs(incmd.get("color_temp")).toString());
               mcmd["runSync"] = true;
               processDeviceMcmd(mcmd);
-              if (mcmd.has("cb")) {
-                self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-              }
+              processMcmdRes(mcmd, null);
             } elseIf (incmd.has("state")) {
               mcmd = setDeviceSwMcmd(dp[0], dp[1], incmd.get("state").lower());
               mcmd["runSync"] = true;
               processDeviceMcmd(mcmd);
-              if (mcmd.has("cb")) {
-                self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-              }
+              processMcmdRes(mcmd, null);
             }
             stDiffed = true;
           }
@@ -1354,9 +1344,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (backgroundPulse) {
           mcmd["runSync"] = true;
           processDeviceMcmd(mcmd);
-          if (mcmd.has("cb")) {
-            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-          }
+          processMcmdRes(mcmd, null);
         } else {
           sendDeviceMcmd(mcmd, 3);
         }
@@ -1446,9 +1434,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          if (backgroundPulse) {
           mcmd["runSync"] = true;
           processDeviceMcmd(mcmd);
-          if (mcmd.has("cb")) {
-            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-          }
+          processMcmdRes(mcmd, null);
          } else {
            sendDeviceMcmd(mcmd, 5);
          }
@@ -1560,9 +1546,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          if (backgroundPulse) {
           mcmd["runSync"] = true;
           processDeviceMcmd(mcmd);
-          if (mcmd.has("cb")) {
-            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-          }
+          processMcmdRes(mcmd, null);
          } else {
            sendDeviceMcmd(mcmd, 4);
          }
@@ -1668,9 +1652,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          if (backgroundPulse) {
           mcmd["runSync"] = true;
           processDeviceMcmd(mcmd);
-          if (mcmd.has("cb")) {
-            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-          }
+          processMcmdRes(mcmd, null);
          } else {
            sendDeviceMcmd(mcmd, 4);
          }
@@ -1796,9 +1778,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          if (backgroundPulse) {
           mcmd["runSync"] = true;
           processDeviceMcmd(mcmd);
-          if (mcmd.has("cb")) {
-            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-          }
+          processMcmdRes(mcmd, null);
          } else {
            sendDeviceMcmd(mcmd, 4);
          }
@@ -1915,9 +1895,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          if (backgroundPulse) {
           mcmd["runSync"] = true;
           processDeviceMcmd(mcmd);
-          if (mcmd.has("cb")) {
-            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-          }
+          processMcmdRes(mcmd, null);
         } else {
           sendDeviceMcmd(mcmd, 4);
         }
@@ -2018,9 +1996,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          if (backgroundPulse) {
           mcmd["runSync"] = true;
           processDeviceMcmd(mcmd);
-          if (mcmd.has("cb")) {
-            self.invoke(mcmd["cb"], Lists.from(mcmd, null));
-          }
+          processMcmdRes(mcmd, null);
         } else {
           sendDeviceMcmd(mcmd, 4);
         }
@@ -2093,9 +2069,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (def(cmdsFailMcmd)) {
        Map mcmd = cmdsFailMcmd;
        cmdsFailMcmd = null;
-       if (mcmd.has("cb")) {
-        return(self.invoke(mcmd["cb"], Lists.from(mcmd, request)));
-      }
+       return(processMcmdRes(mcmd, request));
      }
      //checkdiffed
      if (undef(cmdQueues.get(0))) {
@@ -3324,9 +3298,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        mcmd["cres"] = cmdsRes;
        cmdsRes = null;
        currCmds = null;
-       if (mcmd.has("cb")) {
-         return(self.invoke(mcmd["cb"], Lists.from(mcmd, request)));
-       }
+       return(processMcmdRes(mcmd, request));
      } elseIf (undef(currCmds)) {
        for (Int i = 0;i < 10;i++) {
          Container:LinkedList cmdQueue = cmdQueues.get(i);
@@ -3350,6 +3322,25 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      //check for timeout and null / interrupt
      return(null);
+   }
+
+   processMcmdRes(Map mcmd, request) {
+       if (mcmd.has("cb")) {
+         Int pver = mcmd["pver"];
+         Int pwt = mcmd["pwt"];
+         String pw = mcmd["pw"];
+         String cres = mcmd["cres"];
+         String iv = mcmd["iv"];
+         if (def(pver) && pver > 4 && def(pwt) && pwt > 0 && TS.notEmpty(pw) && TS.notEmpty(iv) && TS.notEmpty(cres)) {
+           log.log("will decrypt cres");
+           cres = Encode:Hex.decode(cres);
+           cres = Crypt.decrypt(iv, pw, cres);
+           log.log("decrypted cres" + cres);
+           mcmd["cres"] = cres;
+         }
+         return(self.invoke(mcmd["cb"], Lists.from(mcmd, request)));
+       }
+       return(null);
    }
 
    processCmdsFail() {
@@ -3484,6 +3475,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
   processDeviceMcmd(Map mcmd) {
     //log.log("in processDeviceMcmd");
     mcmd["pver"] = 1;
+    mcmd["iv"] = System:Random.getString(16);
     //log.log("adding tesh in processDeviceMcmd");
     Int teshi = Time:Interval.now().seconds;
     //teshi -= 300;

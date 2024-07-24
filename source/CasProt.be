@@ -37,6 +37,9 @@ import casnic.control.MainActivity;
 }
 }
 
+use Encode:Hex as Hex;
+use Crypto:Symmetric as Crypt;
+
 class CasNic:CasProt {
 
   emit(jv) {
@@ -189,6 +192,9 @@ class CasNic:CasProt {
     //log.log("insec " + insec);
     //log.log("outsec " + outsec);
     String fcmds = Text:Strings.new().join(Text:Strings.new().space, cmdl);
+    if (pver == 5) {
+      fcmds = Hex.encode(Crypt.encrypt(iv, pw, fcmds)) += " e";
+    }
     String henres = ncmd + " " + iv + " " + outsec + " " + tesh + " ";
     henres += fcmds;
     log.log("secCmds " + henres);

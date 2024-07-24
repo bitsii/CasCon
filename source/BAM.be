@@ -3495,6 +3495,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (sws.has("p4,")) {
           mcmd["pver"] = 4;
         }
+        if (sws.has("p5,")) {
+          mcmd["pver"] = 5;
+        }
       }
     }
 

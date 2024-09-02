@@ -3331,7 +3331,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          String pw = mcmd["pw"];
          String cres = mcmd["cres"];
          String iv = mcmd["iv"];
-         if (def(pver) && pver > 4 && def(pwt) && pwt > 0 && TS.notEmpty(pw) && TS.notEmpty(iv) && TS.notEmpty(cres)) {
+         if (def(pver) && pver == 5 && def(pwt) && pwt > 0 && TS.notEmpty(pw) && TS.notEmpty(iv) && TS.notEmpty(cres)) {
            log.log("will decrypt cres");
            cres = Encode:Hex.decode(cres);
            cres = Crypt.decrypt(iv, pw, cres);
@@ -3598,7 +3598,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        return(CallBackUI.getDevWifisResponse(count, tries, wait));
      }
 
-     if (visnetsFails > 3) {
+     if (visnetsFails > 10) {
        log.log("visnetsFails overmuch");
        if (TS.notEmpty(ssid) && TS.notEmpty(sec)) {
          log.log("have ssid sec giving it a go, is old device");

@@ -3567,15 +3567,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         return(null);
    }
 
-   getDevWifisRequest(Int count, Bool starting, request) Map {
+   getDevWifisRequest(Int count, Bool starting, Bool forcing, request) Map {
      slots {
-       Map visnets; //set no marshall
+       Set visnets; //set no marshall
        Bool visnetsDone;
        Int visnetsFails;
        Int visnetsPos;
      }
      if (starting) {
-       visnets = Map.new();
+       visnets = Set.new();
        visnetsDone = false;
        visnetsFails = 0;
        visnetsPos = 0;
@@ -3592,13 +3592,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (undef(ssid)) { ssid = ""; }
      if (undef(sec)) { sec = ""; }
 
-     if (TS.notEmpty(ssid) && TS.notEmpty(sec) && visnets.has(ssid)) {
+     if (TS.notEmpty(ssid) && TS.notEmpty(sec) && (visnets.has(ssid) || forcing)) {
        log.log("have wifi setup and found my ssid, moving to allset");
        count.setValue(tries);
        return(CallBackUI.getDevWifisResponse(count, tries, wait));
      }
 
-     if (visnetsFails > 10) {
+     if (visnetsFails > 20) {
        log.log("visnetsFails overmuch");
        if (TS.notEmpty(ssid) && TS.notEmpty(sec)) {
          log.log("have ssid sec giving it a go, is old device");
@@ -3609,7 +3609,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        }
      } elseIf (count >= tries || visnetsDone) {
        log.log("doing settle wifi");
-       return(CallBackUI.settleWifiResponse(visnets, ssid, sec));
+       List vnl = List.new();
+       for (String vn in visnets) {
+        vnl += vn;
+       }
+       return(CallBackUI.settleWifiResponse(vnl, ssid, sec));
      }
 
      String cmds = "previsnets " + visnetsPos + " e";
@@ -3629,7 +3633,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            for (Int i = 1;i < ssp.length;i++) {
              String vna = Encode:Hex.decode(ssp[i]);
              log.log("got vna " + vna);
-             visnets.put(vna, vna);
+             visnets.put(vna);
              visnetsPos++;
            }
         } else {

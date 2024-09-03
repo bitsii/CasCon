@@ -238,11 +238,10 @@ use class IUHub:Eui {
        var wfd = HD.getEle("wifisholder");
        var wgb = HD.getEle("wifiGivenButton");
        if (wfd.exists && wgb.exists) {
-         if (def(visnets)  && visnets.notEmpty && TS.isEmpty(wfd.innerHTML)) {
+         if (def(visnets)  && visnets.length > 0 && TS.isEmpty(wfd.innerHTML)) {
            var ehvs = Encode:Hex.new();
            String netch = "<fieldset><legend>Select a network:</legend>";
-           for (var kv in visnets) {
-             String kvv = kv.value;
+           for (var kvv in visnets) {
              String kvve = ehvs.encode(kvv);
              netch += "<div><input type=\"radio\" id=\"pswi" += kvve += "\" name=\"drone\" value=\"huey\"/><label for=\"pswi" += kvve += "\">" += kvv += "</label></div>";
            }
@@ -411,9 +410,9 @@ use class IUHub:Eui {
      HC.callApp(Lists.from("showNextDeviceConfigRequest", lastDeviceId));
    }
 
-   settleWifiResponse(Map _visnets, String ssid, String sec) {
+   settleWifiResponse(List _visnets, String ssid, String sec) {
      fields {
-       Map visnets = _visnets;
+       List visnets = _visnets;
      }
 
      HD.getEle("settleWifiButton").click();
@@ -424,8 +423,7 @@ use class IUHub:Eui {
      String chsec;
      chsec = HD.getElementById("pwsnetname").value;
      var ehvs = Encode:Hex.new();
-     for (var kv in visnets) {
-        String kvv = kv.value;
+     for (var kvv in visnets) {
         String kvve = ehvs.encode(kvv);
         //netch += "<div><input type=\"radio\" id=\"pswi" += kvve += "\" name=\"drone\" value=\"huey\"/><label for=\"pswi" += kvve += "\">" += kvv += "</label></div>";
         if (HD.getEle("pswi" + kvve).checked) {
@@ -435,7 +433,11 @@ use class IUHub:Eui {
      if (TS.notEmpty(chssid)) {
        log.log("got chssid " + chssid);
      } else {
-       log.log("chssid empty");
+       log.log("chssid empty from list");
+       chssid = HD.getElementById("mannet").value;
+       if (TS.notEmpty(chssid)) {
+         log.log("got manual chssid " + chssid);
+       }
      }
      if (TS.notEmpty(chsec)) {
        log.log("got chsec " + chsec);
@@ -446,7 +448,7 @@ use class IUHub:Eui {
        HD.getEle("giveWifiTxt").display = "none";
        HD.getEle("wifiGivenClose").click();
        HC.callApp(Lists.from("saveWifiRequest", chssid, chsec, false));
-       HC.callAppLater(Lists.from("getDevWifisRequest", 1, false), 1000);
+       HC.callAppLater(Lists.from("getDevWifisRequest", 1, false, true), 1000);
      } else {
        HD.getEle("giveWifiTxt").display = "block";
      }
@@ -582,14 +584,14 @@ use class IUHub:Eui {
        HC.callAppLater(Lists.from("getOnWifiRequest", count, disDevPin, disDevSsid), wait);
      } else {
        count.setValue(0);
-       HC.callAppLater(Lists.from("getDevWifisRequest", count, true), 3000);
+       HC.callAppLater(Lists.from("getDevWifisRequest", count, true, false), 3000);
      }
    }
 
    getDevWifisResponse(Int count, Int tries, Int wait) {
      if (count < tries) {
        count++;
-       HC.callAppLater(Lists.from("getDevWifisRequest", count, false), wait);
+       HC.callAppLater(Lists.from("getDevWifisRequest", count, false, false), wait);
      } else {
        count.setValue(0);
        HC.callAppLater(Lists.from("allsetRequest", count, disDevName, disDevType, disDevPin, disDevSsid, disDevId, "", "", "", "", ""), 1000);

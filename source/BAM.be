@@ -2419,36 +2419,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
-   receiveShareRequest(String rsc, request) Map {
-     log.log("in receiveShareRequest  rsc " + rsc);
-     Int fd = rsc.find("-");
-     if (undef(fd)) { throw(Alert.new("malformed sharecode, pls check and try again")); }
-     String shcd = rsc.substring(0, fd);
-     String ipr = rsc.substring(fd + 1, rsc.length);
-     log.log("shcd " + shcd + " ipr " + ipr);
-     String myip = prot.getMyOutIp();
-     var iprl = ipr.split("-");
-     var myipl = myip.split(".");
-     Int mye = myipl.length - iprl.length;
-     String dip = "";
-     for (Int i = 0;i < mye;i++) {
-        if (TS.notEmpty(dip)) { dip += "."; }
-        dip += myipl[i];
-     }
-     for (i = 0;i < iprl.length;i++) {
-       if (TS.notEmpty(dip)) { dip += "."; }
-       dip += iprl[i];
-     }
-     log.log("dip " + dip);
-
-     //did pass spass
-     String cmds = "shdef " + shcd + " e";
-     Map mcmd = Maps.from("cb", "shdefCb", "kdaddr", dip, "pwt", 0, "pw", "", "cmds", cmds);
-     sendDeviceMcmd(mcmd, 1);
-
-     return(CallBackUI.reloadResponse());
-   }
-
    shdefCb(Map mcmd, request) Map {
      String cress = mcmd["cres"];
      if (TS.notEmpty(cress)) {
@@ -2475,82 +2445,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      return(null);
    }
-
-   haShareRequest(String did, request) Map {
-     log.log("in haShareRequest " + did);
-
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-
-     String confs = hadevs.get(did);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
-     String nm = conf["name"];
-     if (TS.isEmpty(nm)) { nm = "Nameless"; }
-     nm = Hex.encode(nm);
-
-     var sr = System:Random.new();
-     String shcd = "" + sr.getString(4).lower();
-
-     String cmds = "shcd " + conf["pass"] + " " + shcd + " " + nm + " e";//just a lie for now. will make a pin and send it
-
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getAddrDis(kdname);
-
-     //tcpjv edition
-
-     //cmds += "\r\n";
-
-     Map mcmd = Maps.from("cb", "haShareCb", "shcd", shcd, "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
-     unless (sendDeviceMcmd(mcmd, 2)) {
-       return(CallBackUI.haShareResponse("Failed to generate share code.  Please verify your are on the wifi network with the device, able to control the device, and have configuration access to the device"));
-     }
-
-     return(null);
-   }
-
-   haShareCb(Map mcmd, request) Map {
-     String cres = mcmd["cres"];
-     String did = mcmd["did"];
-     Bool worked = false;
-     if (TS.notEmpty(cres)) {
-      log.log("got cres in haShareCb " + cres);
-      if (cres == "set shcd") {
-         worked = true;
-      }
-     }
-     unless (worked) {
-       return(CallBackUI.haShareResponse("Failed to generate share code.  Please verify your are on the wifi network with the device, able to control the device, and have configuration access to the device"));
-     }
-     String myip = mcmd["myOutIp"];
-     String kdaddr = mcmd["kdaddr"];
-     String shcd = mcmd["shcd"];
-     if (TS.notEmpty(myip) && TS.notEmpty(kdaddr) && TS.notEmpty(shcd)) {
-      log.log("haShareCb myip " + myip + " kdaddr " + kdaddr);
-      var mi = myip.split(".");
-      var ki = kdaddr.split(".");
-      String ce = "";
-      for (Int i = 0;i < mi.length;i++) {
-        String mp = mi[i];
-        String kp = ki[i];
-        if (mp != kp) {
-          if (TS.notEmpty(ce)) {
-            ce += "-";
-          }
-          ce += kp;
-        }
-      }
-      log.log("ce is " + ce);
-      String fshcd = shcd + "-" + ce;
-      log.log("fshcd " + fshcd);
-     } else {
-      log.log("not enough ips and sht in haShareCb");
-     }
-     if (def(request) && def(fshcd)) {
-       return(CallBackUI.haShareResponse(fshcd));
-     }
-     return(null);
-   }
-
 
    restartDevRequest(String did, request) Map {
      log.log("in restartDevRequest " + did);

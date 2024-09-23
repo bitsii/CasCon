@@ -181,19 +181,6 @@ use class IUHub:Eui {
       HD.getElementById(eid).type = "text";
      }
    }
-
-   receiveShare() {
-     HC.callApp(Lists.from("receiveShareRequest", HD.getElementById("receiveShareCode").value));
-   }
-
-   haShare() {
-     HC.callApp(Lists.from("haShareRequest", HD.getElementById("devId").value));
-   }
-
-   haShareResponse(String fshcd) {
-     HD.getEle("hasharediv").display = "block";
-     HD.getEle("hasharefshcd").innerHTML = fshcd;
-   }
    
    loggedInResponse(Map arg) {
      log.log("logged in res is fl");
@@ -436,10 +423,10 @@ use class IUHub:Eui {
        log.log("got chssid " + chssid);
      } else {
        log.log("chssid empty from list");
-       chssid = HD.getElementById("mannet").value;
-       if (TS.notEmpty(chssid)) {
-         log.log("got manual chssid " + chssid);
-       }
+       //chssid = HD.getElementById("mannet").value;
+       //if (TS.notEmpty(chssid)) {
+       //  log.log("got manual chssid " + chssid);
+       //}
      }
      if (TS.notEmpty(chsec)) {
        log.log("got chsec " + chsec);

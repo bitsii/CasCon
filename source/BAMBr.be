@@ -214,6 +214,10 @@ use class IUHub:Eui {
      }
    }
 
+   wantSettings(String devId) {
+    wantSettingsFor = devId;
+   }
+
    checkNexts() {
     unless (loggedIn) { return(self); }
     slots {
@@ -310,9 +314,7 @@ use class IUHub:Eui {
          HD.getElementById("adsButton").click();
        } elseIf (TS.notEmpty(wantSettingsFor)) {
           log.log("have wantsettingsfor, doing that");
-          String lwsf = wantSettingsFor;
-          wantSettingsFor = null;
-          HC.callApp(Lists.from("showDeviceConfigRequest", lwsf));
+          HC.callApp(Lists.from("showDeviceConfigRequest", wantSettingsFor));
           return(self);
        } elseIf (TS.isEmpty(ddf.value)) {
         log.log("checkNexts gonna click next device");
@@ -611,6 +613,7 @@ use class IUHub:Eui {
    }
    
    showDeviceConfigResponse(String confs, String ip) {
+     wantSettingsFor = null;
      Map conf = Json:Unmarshaller.unmarshall(confs);
      HD.getEle("devType").value = conf["type"];
      HD.getEle("devTypeFriendly").value = conf["typeFriendly"];

@@ -1204,6 +1204,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(CallBackUI.setElementsValuesResponse(Maps.from("mqttBroker", mqttBroker, "mqttUser" mqttUser, "mqttPass", mqttPass)));
    }
 
+   loadMqttModeRequest(request) Map {
+     //app.configManager.remove("mqtt.mode"); return(null);
+     String mqttMode = app.configManager.get("mqtt.mode");
+     if (TS.isEmpty(mqttMode)) { mqttMode = "remote"; }
+     return(CallBackUI.mqttModeResponse(mqttMode));
+   }
+
    saveWifiRequest(String ssid, String sec, Bool reloadAfter, request) Map {
 
      Account account = request.context.get("account");
@@ -1226,7 +1233,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
-   saveMqttRequest(String mqttBroker, String mqttUser, String mqttPass, request) Map {
+   saveMqttRequest(String mqttMode, String mqttBroker, String mqttUser, String mqttPass, request) Map {
 
      if (TS.notEmpty(mqttBroker) && TS.notEmpty(mqttUser) && TS.notEmpty(mqttPass)) {
       app.configManager.put("mqtt.broker", mqttBroker);
@@ -1239,6 +1246,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       app.configManager.remove("mqtt.pass");
       log.log("cleared mqtt");
      }
+     if (TS.isEmpty(mqttMode)) { mqttMode = "remote"; }
+     app.configManager.put("mqtt.mode", mqttMode);
+     log.log("set mqttMode " + mqttMode);
      ifEmit(wajv) {
       if (def(mqtt)) {
         mqtt.close();

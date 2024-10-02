@@ -274,6 +274,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         ifEmit(wajv) {
           fields {
             Mqtt mqtt;
+            String mqttMode;
+            String mqttResId;
             Bool backgroundPulseOnIdle = true;
             Bool backgroundPulse = backgroundPulseOnIdle;
           }
@@ -448,6 +450,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String mqttBroker = app.configManager.get("mqtt.broker");
           String mqttUser = app.configManager.get("mqtt.user");
           String mqttPass = app.configManager.get("mqtt.pass");
+          String mqttMode = app.configManager.get("mqtt.mode");
+          if (TS.isEmpty(mqttMode)) { mqttMode = "remote"; }
           if (TS.isEmpty(mqttBroker) || TS.isEmpty(mqttUser) || TS.isEmpty(mqttPass)) {
             if (TS.notEmpty(prot.supTok) && TS.notEmpty(prot.supUrl) && prot.doSupAuth) {
               //log.log("GOT supTok " + prot.supTok);
@@ -469,14 +473,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   mqttUser = data["username"];
                   mqttPass = data["password"];
                   mqttBroker = "tcp://" + data["host"] + ":" + data["port"];
+                  mqttMode = "haRelay";
                 }
               } else {
                 log.log("mqtt ha get conn res empty");
               }
             }
           }
-          if (TS.notEmpty(mqttBroker) && TS.notEmpty(mqttUser) && TS.notEmpty(mqttPass)) {
-            initializeMqtt(mqttBroker, mqttUser, mqttPass);
+          if (TS.notEmpty(mqttMode) && TS.notEmpty(mqttBroker) && TS.notEmpty(mqttUser) && TS.notEmpty(mqttPass)) {
+            initializeMqtt(mqttMode, mqttBroker, mqttUser, mqttPass);
           }
         } else {
           mqtt.publish("casnic/ktlo", "yo");
@@ -484,9 +489,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
     }
 
-    initializeMqtt(String mqttBroker, String mqttUser, String mqttPass) {
+    initializeMqtt(String _mqttMode, String mqttBroker, String mqttUser, String mqttPass) {
       ifEmit(wajv) {
        log.log("initializing mqtt");
+       mqttMode = _mqttMode;
+       mqttResId = System:Random.getString(16);
        mqtt = Mqtt.new();
        mqtt.broker = mqttBroker;
        mqtt.user = mqttUser;
@@ -495,7 +502,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        mqtt.open();
        if (mqtt.isOpen) {
         log.log("mqtt opened");
-        mqtt.subscribe("homeassistant/status");
+        if (mqttMode == "haRelay") {
+          mqtt.subscribe("homeassistant/status");
+        }
+        if (mqttMode == "remote" || mqttMode == "fullRemote") {
+          mqtt.subscribe("casnic/res/" + mqttResId);
+        }
         mqtt.subscribe("casnic/ktlo");
         setupMqttDevices();
        } else {
@@ -521,107 +533,111 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         Map devices = Map.new();
         Map ctls = Map.new();
         Map topubs = Map.new();
-        for (any kv in hadevs.getMap()) {
-          String did = kv.key;
-          String confs = kv.value;
-          Map conf = Json:Unmarshaller.unmarshall(confs);
-          devices.put(did, confs);
-          String ctl = hactls.get(did);
-          if (TS.notEmpty(ctl)) {
-            ctls.put(did, ctl);
-            var ctll = ctl.split(",");
-            log.log("got ctl " + ctl);
-            for (Int i = 1;i < ctll.length;i++) {
-              String itype = ctll.get(i);
-              log.log("got ctled itype " + itype + " pos " + i);
-              if (itype == "sw") {
-                //mosquitto_pub -r -h 127.0.0.1 -p 1883 -t "homeassistant/switch/irrigation/config" -m '{"name": "garden", "command_topic": "homeassistant/switch/irrigation/set", "state_topic": "homeassistant/switch/irrigation/state"}'
-                String tpp = "homeassistant/switch/" + did + "-" + i;
-                Map cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i);
-                String cfs = Json:Marshaller.marshall(cf);
-                log.log("will set discovery tpp " + tpp + " cfs " + cfs);
-                mqtt.subscribe(tpp + "/set");
-                mqtt.publish(tpp + "/config", cfs);
-                String st = hasw.get(did + "-" + i);
-                if (TS.notEmpty(st)) {
-                  topubs.put(tpp + "/state", st.upper());
-                } else {
-                  topubs.put(tpp + "/state", "OFF");
-                }
-              } elseIf(itype == "dim" || itype == "gdim") {
-                tpp = "homeassistant/light/" + did + "-" + i;
-                cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i, "schema", "json", "brightness", true, "brightness_scale", 255);
-                //optimistic, false
-                cfs = Json:Marshaller.marshall(cf);
-                log.log("will set discovery tpp " + tpp + " cfs " + cfs);
-                mqtt.subscribe(tpp + "/set");
-                mqtt.publish(tpp + "/config", cfs);
-                st = hasw.get(did + "-" + i);
-                Map dps = Map.new();
-                if (TS.notEmpty(st)) {
-                  dps.put("state", st.upper());
-                } else {
-                  dps.put("state", "OFF");
-                }
-                String lv = halv.get(did + "-" + i);
-                if (TS.notEmpty(lv)) {
-                  //log.log("got lv " + lv);
-                  Int gamd = Int.new(lv);
-                  dps.put("brightness", gamd);
-                }
-                topubs.put(tpp + "/state", Json:Marshaller.marshall(dps));
-              } elseIf (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
-                tpp = "homeassistant/light/" + did + "-" + i;
-                cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i, "schema", "json");
-                if (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
-                  cf.put("rgb", true);
-                } else {
-                  cf.put("rgb", false);
-                }
-                if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
-                  cf.put("brightness", true);
-                  cf.put("brightness_scale", 255);
-                } else {
-                  cf.put("brightness", false);
-                }
-                if (itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
-                  cf.put("color_temp", true);
-                } else {
-                  cf.put("color_temp", false);
-                }
-                cfs = Json:Marshaller.marshall(cf);
-                log.log("will set discovery tpp " + tpp + " cfs " + cfs);
-                mqtt.subscribe(tpp + "/set");
-                mqtt.publish(tpp + "/config", cfs);
-                st = hasw.get(did + "-" + i);
-                dps = Map.new();
-                if (TS.notEmpty(st)) {
-                  dps.put("state", st.upper());
-                } else {
-                  dps.put("state", "OFF");
-                }
-                if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
-                  lv = halv.get(did + "-" + i);
-                  if (TS.notEmpty(lv)) {
-                    dps.put("brightness", Int.new(lv));
-                  }
-                  if (itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
-                    String cw = hacw.get(did + "-" + i);
-                    if (TS.notEmpty(cw)) {
-                       dps.put("color_temp", lsToMired(Int.new(cw)));
+        if (mqttMode == "relay" || mqttMode == "haRelay") {
+          for (any kv in hadevs.getMap()) {
+            String did = kv.key;
+            String confs = kv.value;
+            Map conf = Json:Unmarshaller.unmarshall(confs);
+            devices.put(did, confs);
+            String ctl = hactls.get(did);
+            if (TS.notEmpty(ctl)) {
+              ctls.put(did, ctl);
+              var ctll = ctl.split(",");
+              log.log("got ctl " + ctl);
+              for (Int i = 1;i < ctll.length;i++) {
+                String itype = ctll.get(i);
+                log.log("got ctled itype " + itype + " pos " + i);
+                if (mqttMode == "haRelay") {
+                  if (itype == "sw") {
+                    //mosquitto_pub -r -h 127.0.0.1 -p 1883 -t "homeassistant/switch/irrigation/config" -m '{"name": "garden", "command_topic": "homeassistant/switch/irrigation/set", "state_topic": "homeassistant/switch/irrigation/state"}'
+                    String tpp = "homeassistant/switch/" + did + "-" + i;
+                    Map cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i);
+                    String cfs = Json:Marshaller.marshall(cf);
+                    log.log("will set discovery tpp " + tpp + " cfs " + cfs);
+                    mqtt.subscribe(tpp + "/set");
+                    mqtt.publish(tpp + "/config", cfs);
+                    String st = hasw.get(did + "-" + i);
+                    if (TS.notEmpty(st)) {
+                      topubs.put(tpp + "/state", st.upper());
+                    } else {
+                      topubs.put(tpp + "/state", "OFF");
                     }
+                  } elseIf(itype == "dim" || itype == "gdim") {
+                    tpp = "homeassistant/light/" + did + "-" + i;
+                    cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i, "schema", "json", "brightness", true, "brightness_scale", 255);
+                    //optimistic, false
+                    cfs = Json:Marshaller.marshall(cf);
+                    log.log("will set discovery tpp " + tpp + " cfs " + cfs);
+                    mqtt.subscribe(tpp + "/set");
+                    mqtt.publish(tpp + "/config", cfs);
+                    st = hasw.get(did + "-" + i);
+                    Map dps = Map.new();
+                    if (TS.notEmpty(st)) {
+                      dps.put("state", st.upper());
+                    } else {
+                      dps.put("state", "OFF");
+                    }
+                    String lv = halv.get(did + "-" + i);
+                    if (TS.notEmpty(lv)) {
+                      //log.log("got lv " + lv);
+                      Int gamd = Int.new(lv);
+                      dps.put("brightness", gamd);
+                    }
+                    topubs.put(tpp + "/state", Json:Marshaller.marshall(dps));
+                  } elseIf (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
+                    tpp = "homeassistant/light/" + did + "-" + i;
+                    cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i, "schema", "json");
+                    if (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
+                      cf.put("rgb", true);
+                    } else {
+                      cf.put("rgb", false);
+                    }
+                    if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
+                      cf.put("brightness", true);
+                      cf.put("brightness_scale", 255);
+                    } else {
+                      cf.put("brightness", false);
+                    }
+                    if (itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
+                      cf.put("color_temp", true);
+                    } else {
+                      cf.put("color_temp", false);
+                    }
+                    cfs = Json:Marshaller.marshall(cf);
+                    log.log("will set discovery tpp " + tpp + " cfs " + cfs);
+                    mqtt.subscribe(tpp + "/set");
+                    mqtt.publish(tpp + "/config", cfs);
+                    st = hasw.get(did + "-" + i);
+                    dps = Map.new();
+                    if (TS.notEmpty(st)) {
+                      dps.put("state", st.upper());
+                    } else {
+                      dps.put("state", "OFF");
+                    }
+                    if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
+                      lv = halv.get(did + "-" + i);
+                      if (TS.notEmpty(lv)) {
+                        dps.put("brightness", Int.new(lv));
+                      }
+                      if (itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
+                        String cw = hacw.get(did + "-" + i);
+                        if (TS.notEmpty(cw)) {
+                          dps.put("color_temp", lsToMired(Int.new(cw)));
+                        }
+                      }
+                    }
+                    unless (itype == "cwgd") {
+                      String rgb = hargb.get(did + "-" + i);
+                      if (TS.isEmpty(rgb)) {
+                        rgb = "255,255,255";
+                      }
+                      var rgbl = rgb.split(",");
+                      Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
+                      dps.put("color", rgbm);
+                    }
+                    topubs.put(tpp + "/state", Json:Marshaller.marshall(dps));
                   }
                 }
-                unless (itype == "cwgd") {
-                  String rgb = hargb.get(did + "-" + i);
-                  if (TS.isEmpty(rgb)) {
-                    rgb = "255,255,255";
-                  }
-                  var rgbl = rgb.split(",");
-                  Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
-                  dps.put("color", rgbm);
-                }
-                topubs.put(tpp + "/state", Json:Marshaller.marshall(dps));
               }
             }
           }
@@ -637,55 +653,57 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       ifEmit(wajv) {
         //log.log("in bam handlemessage for " + topic + " " + payload);
         if (TS.notEmpty(topic) && TS.notEmpty(payload)) {
-          if (topic == "homeassistant/status" && payload == "online") {
-            log.log("ha startedup");
-            mqtt.close();
-            mqtt = null;
-            checkStartMqtt();
-          } elseIf (topic.begins("homeassistant/switch/") && topic.ends("/set")) {
-            log.log("ha switched");
-            var ll = topic.split("/");
-            String didpos = ll[2];
-            log.log("ha got didpos " + didpos);
-            var dp = didpos.split("-");
-            Map mcmd = setDeviceSwMcmd(dp[0], dp[1], payload.lower());
-            mcmd["runSync"] = true;
-            processDeviceMcmd(mcmd);
-            processMcmdRes(mcmd, null);
-            stDiffed = true;
-          } elseIf (topic.begins("homeassistant/light/") && topic.ends("/set")) {
-            log.log("ha light switched");
-            ll = topic.split("/");
-            didpos = ll[2];
-            log.log("ha got didpos " + didpos);
-            dp = didpos.split("-");
-            Map incmd = Json:Unmarshaller.unmarshall(payload);
-            //if has brightness, do brightness
-            //else state
-            if (incmd.has("brightness")) {
-              mcmd = setDeviceLvlMcmd(dp[0], dp[1], incmd.get("brightness").toString());
+          if (mqttMode == "haRelay") {
+            if (topic == "homeassistant/status" && payload == "online") {
+              log.log("ha startedup");
+              mqtt.close();
+              mqtt = null;
+              checkStartMqtt();
+            } elseIf (topic.begins("homeassistant/switch/") && topic.ends("/set")) {
+              log.log("ha switched");
+              var ll = topic.split("/");
+              String didpos = ll[2];
+              log.log("ha got didpos " + didpos);
+              var dp = didpos.split("-");
+              Map mcmd = setDeviceSwMcmd(dp[0], dp[1], payload.lower());
               mcmd["runSync"] = true;
               processDeviceMcmd(mcmd);
               processMcmdRes(mcmd, null);
-            } elseIf (incmd.has("color")) {
-              Map rgb = incmd.get("color");
-              String rgbs = "" + rgb["r"] + "," + rgb["g"] + "," + rgb["b"];
-              mcmd = setDeviceRgbMcmd(dp[0], dp[1], rgbs);
-              mcmd["runSync"] = true;
-              processDeviceMcmd(mcmd);
-              processMcmdRes(mcmd, null);
-            } elseIf (incmd.has("color_temp")) {
-              mcmd = setDeviceTempMcmd(dp[0], dp[1], miredToLs(incmd.get("color_temp")).toString());
-              mcmd["runSync"] = true;
-              processDeviceMcmd(mcmd);
-              processMcmdRes(mcmd, null);
-            } elseIf (incmd.has("state")) {
-              mcmd = setDeviceSwMcmd(dp[0], dp[1], incmd.get("state").lower());
-              mcmd["runSync"] = true;
-              processDeviceMcmd(mcmd);
-              processMcmdRes(mcmd, null);
+              stDiffed = true;
+            } elseIf (topic.begins("homeassistant/light/") && topic.ends("/set")) {
+              log.log("ha light switched");
+              ll = topic.split("/");
+              didpos = ll[2];
+              log.log("ha got didpos " + didpos);
+              dp = didpos.split("-");
+              Map incmd = Json:Unmarshaller.unmarshall(payload);
+              //if has brightness, do brightness
+              //else state
+              if (incmd.has("brightness")) {
+                mcmd = setDeviceLvlMcmd(dp[0], dp[1], incmd.get("brightness").toString());
+                mcmd["runSync"] = true;
+                processDeviceMcmd(mcmd);
+                processMcmdRes(mcmd, null);
+              } elseIf (incmd.has("color")) {
+                Map rgb = incmd.get("color");
+                String rgbs = "" + rgb["r"] + "," + rgb["g"] + "," + rgb["b"];
+                mcmd = setDeviceRgbMcmd(dp[0], dp[1], rgbs);
+                mcmd["runSync"] = true;
+                processDeviceMcmd(mcmd);
+                processMcmdRes(mcmd, null);
+              } elseIf (incmd.has("color_temp")) {
+                mcmd = setDeviceTempMcmd(dp[0], dp[1], miredToLs(incmd.get("color_temp")).toString());
+                mcmd["runSync"] = true;
+                processDeviceMcmd(mcmd);
+                processMcmdRes(mcmd, null);
+              } elseIf (incmd.has("state")) {
+                mcmd = setDeviceSwMcmd(dp[0], dp[1], incmd.get("state").lower());
+                mcmd["runSync"] = true;
+                processDeviceMcmd(mcmd);
+                processMcmdRes(mcmd, null);
+              }
+              stDiffed = true;
             }
-            stDiffed = true;
           }
         }
       }

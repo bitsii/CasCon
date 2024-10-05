@@ -270,15 +270,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           Map cmdQueues = Map.new();
           CasProt prot = CasProt.new();
           OLocker discoverNow = OLocker.new(true);
+          Bool backgroundPulseOnIdle = false;
+          Bool backgroundPulse = backgroundPulseOnIdle;
         }
         ifEmit(wajv) {
           fields {
             Mqtt mqtt;
             String mqttMode;
-            String mqttResId;
-            Bool backgroundPulseOnIdle = true;
-            Bool backgroundPulse = backgroundPulseOnIdle;
+            String mqttReId;
           }
+          backgroundPulseOnIdle = true;
+          backgroundPulse = backgroundPulseOnIdle;
         }
         super.new();
         log = IO:Logs.get(self);
@@ -310,9 +312,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       ifEmit(wajv) {
         System:Thread.new(System:Invocation.new(self, "keepMqttUp", List.new())).start();
-        //if (backgroundPulse) {
-          System:Thread.new(System:Invocation.new(self, "runPulseDevices", List.new())).start();
-        //}
+        System:Thread.new(System:Invocation.new(self, "runPulseDevices", List.new())).start();
         if (prot.doSupUpdate) {
           System:Thread.new(System:Invocation.new(self, "haDoUp", List.new())).start();
         }
@@ -493,7 +493,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       ifEmit(wajv) {
        log.log("initializing mqtt");
        mqttMode = _mqttMode;
-       mqttResId = System:Random.getString(16);
+       mqttReId = System:Random.getString(16);
        mqtt = Mqtt.new();
        mqtt.broker = mqttBroker;
        mqtt.user = mqttUser;
@@ -506,7 +506,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           mqtt.subscribe("homeassistant/status");
         }
         if (mqttMode == "remote" || mqttMode == "fullRemote") {
-          mqtt.subscribe("casnic/res/" + mqttResId);
+          mqtt.subscribe("casnic/res/" + mqttReId);
+        }
+        if (mqttMode == "relay") {
+          mqtt.subscribe("casnic/cmds");
         }
         mqtt.subscribe("casnic/ktlo");
         setupMqttDevices();
@@ -667,8 +670,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               var dp = didpos.split("-");
               Map mcmd = setDeviceSwMcmd(dp[0], dp[1], payload.lower());
               mcmd["runSync"] = true;
-              processDeviceMcmd(mcmd);
-              processMcmdRes(mcmd, null);
+              sendDeviceMcmd(mcmd);
               stDiffed = true;
             } elseIf (topic.begins("homeassistant/light/") && topic.ends("/set")) {
               log.log("ha light switched");
@@ -682,25 +684,21 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               if (incmd.has("brightness")) {
                 mcmd = setDeviceLvlMcmd(dp[0], dp[1], incmd.get("brightness").toString());
                 mcmd["runSync"] = true;
-                processDeviceMcmd(mcmd);
-                processMcmdRes(mcmd, null);
+                sendDeviceMcmd(mcmd);
               } elseIf (incmd.has("color")) {
                 Map rgb = incmd.get("color");
                 String rgbs = "" + rgb["r"] + "," + rgb["g"] + "," + rgb["b"];
                 mcmd = setDeviceRgbMcmd(dp[0], dp[1], rgbs);
                 mcmd["runSync"] = true;
-                processDeviceMcmd(mcmd);
-                processMcmdRes(mcmd, null);
+                sendDeviceMcmd(mcmd);
               } elseIf (incmd.has("color_temp")) {
                 mcmd = setDeviceTempMcmd(dp[0], dp[1], miredToLs(incmd.get("color_temp")).toString());
                 mcmd["runSync"] = true;
-                processDeviceMcmd(mcmd);
-                processMcmdRes(mcmd, null);
+                sendDeviceMcmd(mcmd);
               } elseIf (incmd.has("state")) {
                 mcmd = setDeviceSwMcmd(dp[0], dp[1], incmd.get("state").lower());
                 mcmd["runSync"] = true;
-                processDeviceMcmd(mcmd);
-                processMcmdRes(mcmd, null);
+                sendDeviceMcmd(mcmd);
               }
               stDiffed = true;
             }
@@ -1073,9 +1071,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "resetDeviceCb", "did", did, "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
+     Map mcmd = Maps.from("prio", 1, "cb", "resetDeviceCb", "did", did, "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
 
-     sendDeviceMcmd(mcmd, 1);
+     sendDeviceMcmd(mcmd);
 
      return(null);
 
@@ -1159,9 +1157,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "sendDeviceCommandCb", "kdaddr", kdaddr, "kdname", kdname, "pwt", pt, "pw", tp, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 1, "cb", "sendDeviceCommandCb", "kdaddr", kdaddr, "kdname", kdname, "pwt", pt, "pw", tp, "cmds", cmds);
 
-     sendDeviceMcmd(mcmd, 1);
+     sendDeviceMcmd(mcmd);
 
      return(null);
 
@@ -1366,20 +1364,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String kdaddr = getAddrDis(kdname);
 
      if (def(kdaddr)) {
-       Map mcmd = Maps.from("cb", "updateSpecCb", "did", did, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "cmds", cmds);
+       Map mcmd = Maps.from("prio", 3, "cb", "updateSpecCb", "did", did, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "cmds", cmds);
 
-       ifEmit(wajv) {
-        if (backgroundPulse) {
-          mcmd["runSync"] = true;
-          processDeviceMcmd(mcmd);
-          processMcmdRes(mcmd, null);
-        } else {
-          sendDeviceMcmd(mcmd, 3);
-        }
+       if (backgroundPulse) {
+         mcmd["runSync"] = true;
        }
-       ifNotEmit(wajv) {
-        sendDeviceMcmd(mcmd, 3);
-       }
+       sendDeviceMcmd(mcmd);
 
      } else {
       log.log("updateSpec kdaddr empty");
@@ -1456,20 +1446,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //String kdaddr = getCashedAddr(kdname);
 
      if (def(kdaddr)) {
-       Map mcmd = Maps.from("cb", "getLastEventsCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "cmds", cmds);
+       Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 3, "pw", "", "cmds", cmds);
 
-       ifEmit(wajv) {
-         if (backgroundPulse) {
-          mcmd["runSync"] = true;
-          processDeviceMcmd(mcmd);
-          processMcmdRes(mcmd, null);
-         } else {
-           sendDeviceMcmd(mcmd, 5);
-         }
+       if (backgroundPulse) {
+         mcmd["runSync"] = true;
        }
-       ifNotEmit(wajv) {
-        sendDeviceMcmd(mcmd, 5);
-       }
+       sendDeviceMcmd(mcmd);
 
      } else {
       log.log("getlastevents kdaddr empty");
@@ -1563,25 +1545,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        if (TS.notEmpty(sws) && sws.has("q,")) {
          cmds = "dostate " + getSecQ(conf) + " " + dpd + " getsw e";
          //log.log("cmds " + cmds);
-         mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
+         mcmd = Maps.from("prio", 4, "cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 3, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
        } else {
          String cmds = "dostate " + conf["spass"] + " " + dpd + " getsw e";
          //log.log("cmds " + cmds);
-         Map mcmd = Maps.from("cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+         Map mcmd = Maps.from("prio", 4, "cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
 
-       ifEmit(wajv) {
-         if (backgroundPulse) {
-          mcmd["runSync"] = true;
-          processDeviceMcmd(mcmd);
-          processMcmdRes(mcmd, null);
-         } else {
-           sendDeviceMcmd(mcmd, 4);
-         }
+       if (backgroundPulse) {
+         mcmd["runSync"] = true;
        }
-       ifNotEmit(wajv) {
-        sendDeviceMcmd(mcmd, 4);
-       }
+       sendDeviceMcmd(mcmd);
 
      } else {
       log.log("getsw kdaddr empty");
@@ -1665,7 +1639,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            cmds = "dostate " + getSecQ(conf) + " " + dpd + " getrgb e";
          }
          //log.log("cmds " + cmds);
-         mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
+         mcmd = Maps.from("prio", 4, "cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 3, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
        } else {
          if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
            cmds = "getstatexd " + conf["spass"] + " " + dpd + " e";
@@ -1673,21 +1647,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String cmds = "dostate " + conf["spass"] + " " + dpd + " getrgb e";
          }
          //log.log("cmds " + cmds);
-         Map mcmd = Maps.from("cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+         Map mcmd = Maps.from("prio", 4, "cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
 
-       ifEmit(wajv) {
-         if (backgroundPulse) {
-          mcmd["runSync"] = true;
-          processDeviceMcmd(mcmd);
-          processMcmdRes(mcmd, null);
-         } else {
-           sendDeviceMcmd(mcmd, 4);
-         }
+       if (backgroundPulse) {
+         mcmd["runSync"] = true;
        }
-       ifNotEmit(wajv) {
-        sendDeviceMcmd(mcmd, 4);
-       }
+       sendDeviceMcmd(mcmd);
 
      } else {
       log.log("getlvl kdaddr empty");
@@ -1795,25 +1761,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        if (TS.notEmpty(sws) && sws.has("q,")) {
          String cmds = "getstatexd " + getSecQ(conf) + " " + dpd + " e";
          //log.log("cmds " + cmds);
-         Map mcmd = Maps.from("cb", "updateTempStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
+         Map mcmd = Maps.from("prio", 4, "cb", "updateTempStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 3, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
        } else {
          cmds = "getstatexd " + conf["spass"] + " " + dpd + " e";
          //log.log("cmds " + cmds);
-         mcmd = Maps.from("cb", "updateTempStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+         mcmd = Maps.from("prio", 4, "cb", "updateTempStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
 
-       ifEmit(wajv) {
-         if (backgroundPulse) {
-          mcmd["runSync"] = true;
-          processDeviceMcmd(mcmd);
-          processMcmdRes(mcmd, null);
-         } else {
-           sendDeviceMcmd(mcmd, 4);
-         }
+       if (backgroundPulse) {
+         mcmd["runSync"] = true;
        }
-       ifNotEmit(wajv) {
-        sendDeviceMcmd(mcmd, 4);
-       }
+       sendDeviceMcmd(mcmd);
 
      } else {
       log.log("getcw kdaddr empty");
@@ -1908,7 +1866,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           cmds = "dostate " + getSecQ(conf) + " " + dpd + " getlvl e";
          }
          //log.log("cmds " + cmds);
-         mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "itype", itype, "cname", cname, "cmds", cmds);
+         mcmd = Maps.from("prio", 4, "cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 3, "pw", "", "itype", itype, "itype", itype, "cname", cname, "cmds", cmds);
        } else {
          if (itype == "gdim") {
            cmds = "getstatexd " + conf["spass"] + " " + dpd + " e";
@@ -1916,21 +1874,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            String cmds = "dostate " + conf["spass"] + " " + dpd + " getlvl e";
          }
          //log.log("cmds " + cmds);
-         Map mcmd = Maps.from("cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+         Map mcmd = Maps.from("prio", 4, "cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
 
-       ifEmit(wajv) {
-         if (backgroundPulse) {
-          mcmd["runSync"] = true;
-          processDeviceMcmd(mcmd);
-          processMcmdRes(mcmd, null);
-        } else {
-          sendDeviceMcmd(mcmd, 4);
-        }
+       if (backgroundPulse) {
+         mcmd["runSync"] = true;
        }
-       ifNotEmit(wajv) {
-        sendDeviceMcmd(mcmd, 4);
-       }
+       sendDeviceMcmd(mcmd);
 
      } else {
       log.log("getlvl kdaddr empty");
@@ -2013,25 +1963,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        if (TS.notEmpty(sws) && sws.has("q,")) {
          cmds = "dostate " + getSecQ(conf) + " " + dpd + " getoif e";
          //log.log("cmds " + cmds);
-         mcmd = Maps.from("cb", "updateOifStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 0, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
+         mcmd = Maps.from("prio", 4, "cb", "updateOifStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 3, "pw", "", "itype", itype, "cname", cname, "cmds", cmds);
        } else {
          String cmds = "dostate " + conf["spass"] + " " + dpd + " getoif e";
          //log.log("cmds " + cmds);
-         Map mcmd = Maps.from("cb", "updateOifStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
+         Map mcmd = Maps.from("prio", 4, "cb", "updateOifStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cname", cname, "cmds", cmds);
        }
 
-       ifEmit(wajv) {
-         if (backgroundPulse) {
-          mcmd["runSync"] = true;
-          processDeviceMcmd(mcmd);
-          processMcmdRes(mcmd, null);
-        } else {
-          sendDeviceMcmd(mcmd, 4);
-        }
+       if (backgroundPulse) {
+         mcmd["runSync"] = true;
        }
-       ifNotEmit(wajv) {
-        sendDeviceMcmd(mcmd, 4);
-       }
+       sendDeviceMcmd(mcmd);
 
      } else {
       log.log("getoif kdaddr empty");
@@ -2076,15 +2018,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      fields {
        String lastError;
      }
+     if (backgroundPulse) {
+      log.log("disabling backgroundPulse");
+      backgroundPulse = false;
+     }
 
      ifEmit(wajv) {
       slots {
         Int pulseCheck = Time:Interval.now().seconds;
       }
-      if (backgroundPulse) {
-        log.log("disabling backgroundPulse");
-      }
-      backgroundPulse = false;
      }
 
      if (TS.notEmpty(lastError)) {
@@ -2133,14 +2075,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           unless(backgroundPulse) {
             if (undef(pulseCheck)) {
               if (backgroundPulseOnIdle) {
-                log.log("enabling backgroundPulse");
-                backgroundPulse = backgroundPulseOnIdle;
+                unless (backgroundPulse) {
+                  log.log("enabling backgroundPulse");
+                  backgroundPulse = backgroundPulseOnIdle;
+                }
               }
             } else {
               if (Time:Interval.now().seconds - pulseCheck > 5) {
                 if (backgroundPulseOnIdle) {
-                  log.log("enabling backgroundPulse");
-                  backgroundPulse = backgroundPulseOnIdle;
+                  unless (backgroundPulse) {
+                    log.log("enabling backgroundPulse");
+                    backgroundPulse = backgroundPulseOnIdle;
+                  }
                 }
               }
             }
@@ -2429,8 +2375,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "updateWifiCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
-     sendDeviceMcmd(mcmd, 2);
+     Map mcmd = Maps.from("prio", 2, "cb", "updateWifiCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
+     sendDeviceMcmd(mcmd);
 
      return(null);
    }
@@ -2492,8 +2438,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "restartDevCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
-     sendDeviceMcmd(mcmd, 2);
+     Map mcmd = Maps.from("prio", 2, "cb", "restartDevCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "pw", conf["pass"], "cmds", cmds);
+     sendDeviceMcmd(mcmd);
 
      return(null);
    }
@@ -2530,8 +2476,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "rectlDeviceCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "cmds", cmds);
-     sendDeviceMcmd(mcmd, 2);
+     Map mcmd = Maps.from("prio", 2, "cb", "rectlDeviceCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "cmds", cmds);
+     sendDeviceMcmd(mcmd);
 
      return(null);
    }
@@ -2578,7 +2524,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       mcmd = setDeviceRgbMcmd(rhan, rpos, rstate);
      }
 
-     if (sendDeviceMcmd(mcmd, 0)!) {
+     if (sendDeviceMcmd(mcmd)!) {
        if (def(request)) {
          return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
        }
@@ -2614,7 +2560,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "setDeviceSwCb", "did", conf["id"], "rhan", did, "rpos", iposs, "rstate", state, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 0, "cb", "setDeviceSwCb", "did", conf["id"], "rhan", did, "rpos", iposs, "rstate", state, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
      return(mcmd);
 
    }
@@ -2708,7 +2654,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("cb", "setDeviceRgbCb", "did", conf["id"], "rhanpos", rhanpos, "rgb", rgb, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 0, "cb", "setDeviceRgbCb", "did", conf["id"], "rhanpos", rhanpos, "rgb", rgb, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
      if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
        mcmd.put("lv", lv);
        if (itype == "rgbcwgd" || itype == "rgbcwsgd") {
@@ -2817,7 +2763,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String kdname = "CasNic" + conf["ondid"];
      String kdaddr = getAddrDis(kdname);
 
-     Map mcmd = Maps.from("cb", "setDeviceTempCb", "did", conf["id"], "rhanpos", rhanpos, "cw", rstate, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 0, "cb", "setDeviceTempCb", "did", conf["id"], "rhanpos", rhanpos, "cw", rstate, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
      if (itype == "rgbcwgd" || itype == "rgbcwsgd") {
        mcmd.put("rgb", orgb);
      }
@@ -2979,7 +2925,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String kdname = "CasNic" + conf["ondid"];
      String kdaddr = getAddrDis(kdname);
 
-     Map mcmd = Maps.from("cb", "setDeviceLvlCb", "did", conf["id"], "rhanpos", rhanpos, "rstate", rstate, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 0, "cb", "setDeviceLvlCb", "did", conf["id"], "rhanpos", rhanpos, "rstate", rstate, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "pw", conf["spass"], "itype", itype, "cmds", cmds);
 
      return(mcmd);
    }
@@ -3340,28 +3286,41 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
    }
 
-   sendDeviceMcmd(Map mcmd, Int priority) Bool {
-      if (def(mcmd) && TS.notEmpty(mcmd["kdaddr"])) {
-        Container:LinkedList cmdQueue = cmdQueues.get(priority);
-        if (undef(cmdQueue)) {
-          cmdQueue = Container:LinkedList.new();
-          cmdQueues.put(priority, cmdQueue);
+   sendDeviceMcmd(Map mcmd) Bool {
+      if (def(mcmd)) {
+        Bool rs = mcmd["runSync"];
+        if (def(rs) && rs) {
+          processDeviceMcmd(mcmd);
+          processMcmdRes(mcmd, null);
+          return(true);
         }
-        //max waiting per kdaddr
-        Int wct = 0;
-        for (var i = cmdQueue.iterator;i.hasNext;;) {
-          Map mc = i.next;
-          if (mc["kdaddr"] == mcmd["kdaddr"]) {
-            wct++;
-            if (wct > 6) {
-              log.log("too many waiting no adding to cmdQueue");
-              return(false);
+        Int priority = mcmd["prio"];
+        if (undef(priority)) {
+          log.log("prio undefined in sendDeviceMcmd");
+          priority = 5;
+        }
+        if (TS.notEmpty(mcmd["kdaddr"])) {
+          Container:LinkedList cmdQueue = cmdQueues.get(priority);
+          if (undef(cmdQueue)) {
+            cmdQueue = Container:LinkedList.new();
+            cmdQueues.put(priority, cmdQueue);
+          }
+          //max waiting per kdaddr
+          Int wct = 0;
+          for (var i = cmdQueue.iterator;i.hasNext;;) {
+            Map mc = i.next;
+            if (mc["kdaddr"] == mcmd["kdaddr"]) {
+              wct++;
+              if (wct > 6) {
+                log.log("too many waiting no adding to cmdQueue");
+                return(false);
+              }
             }
           }
+          cmdQueue += mcmd;
+          //log.log("added to cmdQueue");
+          return(true);
         }
-        cmdQueue += mcmd;
-        //log.log("added to cmdQueue");
-        return(true);
       }
       return(false);
    }
@@ -3539,8 +3498,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
 
      String cmds = "previsnets " + visnetsPos + " e";
-     Map mcmd = Maps.from("cb", "previsnetsCb", "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-     sendDeviceMcmd(mcmd, 1);
+     Map mcmd = Maps.from("prio", 1, "cb", "previsnetsCb", "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
+     sendDeviceMcmd(mcmd);
      return(CallBackUI.getDevWifisResponse(count, tries, wait));
    }
 
@@ -3738,7 +3697,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         log.log("sending allset cmd");
         if (alStep == "allset") {
           cmds = "allset " + devPin + " " + devPass + " " + devSpass + " " + devDid + " e";
-          mcmd = Maps.from("cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
+          mcmd = Maps.from("prio", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
 
           Map conf = Map.new();
           conf["type"] = devType;
@@ -3750,18 +3709,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String confs = Json:Marshaller.marshall(conf);
           saveDeviceRequest(conf["id"], confs, request);
 
-          sendDeviceMcmd(mcmd, 1);
+          sendDeviceMcmd(mcmd);
         } elseIf (alStep == "getcontroldef") {
           cmds = "getcontroldef " + devSpass + " e";
-          mcmd = Maps.from("cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-          sendDeviceMcmd(mcmd, 1);
+          mcmd = Maps.from("prio", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
+          sendDeviceMcmd(mcmd);
         } elseIf (alStep == "setwifi") {
           cmds = "setwifi " + devPass + " hex " + devSsid + " " + devSec + " e";
-          mcmd = Maps.from("cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-          sendDeviceMcmd(mcmd, 1);
+          mcmd = Maps.from("prio", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
+          sendDeviceMcmd(mcmd);
         } elseIf (alStep == "restart") {
           cmds = "restart " + devPass + " e";
-          mcmd = Maps.from("cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
+          mcmd = Maps.from("prio", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
           lastSsids = List.new();
           ifEmit(platDroid) {
           emit(jv) {
@@ -3771,7 +3730,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             """
           }
           }
-          sendDeviceMcmd(mcmd, 1);
+          sendDeviceMcmd(mcmd);
         }
       } else {
         alStep = "allset";
@@ -3865,8 +3824,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    displayNextDeviceCmdRequest(String ssidn, request) Map {
      //log.log("in displayNextDeviceCmdRequest");
     String cmds = "getapssid e";
-    Map mcmd = Maps.from("cb", "displayNextDeviceCmdCb", "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
-    sendDeviceMcmd(mcmd, 1);
+    Map mcmd = Maps.from("prio", 1, "cb", "displayNextDeviceCmdCb", "kdaddr", "192.168.4.1", "pwt", 0, "pw", "", "cmds", cmds);
+    sendDeviceMcmd(mcmd);
     return(null);
    }
 

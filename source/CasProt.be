@@ -94,7 +94,7 @@ class CasNic:CasProt {
        String pw = mcmd["pw"];
        String cmds = mcmd["cmds"];
 
-       if (true && pwt > 0 && TS.notEmpty(pw)) {
+       if (true && pwt > 0 && pwt != 3 && TS.notEmpty(pw)) {
          cmds = secCmds(kdaddr, pwt, pw, cmds, mcmd);
        }
 

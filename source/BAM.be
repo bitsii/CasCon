@@ -1442,11 +1442,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        }
        sendDeviceMcmd(mcmd);
 
-     } else {
-      log.log("getlastevents kdaddr empty");
-      if (def(currentEvents)) {
-        currentEvents.remove(conf["id"]);
-      }
      }
 
      return(null);
@@ -3208,6 +3203,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      slots {
        Map cmdsFailMcmd;
      }
+
+    String did = mcmd["did"];
+
+    if (def(currentEvents) && TS.notEmpty(did)) {
+      log.log("in cmds fail clearing currentEvents for did " + did);
+      currentEvents.remove(did);
+    }
+
      //?failre / timeout callback?
      String kdaddr = mcmd["kdaddr"];
      String kdname = mcmd["kdname"];

@@ -95,7 +95,7 @@ class CasNic:CasProt {
        String cmds = mcmd["cmds"];
 
        if (true && pwt > 0 && pwt != 3 && TS.notEmpty(pw)) {
-         cmds = secCmds(kdaddr, pwt, pw, cmds, mcmd);
+         cmds = secCmds(pwt, pw, cmds, mcmd);
        }
 
        cmds += "\r\n";
@@ -165,7 +165,7 @@ class CasNic:CasProt {
       }
    }
 
-  secCmds(String kdaddr, Int pwt, String pw, String cmds, Map mcmd) String {
+  secCmds(Int pwt, String pw, String cmds, Map mcmd) String {
     Int pver = mcmd["pver"];
     String tesh = mcmd["tesh"];
     if (pwt < 1 || pver < 4) {

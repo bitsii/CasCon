@@ -1146,7 +1146,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("prio", 1, "cb", "sendDeviceCommandCb", "kdaddr", kdaddr, "kdname", kdname, "pwt", pt, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 1, "cb", "sendDeviceCommandCb", "did", did, "kdaddr", kdaddr, "kdname", kdname, "pwt", pt, "cmds", cmds);
 
      sendDeviceMcmd(mcmd);
 
@@ -1349,7 +1349,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
-     //String kdaddr = getCashedAddr(kdname);
      String kdaddr = getAddrDis(kdname);
 
      if (def(kdaddr)) {
@@ -1432,7 +1431,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
      String kdaddr = getAddrDis(kdname);
-     //String kdaddr = getCashedAddr(kdname);
 
      if (def(kdaddr)) {
        Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 3, "cmds", cmds);
@@ -1513,6 +1511,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //dostate eek setsw on e
      Int dpd = dp - 1;
+
+     if (def(failingDevices) && failingDevices.has(did)) {
+       //log.log("skipping update for failing device " + did);
+       return(null);
+     }
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -1607,6 +1610,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //dostate eek setsw on e
      Int dpd = dp - 1;
+
+     if (def(failingDevices) && failingDevices.has(did)) {
+       //log.log("skipping update for failing device " + did);
+       return(null);
+     }
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -1734,6 +1742,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //dostate eek setsw on e
      Int dpd = dp - 1;
 
+     if (def(failingDevices) && failingDevices.has(did)) {
+       //log.log("skipping update for failing device " + did);
+       return(null);
+     }
+
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
      String kdaddr = getCashedAddr(kdname);
@@ -1835,6 +1848,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //dostate eek setsw on e
      Int dpd = dp - 1;
 
+     if (def(failingDevices) && failingDevices.has(did)) {
+       //log.log("skipping update for failing device " + did);
+       return(null);
+     }
+
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
      String kdaddr = getCashedAddr(kdname);
@@ -1935,6 +1953,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //dostate eek setsw on e
      Int dpd = dp - 1;
+
+     if (def(failingDevices) && failingDevices.has(did)) {
+       //log.log("skipping update for failing device " + did);
+       return(null);
+     }
 
      //getting the name
      String kdname = "CasNic" + conf["ondid"];
@@ -3161,11 +3184,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             n.remove();
             cmdsRes = null;
             aptrs = null;
-            if (TS.notEmpty(mcmd["kdaddr"])) {
+            Bool ignore = mcmd["ignore"];
+            if (def(ignore) && ignore) {
+              log.log("got ignore in pcomrequest, noop");
+              currCmds = null;
+            } else {
               currCmds = mcmd;
               processDeviceMcmd(mcmd);
-            } else {
-              currCmds = null;
             }
             break;
           }
@@ -3202,14 +3227,31 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      aptrs = null;
      slots {
        Map cmdsFailMcmd;
+       Set failingDevices;
      }
 
     String did = mcmd["did"];
 
-    if (def(currentEvents) && TS.notEmpty(did)) {
-      log.log("in cmds fail clearing currentEvents for did " + did);
-      currentEvents.remove(did);
-    }
+    if (TS.notEmpty(did)) {
+      if (def(currentEvents)) {
+        log.log("in cmds fail clearing currentEvents for did " + did);
+        currentEvents.remove(did);
+      }
+      unless (def(failingDevices)) { failingDevices = Set.new(); }
+      failingDevices.put(did);
+      //clear pending
+      for (var kv in cmdQueues) {
+        Container:LinkedList cmdQueue = kv.value;
+        if (def(cmdQueue)) {
+          for (Map mcmdcl in cmdQueue) {
+            if (TS.notEmpty(mcmdcl["did"]) && mcmdcl["did"] == did) {
+              log.log("marking ignore in cmdQueue");
+              mcmdcl["ignore"] = true;
+            }
+           }
+         }
+       }
+     }
 
      //?failre / timeout callback?
      String kdaddr = mcmd["kdaddr"];
@@ -3218,7 +3260,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (mcmd.has("cb")) {
        cmdsFailMcmd = mcmd;
      }
-
 
      var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
      if (TS.notEmpty(kdname)) {
@@ -3241,18 +3282,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        if (def(kac)) {
           String kdn = kac.get(kdaddr);
           if (TS.notEmpty(kdn)) {
-            //clear pending
-            for (var kv in cmdQueues) {
-              Container:LinkedList cmdQueue = kv.value;
-              if (def(cmdQueue)) {
-                for (Map mcmdcl in cmdQueue) {
-                  if (TS.notEmpty(mcmdcl["kdaddr"]) && mcmdcl["kdaddr"] == kdaddr) {
-                    log.log("clearing kdaddr in cmdQueue");
-                    mcmdcl["kdaddr"] = "";
-                  }
-                }
-              }
-             }
             String kda = knc.get(kdn);
             if (TS.notEmpty(kda)) {
               knc.remove(kdn);
@@ -3263,25 +3292,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          }
        }
 
-      if (TS.notEmpty(kdname)) {
-      for (kv in cmdQueues) {
-        cmdQueue = kv.value;
-        if (def(cmdQueue)) {
-          for (mcmdcl in cmdQueue) {
-            if (TS.notEmpty(mcmdcl["kdname"]) && mcmdcl["kdname"] == kdname) {
-              log.log("clearing kdaddr for kdname in cmdQueue");
-              mcmdcl["kdaddr"] = "";
-            }
-          }
-        }
-      }
-      }
    }
 
    sendDeviceMcmd(Map mcmd) Bool {
       if (def(mcmd)) {
         Bool rs = mcmd["runSync"];
         if (def(rs) && rs) {
+          Bool ignore = mcmd["ignore"];
+          if (def(ignore) && ignore) {
+            log.log("got ignore noop");
+            return(false);
+          }
           processDeviceMcmd(mcmd);
           processMcmdRes(mcmd, null);
           return(true);
@@ -3291,28 +3312,50 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           log.log("prio undefined in sendDeviceMcmd");
           priority = 5;
         }
-        if (TS.notEmpty(mcmd["kdaddr"])) {
-          Container:LinkedList cmdQueue = cmdQueues.get(priority);
-          if (undef(cmdQueue)) {
-            cmdQueue = Container:LinkedList.new();
-            cmdQueues.put(priority, cmdQueue);
+
+        Container:LinkedList cmdQueue = cmdQueues.get(priority);
+        if (undef(cmdQueue)) {
+          cmdQueue = Container:LinkedList.new();
+          cmdQueues.put(priority, cmdQueue);
+        }
+
+        String did = mcmd["did"];
+        if (TS.notEmpty(did)) {
+          if (def(failingDevices) && failingDevices.has(did)) {
+            log.log("did in failing devices, clearing and returning false");
+            failingDevices.remove(did);
+            return(false);
           }
-          //max waiting per kdaddr
-          Int wct = 0;
-          for (var i = cmdQueue.iterator;i.hasNext;;) {
-            Map mc = i.next;
-            if (mc["kdaddr"] == mcmd["kdaddr"]) {
+          //max waiting per did
+          wct = 0;
+          for (i = cmdQueue.iterator;i.hasNext;;) {
+            mc = i.next;
+            if (TS.notEmpty(mc["did"]) && mc["did"] == mcmd["did"]) {
               wct++;
               if (wct > 6) {
-                log.log("too many waiting no adding to cmdQueue");
+                log.log("too many waiting did no adding to cmdQueue");
                 return(false);
               }
             }
           }
-          cmdQueue += mcmd;
-          //log.log("added to cmdQueue");
-          return(true);
         }
+        if (TS.notEmpty(mcmd["kdaddr"])) {
+          //max waiting per kdaddr
+          Int wct = 0;
+          for (var i = cmdQueue.iterator;i.hasNext;;) {
+            Map mc = i.next;
+            if (TS.notEmpty(mc["kdaddr"]) && mc["kdaddr"] == mcmd["kdaddr"]) {
+              wct++;
+              if (wct > 6) {
+                log.log("too many waiting kdaddr no adding to cmdQueue");
+                return(false);
+              }
+            }
+          }
+        }
+        cmdQueue += mcmd;
+        //log.log("added to cmdQueue");
+        return(true);
       }
       return(false);
    }

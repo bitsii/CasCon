@@ -279,7 +279,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             String mqttMode;
             String mqttReId;
           }
-          backgroundPulseOnIdle = true;
+          backgroundPulseOnIdle = false;
           backgroundPulse = backgroundPulseOnIdle;
         }
         super.new();
@@ -1049,29 +1049,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      log.log("in resetDeviceRequest " + did);
 
      //not checking user rn
-     Account account = request.context.get("account");
-     var uhex = Hex.encode(account.user);
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     var haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
-
-     String confs = hadevs.get(did);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
 
      //dostate eek setsw on e
      String cmds = "reset pass e";
      log.log("cmds " + cmds);
 
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getAddrDis(kdname);
-
      //tcpjv edition
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("prio", 1, "cb", "resetDeviceCb", "did", did, "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 1, "cb", "resetDeviceCb", "did", did, "pwt", 1, "cmds", cmds);
 
      sendDeviceMcmd(mcmd);
 
@@ -1114,15 +1101,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
 
      //not checking user rn
-     Account account = request.context.get("account");
-     var uhex = Hex.encode(account.user);
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
-     var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
-     var haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device ids
-
-     String confs = hadevs.get(did);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
 
      var cmdl = cmdline.split(" ");
      Int pt = 0;
@@ -1138,15 +1116,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String cmds = cmdline;
      //log.log("cmds " + cmds);
 
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getAddrDis(kdname);
-
      //tcpjv edition
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("prio", 1, "cb", "sendDeviceCommandCb", "did", did, "kdaddr", kdaddr, "kdname", kdname, "pwt", pt, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 1, "cb", "sendDeviceCommandCb", "did", did, "pwt", pt, "cmds", cmds);
 
      sendDeviceMcmd(mcmd);
 
@@ -1337,33 +1311,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    updateSpec(String did) {
-     log.log("in updateSpec " + did);
+    log.log("in updateSpec " + did);
 
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+    String cmds = "doswspec spass e";
+    //log.log("cmds " + cmds);
 
-     String confs = hadevs.get(did);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
+    Map mcmd = Maps.from("prio", 3, "cb", "updateSpecCb", "did", did, "pwt", 2, "cmds", cmds);
 
-     String cmds = "doswspec spass e";
-     //log.log("cmds " + cmds);
+    if (backgroundPulse) {
+      mcmd["runSync"] = true;
+    }
+    sendDeviceMcmd(mcmd);
 
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getAddrDis(kdname);
-
-     if (def(kdaddr)) {
-       Map mcmd = Maps.from("prio", 3, "cb", "updateSpecCb", "did", did, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "cmds", cmds);
-
-       if (backgroundPulse) {
-         mcmd["runSync"] = true;
-       }
-       sendDeviceMcmd(mcmd);
-
-     } else {
-      log.log("updateSpec kdaddr empty");
-     }
-
-     return(null);
+    return(null);
    }
 
    updateSpecCb(Map mcmd, request) Map {
@@ -1425,22 +1385,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        log.elog("error in gle", e);
        return(null);
      }
-     String cmds = "getlastevents " + getSecQ(conf) + " e";
+     String cmds = "getlastevents q e";
      //log.log("cmds " + cmds);
 
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getAddrDis(kdname);
+     Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "pwt", 3, "cmds", cmds);
 
-     if (def(kdaddr)) {
-       Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 3, "cmds", cmds);
-
-       if (backgroundPulse) {
-         mcmd["runSync"] = true;
-       }
-       sendDeviceMcmd(mcmd);
-
+     if (backgroundPulse) {
+       mcmd["runSync"] = true;
      }
+     sendDeviceMcmd(mcmd);
 
      return(null);
    }
@@ -1499,54 +1452,38 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateSwState(String did, Int dp, String cname) {
      log.log("in updateSwState " + did + " " + dp);
 
-     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-     String ctl = hactls.get(did);
-     var ctll = ctl.split(",");
-     String itype = ctll.get(dp);
-
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-
-     String confs = hadevs.get(did);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
-
-     //dostate eek setsw on e
-     Int dpd = dp - 1;
-
      if (def(failingDevices) && failingDevices.has(did)) {
        //log.log("skipping update for failing device " + did);
        return(null);
      }
 
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getCashedAddr(kdname);
+     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     String ctl = hactls.get(did);
+     var ctll = ctl.split(",");
+     String itype = ctll.get(dp);
+
+     //dostate eek setsw on e
+     Int dpd = dp - 1;
 
      //tcpjv edition
 
      //cmds += "\r\n";
-
-     if (def(kdaddr)) {
-
-       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-       String sws = haspecs.get(did);
-       if (TS.notEmpty(sws) && sws.has("q,")) {
-         cmds = "dostate " + getSecQ(conf) + " " + dpd + " getsw e";
-         //log.log("cmds " + cmds);
-         mcmd = Maps.from("prio", 4, "cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
-       } else {
-         String cmds = "dostate spass " + dpd + " getsw e";
-         //log.log("cmds " + cmds);
-         Map mcmd = Maps.from("prio", 4, "cb", "updateSwStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
-       }
-
-       if (backgroundPulse) {
-         mcmd["runSync"] = true;
-       }
-       sendDeviceMcmd(mcmd);
-
+     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+     String sws = haspecs.get(did);
+     if (TS.notEmpty(sws) && sws.has("q,")) {
+       cmds = "dostate q " + dpd + " getsw e";
+       //log.log("cmds " + cmds);
+       mcmd = Maps.from("prio", 4, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
      } else {
-      log.log("getsw kdaddr empty");
+       String cmds = "dostate spass " + dpd + " getsw e";
+       //log.log("cmds " + cmds);
+       Map mcmd = Maps.from("prio", 4, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
      }
+
+     if (backgroundPulse) {
+       mcmd["runSync"] = true;
+     }
+     sendDeviceMcmd(mcmd);
 
      return(null);
    }
@@ -1596,65 +1533,48 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    updateRgbState(String did, Int dp, String cname) {
-     log.log("in updateRgbState " + did + " " + dp);
+      log.log("in updateRgbState " + did + " " + dp);
 
-     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-     String ctl = hactls.get(did);
-     var ctll = ctl.split(",");
-     String itype = ctll.get(dp);
+      if (def(failingDevices) && failingDevices.has(did)) {
+        //log.log("skipping update for failing device " + did);
+        return(null);
+      }
 
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+      var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+      String ctl = hactls.get(did);
+      var ctll = ctl.split(",");
+      String itype = ctll.get(dp);
 
-     String confs = hadevs.get(did);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
+      //dostate eek setsw on e
+      Int dpd = dp - 1;
 
-     //dostate eek setsw on e
-     Int dpd = dp - 1;
+      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+      String sws = haspecs.get(did);
+      if (TS.notEmpty(sws) && sws.has("q,")) {
+        if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
+          cmds = "getstatexd q " + dpd + " e";
+        } else {
+          cmds = "dostate q " + dpd + " getrgb e";
+        }
+        //log.log("cmds " + cmds);
+        mcmd = Maps.from("prio", 4, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
+      } else {
+        if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
+          cmds = "getstatexd spass " + dpd + " e";
+        } else {
+        String cmds = "dostate spass " + dpd + " getrgb e";
+        }
+        //log.log("cmds " + cmds);
+        Map mcmd = Maps.from("prio", 4, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
+      }
 
-     if (def(failingDevices) && failingDevices.has(did)) {
-       //log.log("skipping update for failing device " + did);
-       return(null);
-     }
+      if (backgroundPulse) {
+        mcmd["runSync"] = true;
+      }
+      sendDeviceMcmd(mcmd);
 
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getCashedAddr(kdname);
-
-     if (def(kdaddr)) {
-
-       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-       String sws = haspecs.get(did);
-       if (TS.notEmpty(sws) && sws.has("q,")) {
-         if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
-           cmds = "getstatexd " + getSecQ(conf) + " " + dpd + " e";
-         } else {
-           cmds = "dostate " + getSecQ(conf) + " " + dpd + " getrgb e";
-         }
-         //log.log("cmds " + cmds);
-         mcmd = Maps.from("prio", 4, "cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
-       } else {
-         if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
-           cmds = "getstatexd spass " + dpd + " e";
-         } else {
-          String cmds = "dostate spass " + dpd + " getrgb e";
-         }
-         //log.log("cmds " + cmds);
-         Map mcmd = Maps.from("prio", 4, "cb", "updateRgbStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
-       }
-
-       if (backgroundPulse) {
-         mcmd["runSync"] = true;
-       }
-       sendDeviceMcmd(mcmd);
-
-     } else {
-      log.log("getlvl kdaddr empty");
-     }
-
-     return(null);
+      return(null);
    }
-
-
 
    updateRgbStateCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
@@ -1727,54 +1647,39 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    updateTempState(String did, Int dp, String cname) {
-     log.log("in updateRgbState " + did + " " + dp);
+      log.log("in updateRgbState " + did + " " + dp);
 
-     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-     String ctl = hactls.get(did);
-     var ctll = ctl.split(",");
-     String itype = ctll.get(dp);
+      if (def(failingDevices) && failingDevices.has(did)) {
+        //log.log("skipping update for failing device " + did);
+        return(null);
+      }
 
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+      var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+      String ctl = hactls.get(did);
+      var ctll = ctl.split(",");
+      String itype = ctll.get(dp);
 
-     String confs = hadevs.get(did);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
+      //dostate eek setsw on e
+      Int dpd = dp - 1;
 
-     //dostate eek setsw on e
-     Int dpd = dp - 1;
+      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+      String sws = haspecs.get(did);
+      if (TS.notEmpty(sws) && sws.has("q,")) {
+        String cmds = "getstatexd q " + dpd + " e";
+        //log.log("cmds " + cmds);
+        Map mcmd = Maps.from("prio", 4, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
+      } else {
+        cmds = "getstatexd spass " + dpd + " e";
+        //log.log("cmds " + cmds);
+        mcmd = Maps.from("prio", 4, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
+      }
 
-     if (def(failingDevices) && failingDevices.has(did)) {
-       //log.log("skipping update for failing device " + did);
-       return(null);
-     }
+      if (backgroundPulse) {
+        mcmd["runSync"] = true;
+      }
+      sendDeviceMcmd(mcmd);
 
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getCashedAddr(kdname);
-
-     if (def(kdaddr)) {
-
-       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-       String sws = haspecs.get(did);
-       if (TS.notEmpty(sws) && sws.has("q,")) {
-         String cmds = "getstatexd " + getSecQ(conf) + " " + dpd + " e";
-         //log.log("cmds " + cmds);
-         Map mcmd = Maps.from("prio", 4, "cb", "updateTempStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
-       } else {
-         cmds = "getstatexd spass " + dpd + " e";
-         //log.log("cmds " + cmds);
-         mcmd = Maps.from("prio", 4, "cb", "updateTempStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
-       }
-
-       if (backgroundPulse) {
-         mcmd["runSync"] = true;
-       }
-       sendDeviceMcmd(mcmd);
-
-     } else {
-      log.log("getcw kdaddr empty");
-     }
-
-     return(null);
+      return(null);
    }
 
 
@@ -1833,62 +1738,47 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    updateLvlState(String did, Int dp, String cname) {
-     log.log("in updateLvlState " + did + " " + dp);
+      log.log("in updateLvlState " + did + " " + dp);
 
-     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-     String ctl = hactls.get(did);
-     var ctll = ctl.split(",");
-     String itype = ctll.get(dp);
+      if (def(failingDevices) && failingDevices.has(did)) {
+        //log.log("skipping update for failing device " + did);
+        return(null);
+      }
 
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+      var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+      String ctl = hactls.get(did);
+      var ctll = ctl.split(",");
+      String itype = ctll.get(dp);
 
-     String confs = hadevs.get(did);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
+      //dostate eek setsw on e
+      Int dpd = dp - 1;
 
-     //dostate eek setsw on e
-     Int dpd = dp - 1;
+      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+      String sws = haspecs.get(did);
+      if (TS.notEmpty(sws) && sws.has("q,")) {
+        if (itype == "gdim") {
+        cmds = "getstatexd q " + dpd + " e";
+        } else {
+        cmds = "dostate q " + dpd + " getlvl e";
+        }
+        //log.log("cmds " + cmds);
+        mcmd = Maps.from("prio", 4, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "itype", itype, "cname", cname, "cmds", cmds);
+      } else {
+        if (itype == "gdim") {
+          cmds = "getstatexd spass " + dpd + " e";
+        } else {
+          String cmds = "dostate spass " + dpd + " getlvl e";
+        }
+        //log.log("cmds " + cmds);
+        Map mcmd = Maps.from("prio", 4, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
+      }
 
-     if (def(failingDevices) && failingDevices.has(did)) {
-       //log.log("skipping update for failing device " + did);
-       return(null);
-     }
+      if (backgroundPulse) {
+        mcmd["runSync"] = true;
+      }
+      sendDeviceMcmd(mcmd);
 
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getCashedAddr(kdname);
-
-     if (def(kdaddr)) {
-
-       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-       String sws = haspecs.get(did);
-       if (TS.notEmpty(sws) && sws.has("q,")) {
-         if (itype == "gdim") {
-          cmds = "getstatexd " + getSecQ(conf) + " " + dpd + " e";
-         } else {
-          cmds = "dostate " + getSecQ(conf) + " " + dpd + " getlvl e";
-         }
-         //log.log("cmds " + cmds);
-         mcmd = Maps.from("prio", 4, "cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 3, "itype", itype, "itype", itype, "cname", cname, "cmds", cmds);
-       } else {
-         if (itype == "gdim") {
-           cmds = "getstatexd spass " + dpd + " e";
-         } else {
-           String cmds = "dostate spass " + dpd + " getlvl e";
-         }
-         //log.log("cmds " + cmds);
-         Map mcmd = Maps.from("prio", 4, "cb", "updateLvlStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
-       }
-
-       if (backgroundPulse) {
-         mcmd["runSync"] = true;
-       }
-       sendDeviceMcmd(mcmd);
-
-     } else {
-      log.log("getlvl kdaddr empty");
-     }
-
-     return(null);
+      return(null);
    }
 
    updateLvlStateCb(Map mcmd, request) Map {
@@ -1939,54 +1829,39 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    updateOifState(String did, Int dp, String cname) {
-     log.log("in updateOifState " + did + " " + dp);
+      log.log("in updateOifState " + did + " " + dp);
 
-     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-     String ctl = hactls.get(did);
-     var ctll = ctl.split(",");
-     String itype = ctll.get(dp);
+      if (def(failingDevices) && failingDevices.has(did)) {
+        //log.log("skipping update for failing device " + did);
+        return(null);
+      }
 
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+      var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+      String ctl = hactls.get(did);
+      var ctll = ctl.split(",");
+      String itype = ctll.get(dp);
 
-     String confs = hadevs.get(did);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
+      //dostate eek setsw on e
+      Int dpd = dp - 1;
 
-     //dostate eek setsw on e
-     Int dpd = dp - 1;
+      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+      String sws = haspecs.get(did);
+      if (TS.notEmpty(sws) && sws.has("q,")) {
+        cmds = "dostate q " + dpd + " getoif e";
+        //log.log("cmds " + cmds);
+        mcmd = Maps.from("prio", 4, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
+      } else {
+        String cmds = "dostate spass " + dpd + " getoif e";
+        //log.log("cmds " + cmds);
+        Map mcmd = Maps.from("prio", 4, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
+      }
 
-     if (def(failingDevices) && failingDevices.has(did)) {
-       //log.log("skipping update for failing device " + did);
-       return(null);
-     }
+      if (backgroundPulse) {
+        mcmd["runSync"] = true;
+      }
+      sendDeviceMcmd(mcmd);
 
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getCashedAddr(kdname);
-
-     if (def(kdaddr)) {
-
-       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-       String sws = haspecs.get(did);
-       if (TS.notEmpty(sws) && sws.has("q,")) {
-         cmds = "dostate " + getSecQ(conf) + " " + dpd + " getoif e";
-         //log.log("cmds " + cmds);
-         mcmd = Maps.from("prio", 4, "cb", "updateOifStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
-       } else {
-         String cmds = "dostate spass " + dpd + " getoif e";
-         //log.log("cmds " + cmds);
-         Map mcmd = Maps.from("prio", 4, "cb", "updateOifStateCb", "did", did, "dp", dp, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
-       }
-
-       if (backgroundPulse) {
-         mcmd["runSync"] = true;
-       }
-       sendDeviceMcmd(mcmd);
-
-     } else {
-      log.log("getoif kdaddr empty");
-     }
-
-     return(null);
+      return(null);
    }
 
    updateOifStateCb(Map mcmd, request) Map {
@@ -2367,22 +2242,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String devSsid = Hex.encode(hawifi.get(uhex + ".ssid.0"));
      String devSec = Hex.encode(hawifi.get(uhex + ".sec.0"));
 
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-
-     String confs = hadevs.get(did);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
-
      String cmds = "setwifi pass hex " + devSsid + " " + devSec + " e";
-
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getAddrDis(kdname);
 
      //tcpjv edition
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("prio", 2, "cb", "updateWifiCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 2, "cb", "updateWifiCb", "did", did, "pwt", 1, "cmds", cmds);
      sendDeviceMcmd(mcmd);
 
      return(null);
@@ -2430,22 +2296,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    restartDevRequest(String did, request) Map {
      log.log("in restartDevRequest " + did);
 
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-
-     String confs = hadevs.get(did);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
-
      String cmds = "restart pass e";
-
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getAddrDis(kdname);
 
      //tcpjv edition
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("prio", 2, "cb", "restartDevCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 1, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 2, "cb", "restartDevCb", "did", did, "pwt", 1, "cmds", cmds);
      sendDeviceMcmd(mcmd);
 
      return(null);
@@ -2466,24 +2323,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    rectlDeviceRequest(String did, request) Map {
      log.log("in rectlDeviceRequest " + did);
 
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-
-     String confs = hadevs.get(did);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
-
      //dostate eek setsw on e
      String cmds = "getcontroldef spass e";
      //log.log("cmds " + cmds);
-
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getAddrDis(kdname);
 
      //tcpjv edition
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("prio", 2, "cb", "rectlDeviceCb", "did", conf["id"], "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 2, "cb", "rectlDeviceCb", "did", did, "pwt", 2, "cmds", cmds);
      sendDeviceMcmd(mcmd);
 
      return(null);
@@ -2540,8 +2388,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    setDeviceSwMcmd(String did, String iposs, String state) Map {
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
 
      Int ipos = Int.new(iposs);
@@ -2552,22 +2398,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      ipos--;
 
-     String confs = hadevs.get(did);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
-
      //dostate eek setsw on e
      String cmds = "dostate spass " + ipos + " setsw " + state + " e";
      //log.log("cmds " + cmds);
-
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getAddrDis(kdname);
 
      //tcpjv edition
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("prio", 0, "cb", "setDeviceSwCb", "did", conf["id"], "rhan", did, "rpos", iposs, "rstate", state, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 0, "cb", "setDeviceSwCb", "did", did, "rhan", did, "rpos", iposs, "rstate", state, "pwt", 2, "itype", itype, "cmds", cmds);
      return(mcmd);
 
    }
@@ -2603,8 +2442,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    setDeviceRgbMcmd(String rhan, String rposs, String rgb) Map {
 
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
      var hacw = app.kvdbs.get("HACW");
      var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
@@ -2618,9 +2455,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String itype = ctll.get(rpos);
 
      rpos--;
-
-     String confs = hadevs.get(rhan);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
 
      if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
        String lv = halv.get(rhanpos);
@@ -2653,15 +2487,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //log.log("cmds " + cmds);
 
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getAddrDis(kdname);
-
      //tcpjv edition
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("prio", 0, "cb", "setDeviceRgbCb", "did", conf["id"], "rhanpos", rhanpos, "rgb", rgb, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 0, "cb", "setDeviceRgbCb", "did", rhan, "rhanpos", rhanpos, "rgb", rgb, "pwt", 2, "itype", itype, "cmds", cmds);
      if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
        mcmd.put("lv", lv);
        if (itype == "rgbcwgd" || itype == "rgbcwsgd") {
@@ -2718,8 +2548,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    setDeviceTempMcmd(String rhan, String rposs, String rstate) Map {
 
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
      var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
      var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
@@ -2734,9 +2562,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String itype = ctll.get(rpos);
 
      rpos--;
-
-     String confs = hadevs.get(rhan);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
 
      String ocw = rstate;
 
@@ -2766,11 +2591,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      //log.log("cmds " + cmds);
 
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getAddrDis(kdname);
-
-     Map mcmd = Maps.from("prio", 0, "cb", "setDeviceTempCb", "did", conf["id"], "rhanpos", rhanpos, "cw", rstate, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 0, "cb", "setDeviceTempCb", "did", rhan, "rhanpos", rhanpos, "cw", rstate, "pwt", 2, "itype", itype, "cmds", cmds);
      if (itype == "rgbcwgd" || itype == "rgbcwsgd") {
        mcmd.put("rgb", orgb);
      }
@@ -2845,8 +2666,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    setDeviceLvlMcmd(String rhan, String rposs, String rstate) Map {
 
-     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
      var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
      var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
@@ -2861,9 +2680,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String itype = ctll.get(rpos);
 
      rpos--;
-
-     String confs = hadevs.get(rhan);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
 
      Int gamd = Int.new(rstate);
      gamd = gamma(gamd);
@@ -2928,11 +2744,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      //log.log("cmds " + cmds);
 
-     //getting the name
-     String kdname = "CasNic" + conf["ondid"];
-     String kdaddr = getAddrDis(kdname);
-
-     Map mcmd = Maps.from("prio", 0, "cb", "setDeviceLvlCb", "did", conf["id"], "rhanpos", rhanpos, "rstate", rstate, "kdaddr", kdaddr, "kdname", kdname, "pwt", 2, "itype", itype, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 0, "cb", "setDeviceLvlCb", "did", rhan, "rhanpos", rhanpos, "rstate", rstate, "pwt", 2, "itype", itype, "cmds", cmds);
 
      return(mcmd);
    }
@@ -3175,24 +2987,26 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        currCmds = null;
        return(processMcmdRes(mcmd, request));
      } elseIf (undef(currCmds)) {
-       for (Int i = 0;i < 10;i++) {
-         Container:LinkedList cmdQueue = cmdQueues.get(i);
-         if (def(cmdQueue)) {
-          Map mcmd = cmdQueue.get(0);
-          if (def(mcmd)) {
-            var n = cmdQueue.getNode(0);
-            n.remove();
-            cmdsRes = null;
-            aptrs = null;
-            Bool ignore = mcmd["ignore"];
-            if (def(ignore) && ignore) {
-              log.log("got ignore in pcomrequest, noop");
-              currCmds = null;
-            } else {
-              currCmds = mcmd;
-              processDeviceMcmd(mcmd);
+       //try a few times, for ignores
+       for (Int j = 0;j < 20;j++) {
+        for (Int i = 0;i < 10;i++) {
+          Container:LinkedList cmdQueue = cmdQueues.get(i);
+          if (def(cmdQueue)) {
+            Map mcmd = cmdQueue.get(0);
+            if (def(mcmd)) {
+              var n = cmdQueue.getNode(0);
+              n.remove();
+              Bool ignore = mcmd["ignore"];
+              if (def(ignore) && ignore) {
+                log.log("got ignore in pcomrequest, noop");
+              } else {
+                cmdsRes = null;
+                aptrs = null;
+                currCmds = mcmd;
+                processDeviceMcmd(mcmd);
+                return(null);
+              }
             }
-            break;
           }
         }
        }
@@ -3220,6 +3034,36 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        return(null);
    }
 
+   clearQueueDid(String did) {
+     //clear pending
+      for (var kv in cmdQueues) {
+        Container:LinkedList cmdQueue = kv.value;
+        if (def(cmdQueue)) {
+          for (Map mcmdcl in cmdQueue) {
+            if (TS.notEmpty(mcmdcl["did"]) && mcmdcl["did"] == did) {
+              log.log("marking ignore in cmdQueue did");
+              mcmdcl["ignore"] = true;
+            }
+           }
+         }
+       }
+   }
+
+   clearQueueKdaddr(String kdaddr) {
+     //clear pending
+      for (var kv in cmdQueues) {
+        Container:LinkedList cmdQueue = kv.value;
+        if (def(cmdQueue)) {
+          for (Map mcmdcl in cmdQueue) {
+            if (TS.notEmpty(mcmdcl["kdaddr"]) && mcmdcl["kdaddr"] == kdaddr) {
+              log.log("marking ignore in cmdQueue kdaddr");
+              mcmdcl["ignore"] = true;
+            }
+           }
+         }
+       }
+   }
+
    processCmdsFail() {
      Map mcmd = currCmds;
      cmdsRes = null;
@@ -3239,18 +3083,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
       unless (def(failingDevices)) { failingDevices = Set.new(); }
       failingDevices.put(did);
-      //clear pending
-      for (var kv in cmdQueues) {
-        Container:LinkedList cmdQueue = kv.value;
-        if (def(cmdQueue)) {
-          for (Map mcmdcl in cmdQueue) {
-            if (TS.notEmpty(mcmdcl["did"]) && mcmdcl["did"] == did) {
-              log.log("marking ignore in cmdQueue");
-              mcmdcl["ignore"] = true;
-            }
-           }
-         }
-       }
+      clearQueueDid(did);
      }
 
      //?failre / timeout callback?
@@ -3296,6 +3129,50 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    sendDeviceMcmd(Map mcmd) Bool {
       if (def(mcmd)) {
+        String did = mcmd["did"];
+        if (TS.notEmpty(did)) {
+          var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+          String confs = hadevs.get(did);
+          Map conf = Json:Unmarshaller.unmarshall(confs);
+          String kdname = "CasNic" + conf["ondid"];
+          String kdaddr = getAddrDis(kdname);
+          mcmd["kdname"] = kdname;
+          mcmd["kdaddr"] = kdaddr;
+          var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+          String sws = haspecs.get(did);
+          if (TS.notEmpty(sws)) {
+            if (sws.has("p4,")) {
+              mcmd["pver"] = 4;
+            }
+            if (sws.has("p5,")) {
+              mcmd["pver"] = 5;
+            }
+          }
+          Int pwt = mcmd["pwt"];
+          if (def(pwt)) {
+            if (pwt > 0) {
+              String cmdline = mcmd["cmds"];
+              var cmdl = cmdline.split(" ");
+              if (pwt == 1) {
+                cmdl[1] = conf["pass"];
+                mcmd["pw"] = cmdl[1];
+              } elseIf (pwt == 2) {
+                cmdl[1] = conf["spass"];
+                mcmd["pw"] = cmdl[1];
+              } elseIf (pwt == 3) {
+                cmdl[1] = getSecQ(conf);
+                mcmd["pw"] = "";
+              }
+              cmdline = Text:Strings.new().join(Text:Strings.new().space, cmdl);
+              mcmd["cmds"] = cmdline;
+            } else {
+              mcmd["pw"] = "";
+            }
+          }
+        }
+        if (TS.isEmpty(mcmd["kdaddr"])) {
+          return(false);
+        }
         Bool rs = mcmd["runSync"];
         if (def(rs) && rs) {
           Bool ignore = mcmd["ignore"];
@@ -3319,7 +3196,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           cmdQueues.put(priority, cmdQueue);
         }
 
-        String did = mcmd["did"];
         if (TS.notEmpty(did)) {
           if (def(failingDevices) && failingDevices.has(did)) {
             log.log("did in failing devices, clearing and returning false");
@@ -3331,10 +3207,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           for (i = cmdQueue.iterator;i.hasNext;;) {
             mc = i.next;
             if (TS.notEmpty(mc["did"]) && mc["did"] == mcmd["did"]) {
-              wct++;
-              if (wct > 6) {
-                log.log("too many waiting did no adding to cmdQueue");
-                return(false);
+              unless (def(mc["ignore"]) && mc["ignore"]) {
+                wct++;
+                if (wct > 6) {
+                  log.log("too many waiting did no adding to cmdQueue");
+                  return(false);
+                }
               }
             }
           }
@@ -3345,10 +3223,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           for (var i = cmdQueue.iterator;i.hasNext;;) {
             Map mc = i.next;
             if (TS.notEmpty(mc["kdaddr"]) && mc["kdaddr"] == mcmd["kdaddr"]) {
-              wct++;
-              if (wct > 6) {
-                log.log("too many waiting kdaddr no adding to cmdQueue");
-                return(false);
+              unless (def(mc["ignore"]) && mc["ignore"]) {
+                wct++;
+                if (wct > 6) {
+                  log.log("too many waiting kdaddr no adding to cmdQueue");
+                  return(false);
+                }
               }
             }
           }
@@ -3396,45 +3276,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     Int teshi = Time:Interval.now().seconds;
     //teshi -= 300;
     mcmd["tesh"] = teshi.toString();
-    String did = mcmd["did"];
-    if (TS.notEmpty(did)) {
-      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-      String confs = hadevs.get(did);
-      Map conf = Json:Unmarshaller.unmarshall(confs);
-      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-      String sws = haspecs.get(did);
-      if (TS.notEmpty(sws)) {
-        if (sws.has("p4,")) {
-          mcmd["pver"] = 4;
-        }
-        if (sws.has("p5,")) {
-          mcmd["pver"] = 5;
-        }
-      }
-      Int pwt = mcmd["pwt"];
-      if (def(pwt)) {
-        if (pwt > 0) {
-          String cmdline = mcmd["cmds"];
-          var cmdl = cmdline.split(" ");
-          if (pwt == 1) {
-            cmdl[1] = conf["pass"];
-            mcmd["pw"] = cmdl[1];
-          } elseIf (pwt == 2) {
-            cmdl[1] = conf["spass"];
-            mcmd["pw"] = cmdl[1];
-          } elseIf (pwt == 3) {
-            cmdl[1] = getSecQ(conf);
-            mcmd["pw"] = "";
-          }
-          cmdline = Text:Strings.new().join(Text:Strings.new().space, cmdl);
-          mcmd["cmds"] = cmdline;
-        } else {
-          mcmd["pw"] = "";
-        }
-      }
-    }
-
-    String kdaddr = mcmd["kdaddr"]; //?
     prot.processDeviceMcmd(mcmd);
 
     return(null);
@@ -3536,6 +3377,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(ssid) && TS.notEmpty(sec) && (visnets.has(ssid) || forcing)) {
        log.log("have wifi setup and found my ssid, moving to allset");
        count.setValue(tries);
+       clearQueueKdaddr("192.168.4.1");
        return(CallBackUI.getDevWifisResponse(count, tries, wait));
      }
 
@@ -3544,6 +3386,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        if (TS.notEmpty(ssid) && TS.notEmpty(sec)) {
          log.log("have ssid sec giving it a go, is old device");
          count.setValue(tries);
+         clearQueueKdaddr("192.168.4.1");
          return(CallBackUI.getDevWifisResponse(count, tries, wait));
        } else {
          return(CallBackUI.informResponse("Older device and no known Wifi config.  Under Settings / Advanced Settings configure a 2.4Ghz Wifi Network Name (ssid) and password and then retry device setup"));
@@ -3554,6 +3397,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        for (String vn in visnets) {
         vnl += vn;
        }
+       clearQueueKdaddr("192.168.4.1");
        return(CallBackUI.settleWifiResponse(vnl, ssid, sec));
      }
 
@@ -3768,7 +3612,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           conf["spass"] = devSpass;
           String confs = Json:Marshaller.marshall(conf);
           saveDeviceRequest(conf["id"], confs, request);
-
           sendDeviceMcmd(mcmd);
         } elseIf (alStep == "getcontroldef") {
           cmds = "getcontroldef " + devSpass + " e";
@@ -3793,6 +3636,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           sendDeviceMcmd(mcmd);
         }
       } else {
+        clearQueueKdaddr("192.168.4.1");
         alStep = "allset";
       }
      return(CallBackUI.allsetResponse(count, tries, wait, devPass, devSpass, devDid, devSsid, devSec, disDevId, devName));
@@ -3811,6 +3655,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
             haspecs.put(disDevId, "1.p4,p2.phx.4");
           }
+          clearQueueKdaddr("192.168.4.1");
           alStep = "getcontroldef";
        } elseIf (TS.notEmpty(cres) && cres.has("pass is incorrect")) {
           throw(Alert.new("Device is already configured, reset before setting up again."));
@@ -3823,11 +3668,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          String controlDef = cres;
          var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
          hactls.put(disDevId, controlDef);
+         clearQueueKdaddr("192.168.4.1");
          alStep = "setwifi";
        }
      } elseIf (alStep == "setwifi") {
        if (TS.notEmpty(cres) && cres.has("Wifi Setup Written")) {
          log.log("wifi setup worked");
+         clearQueueKdaddr("192.168.4.1");
          alStep = "restart";
        }
      } elseIf (alStep == "restart") {
@@ -3850,6 +3697,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               System:Thread.new(System:Invocation.new(self, "waitCloseMqtt", List.new())).start();
             }
           }
+          clearQueueKdaddr("192.168.4.1");
           return(CallBackUI.reloadResponse());
         }
      }

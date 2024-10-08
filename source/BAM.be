@@ -3170,7 +3170,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             }
           }
         }
-        Bool doRemote = true;
+        Bool doRemote = false;
         if (def(mqtt) && TS.notEmpty(mqttMode) && mqttMode == "fullRemote") {
           doRemote = true;
         }

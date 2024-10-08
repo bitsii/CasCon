@@ -702,6 +702,26 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               }
               stDiffed = true;
             }
+          } elseIf (mqttMode == "relay" && topic == "casnic/cmds") {
+            log.log("relay handlemessage for " + topic + " " + payload);
+            Map mqcmd = Json:Unmarshaller.unmarshall(payload);
+            if (TS.isEmpty(mqcmd["kdname"]) || TS.isEmpty(mqcmd["cmds"])) {
+              log.log("missing kdname or cmds");
+              return(self);
+            }
+            String kdaddr = getAddrDis(mqcmd["kdname"]);
+            if (TS.isEmpty(kdaddr)) {
+              log.log("no kdaddr for " + mqcmd["kdname"]);
+              return(self);
+            }
+            prot.sendJvadCmds(kdaddr, mqcmd["cmds"]);
+            String cres = prot.jvadCmdsRes;
+            prot.jvadCmdsRes = null;
+            if (TS.notEmpty(cres)) {
+              log.log("relay cres " + cres);
+            } else {
+              log.log("relay no cres");
+            }
           }
         }
       }

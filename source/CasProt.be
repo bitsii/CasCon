@@ -51,8 +51,6 @@ class CasNic:CasProt {
   new() self {
     fields {
       IO:Log log;
-    }
-    slots {
       String jvadCmdsRes;
     }
     ifEmit(wajv) {

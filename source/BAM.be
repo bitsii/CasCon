@@ -3170,8 +3170,22 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             }
           }
         }
+        Bool doRemote = true;
+        if (def(mqtt) && TS.notEmpty(mqttMode) && mqttMode == "fullRemote") {
+          doRemote = true;
+        }
         if (TS.isEmpty(mcmd["kdaddr"])) {
-          return(false);
+          if (def(mqtt) && TS.notEmpty(mqttMode) && mqttMode == "remote") {
+            doRemote = true;
+          }
+          unless (doRemote) {
+            return(false);
+          }
+        }
+        if (doRemote && TS.notEmpty(mcmd["kdname"]) && TS.notEmpty(mcmd["cmds"])) {
+          Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", mcmd["cmds"]);
+          mqtt.publish("casnic/cmds", Json:Marshaller.marshall(mqcmd));
+          return(true);
         }
         Bool rs = mcmd["runSync"];
         if (def(rs) && rs) {

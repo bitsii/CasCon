@@ -3183,7 +3183,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
         if (doRemote && TS.notEmpty(mcmd["kdname"]) && TS.notEmpty(mcmd["cmds"])) {
-          Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", mcmd["cmds"]);
+          Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", mcmd["cmds"], "reid", mqttReId);
           mqtt.publish("casnic/cmds", Json:Marshaller.marshall(mqcmd));
           return(true);
         }

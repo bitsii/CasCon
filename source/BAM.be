@@ -3026,6 +3026,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 cmdsRes = null;
                 aptrs = null;
                 currCmds = mcmd;
+                if (def(mcmd["doRemote"]) && mcmd["doRemote"]) {
+                  log.log("doing remote");
+                  Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", mcmd["cmds"], "reid", mqttReId);
+                  mqtt.publish("casnic/cmds", Json:Marshaller.marshall(mqcmd));
+                  return(null);
+                }
                 processDeviceMcmd(mcmd);
                 return(null);
               }
@@ -3206,9 +3212,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
         if (doRemote && TS.notEmpty(mcmd["kdname"]) && TS.notEmpty(mcmd["cmds"])) {
-          Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", mcmd["cmds"], "reid", mqttReId);
-          mqtt.publish("casnic/cmds", Json:Marshaller.marshall(mqcmd));
-          return(true);
+          mcmd.remove("runSync");
+          mcmd.put("doRemote", true);
+        } else {
+          return(false);
         }
         Bool rs = mcmd["runSync"];
         if (def(rs) && rs) {

@@ -3243,11 +3243,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
 
         if (TS.notEmpty(did)) {
-          if (def(failingDevices) && failingDevices.has(did)) {
-            log.log("did in failing devices, clearing and returning false");
-            failingDevices.remove(did);
-            return(false);
-          }
           //max waiting per did
           wct = 0;
           for (i = cmdQueue.iterator;i.hasNext;;) {
@@ -3281,6 +3276,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
         cmdQueue += mcmd;
         //log.log("added to cmdQueue");
+        if (TS.notEmpty(did)) {
+          if (def(failingDevices) && failingDevices.has(did)) {
+            log.log("did in failing devices, clearing and returning false");
+            failingDevices.remove(did);
+            return(false);
+          }
+        }
         return(true);
       }
       return(false);

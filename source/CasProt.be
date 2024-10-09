@@ -42,16 +42,9 @@ use Crypto:Symmetric as Crypt;
 
 class CasNic:CasProt {
 
-  emit(jv) {
-    """
-    public Socket ysocket;
-    """
-  }
-
   new() self {
     fields {
       IO:Log log;
-      String jvadCmdsRes;
     }
     ifEmit(wajv) {
       fields {
@@ -108,29 +101,37 @@ class CasNic:CasProt {
         }
       }
       if (def(mcmd["runSync"]) && mcmd["runSync"]) {
-        sendJvadCmds(kdaddr, cmds);
-        mcmd["cres"] = jvadCmdsRes;
-        jvadCmdsRes = null;
+        sendRecvJvadMcmd(kdaddr, cmds, mcmd);
       } else {
-        System:Thread.new(System:Invocation.new(self, "sendJvadCmds", Lists.from(kdaddr, cmds))).start();
+        System:Thread.new(System:Invocation.new(self, "sendRecvJvadMcmd", Lists.from(kdaddr, cmds, mcmd))).start();
       }
       return(null);
    }
 
-   sendJvadCmds(String kdaddr, String cmds) {
-      emit(jv) {
-       """
-      if (ysocket != null) {
-        try {
-          ysocket.close();
-        }  catch (Exception ee) {
-
+   sendRecvJvadMcmd(String kdaddr, String cmds, Map mcmd) {
+      String cres = sendJvadCmds(kdaddr, cmds);
+      if (TS.notEmpty(cres)) {
+        emit(jv) {
+          """
+          synchronized(beva_mcmd) {
+            """
+          }
+          mcmd["cres"] = cres;
+        emit(jv) {
+          """
+          }
+          """
         }
       }
+   }
+
+   sendJvadCmds(String kdaddr, String cmds) String {
+      emit(jv) {
+       """
 
       try{
 
-          ysocket = new Socket();
+          Socket ysocket = new Socket();
           ysocket.setKeepAlive(true);
           ysocket.setSoTimeout(4000);
           ysocket.connect(new java.net.InetSocketAddress(beva_kdaddr.bems_toJvString(), 6420), 4000);
@@ -145,6 +146,7 @@ class CasNic:CasProt {
           BufferedReader in = new BufferedReader(new InputStreamReader(ysocket.getInputStream()));
           //System.out.println("Client response: " + in.readLine());
           bevl_cres = new $class/Text:String$(in.readLine());
+          ysocket.close();
 
       } catch (Exception e) {
 
@@ -152,15 +154,7 @@ class CasNic:CasProt {
       """
       }
       String cres;
-      if (TS.notEmpty(cres)) {
-        emit(jv) {
-          """
-          synchronized(this) {
-            bevp_jvadCmdsRes = bevl_cres;
-          }
-          """
-        }
-      }
+      return(cres);
    }
 
   secCmds(Int pwt, String pw, String cmds, Map mcmd) String {

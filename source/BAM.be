@@ -714,9 +714,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               log.log("no kdaddr for " + mqcmd["kdname"]);
               return(self);
             }
-            prot.sendJvadCmds(kdaddr, mqcmd["cmds"] + "\r\n");
-            String cres = prot.jvadCmdsRes;
-            prot.jvadCmdsRes = null;
+            String cres = prot.sendJvadCmds(kdaddr, mqcmd["cmds"] + "\r\n");
             if (TS.notEmpty(cres)) {
               log.log("relay cres " + cres);
             } else {
@@ -2953,9 +2951,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            String jvadCmdsRes;
            emit(jv) {
              """
-             synchronized(bevp_prot) {
-               bevl_jvadCmdsRes = bevp_prot.bevp_jvadCmdsRes;
-               bevp_prot.bevp_jvadCmdsRes = null;
+             synchronized(bevp_currCmds) {
+             """
+             }
+
+           jvadCmdsRes = currCmds["cres"];
+           emit(jv) {
+             """
              }
              """
            }
@@ -3001,6 +3003,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      if (def(cmdsRes) && def(currCmds)) {
        //return currCmds callback
+       //log.log("got cmdsRes " + cmdsRes);
        mcmd = currCmds;
        mcmd["cres"] = cmdsRes;
        cmdsRes = null;

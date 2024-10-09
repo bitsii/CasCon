@@ -3211,11 +3211,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             return(false);
           }
         }
-        if (doRemote && TS.notEmpty(mcmd["kdname"]) && TS.notEmpty(mcmd["cmds"])) {
-          mcmd.remove("runSync");
-          mcmd.put("doRemote", true);
-        } else {
-          return(false);
+        if (doRemote) {
+          if (TS.notEmpty(mcmd["kdname"]) && TS.notEmpty(mcmd["cmds"])) {
+            mcmd.remove("runSync");
+            mcmd.put("doRemote", true);
+          } else {
+            return(false);
+          }
         }
         Bool rs = mcmd["runSync"];
         if (def(rs) && rs) {

@@ -279,7 +279,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             String mqttMode;
             String mqttReId;
           }
-          backgroundPulseOnIdle = false;
+          backgroundPulseOnIdle = true;
           backgroundPulse = backgroundPulseOnIdle;
         }
         super.new();
@@ -714,7 +714,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               log.log("no kdaddr for " + mqcmd["kdname"]);
               return(self);
             }
-            prot.sendJvadCmds(kdaddr, mqcmd["cmds"]);
+            prot.sendJvadCmds(kdaddr, mqcmd["cmds"] + "\r\n");
             String cres = prot.jvadCmdsRes;
             prot.jvadCmdsRes = null;
             if (TS.notEmpty(cres)) {
@@ -2118,7 +2118,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             Map conf = Json:Unmarshaller.unmarshall(pdc.value);
             String did = conf["id"];
             if (TS.notEmpty(did) && pspecs.has(did) && pspecs.get(did) != "1.p4,p2.phx.4") {
-              getLastEvents(pdc.value);
+              //getLastEvents(pdc.value);
               break;
             } elseIf (TS.notEmpty(did)) {
               pendingSpecs.put(did);

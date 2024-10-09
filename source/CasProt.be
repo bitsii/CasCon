@@ -146,6 +146,7 @@ class CasNic:CasProt {
           BufferedReader in = new BufferedReader(new InputStreamReader(ysocket.getInputStream()));
           //System.out.println("Client response: " + in.readLine());
           bevl_cres = new $class/Text:String$(in.readLine());
+          while (in.ready()) { in.read(); }
           ysocket.close();
 
       } catch (Exception e) {

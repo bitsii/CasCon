@@ -3030,6 +3030,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   log.log("doing remote");
                   Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", mcmd["cmds"], "reid", mqttReId);
                   mqtt.publish("casnic/cmds", Json:Marshaller.marshall(mqcmd));
+                  //mcmd["cres"] = "ok"; //tmp to test
                   return(null);
                 }
                 processDeviceMcmd(mcmd);

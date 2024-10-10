@@ -1543,7 +1543,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             hasw.put(did + "-" + dp, cres);
             stDiffed = true;
             ifEmit(wajv) {
-              if (def(mqtt)) {
+              if (def(mqtt) && mqttMode == "haRelay") {
                 if (TS.notEmpty(itype)) {
                   if (itype == "sw") {
                     String stpp = "homeassistant/switch/" + did + "-" + dp + "/state";
@@ -1658,7 +1658,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               stDiffed = true;
             }
             ifEmit(wajv) {
-              if (def(mqtt)) {
+              if (def(mqtt) && mqttMode == "haRelay") {
                 Map dps = Map.new();
                 String st = hasw.get(did + "-" + dp);
                 if (TS.notEmpty(st)) {
@@ -1756,7 +1756,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               }
             }
             ifEmit(wajv) {
-              if (def(mqtt)) {
+              if (def(mqtt) && mqttMode == "haRelay") {
                 Map dps = Map.new();
                 String st = hasw.get(did + "-" + dp);
                 if (TS.notEmpty(st)) {
@@ -1845,7 +1845,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             stDiffed = true;
           }
           ifEmit(wajv) {
-            if (def(mqtt)) {
+            if (def(mqtt) && mqttMode == "haRelay") {
               if (TS.notEmpty(itype)) {
                 if (itype == "dim" || itype == "gdim") {
                   Map dps = Map.new();
@@ -2462,7 +2462,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(cres) && cres.has("ok")) {
        hasw.put(rhan + "-" + rpos, rstate);
        ifEmit(wajv) {
-        if (def(mqtt)) {
+        if (def(mqtt) && mqttMode == "haRelay") {
           if (TS.notEmpty(itype)) {
             if (itype == "sw") {
               String stpp = "homeassistant/switch/" + rhan + "-" + rpos + "/state";
@@ -2561,7 +2561,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          hacw.put(rhanpos, mcmd["cw"]);
        }
        ifEmit(wajv) {
-        if (def(mqtt)) {
+        if (def(mqtt) && mqttMode == "haRelay") {
           if (TS.notEmpty(itype)) {
             if (itype == "rgb" || itype == "rgbgdim") {
               var rgbl = rgb.split(",");
@@ -2661,7 +2661,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          hargb.put(rhanpos, mcmd["rgb"]);
        }
        ifEmit(wajv) {
-        if (def(mqtt)) {
+        if (def(mqtt) && mqttMode == "haRelay") {
           if (TS.notEmpty(itype)) {
             if (itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
               Map dps = Map.new();
@@ -2934,7 +2934,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        halv.put(rhanpos, rstate);
        hasw.put(rhanpos, "on");
        ifEmit(wajv) {
-        if (def(mqtt)) {
+        if (def(mqtt) && mqttMode == "haRelay") {
           if (TS.notEmpty(itype)) {
             if (itype == "dim" || itype == "gdim") {
               Map dps = Map.new();

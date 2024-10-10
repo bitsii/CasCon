@@ -722,6 +722,27 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             } else {
               log.log("relay no cres");
             }
+          } elseIf ((mqttMode == "remote" || mqttMode == "fullRemote") && topic == "casnic/res/" + mqttReId) {
+            if (TS.notEmpty(payload)) {
+              log.log("got res in mqtt remote " + payload);
+              emit(jv) {
+                """
+                synchronized(bevp_currCmds) {
+                  """
+                }
+                if (def(currCmds)) {
+                  currCmds["cres"] = payload;
+                } else {
+                  log.log("currCmds undef");
+                }
+              emit(jv) {
+                """
+                }
+                """
+              }
+            } else {
+              log.log("empty payload in remote casnic/res");
+            }
           }
         }
       }
@@ -2118,7 +2139,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             Map conf = Json:Unmarshaller.unmarshall(pdc.value);
             String did = conf["id"];
             if (TS.notEmpty(did) && pspecs.has(did) && pspecs.get(did) != "1.p4,p2.phx.4") {
-              //getLastEvents(pdc.value);
+              getLastEvents(pdc.value);
               break;
             } elseIf (TS.notEmpty(did)) {
               pendingSpecs.put(did);

@@ -656,6 +656,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       ifEmit(wajv) {
         //log.log("in bam handlemessage for " + topic + " " + payload);
         if (TS.notEmpty(topic) && TS.notEmpty(payload)) {
+          if (topic == "casnic/ktlo") { return(self); } //noop
           if (mqttMode == "haRelay") {
             if (topic == "homeassistant/status" && payload == "online") {
               log.log("ha startedup");
@@ -717,6 +718,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             String cres = prot.sendJvadCmds(kdaddr, mqcmd["cmds"] + "\r\n");
             if (TS.notEmpty(cres)) {
               log.log("relay cres " + cres);
+              mqtt.publish("casnic/res/" + mqcmd["reid"], cres);
             } else {
               log.log("relay no cres");
             }

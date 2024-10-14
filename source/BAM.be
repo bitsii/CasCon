@@ -1274,6 +1274,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      if (TS.isEmpty(mqttMode)) { mqttMode = "remote"; }
      app.configManager.put("mqtt.mode", mqttMode);
+     self.mqttMode = mqttMode;
      log.log("set mqttMode " + mqttMode);
      ifEmit(jv) {
       if (def(mqtt)) {
@@ -2182,10 +2183,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               String sname = service.getServiceName();
               if (sname != null && sname.startsWith("CasNic")) {
                 System.out.println("onServiceFound " + sname);
-                if (!InitializeResolveListener.knownDevices.containsKey(sname)) {
+                //if (!InitializeResolveListener.knownDevices.containsKey(sname)) {
                   InitializeResolveListener.resolving.put(sname, service);
                   InitializeResolveListener.maybeResolve();
-                }
+                //}
               }
             }
 
@@ -3163,7 +3164,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       ifEmit(jvad) {
         emit(jv) {
           """
-        InitializeResolveListener.knownDevices.remove(bevl_kdname.bems_toJvString());
+        //InitializeResolveListener.knownDevices.remove(bevl_kdname.bems_toJvString());
         """
         }
       }

@@ -2963,7 +2963,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      slots {
        String cmdsRes;
        Map currCmds;
-       Int aptrs; //12 for 3s (orig), 16 for 4s (was), 24 for 6s
+       Int aptrs; //12 for 3s (orig), 16 for 4s (is), 24 for 6s (tried) below in aptrs >
      }
       if (undef(cmdsRes) && def(currCmds)) {
       if (undef(aptrs)) {
@@ -2971,7 +2971,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       } else {
         aptrs++;
       }
-      if (aptrs > 24) {
+      if (aptrs > 16) {
         //timed out
         aptrs = 1;
         processCmdsFail();

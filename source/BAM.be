@@ -3162,10 +3162,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         knc.remove(kdname);
       }
       ifEmit(jvad) {
+        if (TS.notEmpty(kdaddr)) { //if was remote, don't remove, so transition not a problem
         emit(jv) {
           """
-        //InitializeResolveListener.knownDevices.remove(bevl_kdname.bems_toJvString());
+        InitializeResolveListener.knownDevices.remove(bevl_kdname.bems_toJvString());
         """
+        }
         }
       }
      }

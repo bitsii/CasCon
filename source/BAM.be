@@ -3058,9 +3058,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 currCmds = mcmd;
                 if (def(mcmd["doRemote"]) && mcmd["doRemote"]) {
                   log.log("doing remote");
-                  Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", mcmd["cmds"], "reid", mqttReId);
-                  mqtt.publish("casnic/cmds", Json:Marshaller.marshall(mqcmd));
-                  //mcmd["cres"] = "ok"; //tmp to test
+                  if (def(mqtt)) {
+                    Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", mcmd["cmds"], "reid", mqttReId);
+                    mqtt.publish("casnic/cmds", Json:Marshaller.marshall(mqcmd));
+                    //mcmd["cres"] = "ok"; //tmp to test
+                  } else {
+                    log.log("failed doing remote mqtt undef");
+                  }
                   return(null);
                 }
                 processDeviceMcmd(mcmd);

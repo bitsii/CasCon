@@ -273,7 +273,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           Bool backgroundPulseOnIdle = false;
           Bool backgroundPulse = backgroundPulseOnIdle;
         }
-        ifEmit(wajv) {
+        ifEmit(jv) {
           fields {
             Mqtt mqtt;
             String mqttMode;
@@ -310,8 +310,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         app.pluginsByName.get("Auth").authedUrlsConfigKey = "bridgeAuthedUrls";
       }
 
-      ifEmit(wajv) {
+      ifEmit(jv) {
         System:Thread.new(System:Invocation.new(self, "keepMqttUp", List.new())).start();
+      }
+
+      ifEmit(wajv) {
         System:Thread.new(System:Invocation.new(self, "runPulseDevices", List.new())).start();
         if (prot.doSupUpdate) {
           System:Thread.new(System:Invocation.new(self, "haDoUp", List.new())).start();
@@ -321,7 +324,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       initializeDiscoveryListener();
 
-      ifEmit(wajv) {
+      ifEmit(jv) {
         checkStartMqtt();
       }
 
@@ -426,9 +429,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     keepMqttUp() {
-      ifEmit(wajv) {
+      ifEmit(jv) {
         while (true) {
-          Time:Sleep.sleepSeconds(15);
+          Time:Sleep.sleepSeconds(20);
           try {
             checkStartMqtt();
           } catch (any e) {
@@ -439,7 +442,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     checkStartMqtt() {
-      ifEmit(wajv) {
+      ifEmit(jv) {
         if (undef(mqtt) || mqtt.isOpen!) {
           if (def(mqtt)) {
             log.log("closing mqtt");
@@ -453,6 +456,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String mqttMode = app.configManager.get("mqtt.mode");
           if (TS.isEmpty(mqttMode)) { mqttMode = "remote"; }
           if (TS.isEmpty(mqttBroker) || TS.isEmpty(mqttUser) || TS.isEmpty(mqttPass)) {
+            ifEmit(wajv) {
             if (TS.notEmpty(prot.supTok) && TS.notEmpty(prot.supUrl) && prot.doSupAuth) {
               //log.log("GOT supTok " + prot.supTok);
               log.log("got supTok");
@@ -479,6 +483,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 log.log("mqtt ha get conn res empty");
               }
             }
+            }
           }
           if (TS.notEmpty(mqttMode) && TS.notEmpty(mqttBroker) && TS.notEmpty(mqttUser) && TS.notEmpty(mqttPass)) {
             initializeMqtt(mqttMode, mqttBroker, mqttUser, mqttPass);
@@ -490,7 +495,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     initializeMqtt(String _mqttMode, String mqttBroker, String mqttUser, String mqttPass) {
-      ifEmit(wajv) {
+      ifEmit(jv) {
        log.log("initializing mqtt");
        mqttMode = _mqttMode;
        mqttReId = System:Random.getString(16);
@@ -653,76 +658,78 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     handleMessage(String topic, String payload) {
-      ifEmit(wajv) {
-        //log.log("in bam handlemessage for " + topic + " " + payload);
-        if (TS.notEmpty(topic) && TS.notEmpty(payload)) {
-          if (topic == "casnic/ktlo") { return(self); } //noop
-          if (mqttMode == "haRelay") {
-            if (topic == "homeassistant/status" && payload == "online") {
-              log.log("ha startedup");
-              mqtt.close();
-              mqtt = null;
-              checkStartMqtt();
-            } elseIf (topic.begins("homeassistant/switch/") && topic.ends("/set")) {
-              log.log("ha switched");
-              var ll = topic.split("/");
-              String didpos = ll[2];
-              log.log("ha got didpos " + didpos);
-              var dp = didpos.split("-");
-              Map mcmd = setDeviceSwMcmd(dp[0], dp[1], payload.lower());
-              mcmd["runSync"] = true;
-              sendDeviceMcmd(mcmd);
-              stDiffed = true;
-            } elseIf (topic.begins("homeassistant/light/") && topic.ends("/set")) {
-              log.log("ha light switched");
-              ll = topic.split("/");
-              didpos = ll[2];
-              log.log("ha got didpos " + didpos);
-              dp = didpos.split("-");
-              Map incmd = Json:Unmarshaller.unmarshall(payload);
-              //if has brightness, do brightness
-              //else state
-              if (incmd.has("brightness")) {
-                mcmd = setDeviceLvlMcmd(dp[0], dp[1], incmd.get("brightness").toString());
+      if (TS.notEmpty(topic) && TS.notEmpty(payload)) {
+        if (topic == "casnic/ktlo") { return(self); } //noop
+        ifEmit(wajv) {
+          //log.log("in bam handlemessage for " + topic + " " + payload);
+            if (mqttMode == "haRelay") {
+              if (topic == "homeassistant/status" && payload == "online") {
+                log.log("ha startedup");
+                mqtt.close();
+                mqtt = null;
+                checkStartMqtt();
+              } elseIf (topic.begins("homeassistant/switch/") && topic.ends("/set")) {
+                log.log("ha switched");
+                var ll = topic.split("/");
+                String didpos = ll[2];
+                log.log("ha got didpos " + didpos);
+                var dp = didpos.split("-");
+                Map mcmd = setDeviceSwMcmd(dp[0], dp[1], payload.lower());
                 mcmd["runSync"] = true;
                 sendDeviceMcmd(mcmd);
-              } elseIf (incmd.has("color")) {
-                Map rgb = incmd.get("color");
-                String rgbs = "" + rgb["r"] + "," + rgb["g"] + "," + rgb["b"];
-                mcmd = setDeviceRgbMcmd(dp[0], dp[1], rgbs);
-                mcmd["runSync"] = true;
-                sendDeviceMcmd(mcmd);
-              } elseIf (incmd.has("color_temp")) {
-                mcmd = setDeviceTempMcmd(dp[0], dp[1], miredToLs(incmd.get("color_temp")).toString());
-                mcmd["runSync"] = true;
-                sendDeviceMcmd(mcmd);
-              } elseIf (incmd.has("state")) {
-                mcmd = setDeviceSwMcmd(dp[0], dp[1], incmd.get("state").lower());
-                mcmd["runSync"] = true;
-                sendDeviceMcmd(mcmd);
+                stDiffed = true;
+              } elseIf (topic.begins("homeassistant/light/") && topic.ends("/set")) {
+                log.log("ha light switched");
+                ll = topic.split("/");
+                didpos = ll[2];
+                log.log("ha got didpos " + didpos);
+                dp = didpos.split("-");
+                Map incmd = Json:Unmarshaller.unmarshall(payload);
+                //if has brightness, do brightness
+                //else state
+                if (incmd.has("brightness")) {
+                  mcmd = setDeviceLvlMcmd(dp[0], dp[1], incmd.get("brightness").toString());
+                  mcmd["runSync"] = true;
+                  sendDeviceMcmd(mcmd);
+                } elseIf (incmd.has("color")) {
+                  Map rgb = incmd.get("color");
+                  String rgbs = "" + rgb["r"] + "," + rgb["g"] + "," + rgb["b"];
+                  mcmd = setDeviceRgbMcmd(dp[0], dp[1], rgbs);
+                  mcmd["runSync"] = true;
+                  sendDeviceMcmd(mcmd);
+                } elseIf (incmd.has("color_temp")) {
+                  mcmd = setDeviceTempMcmd(dp[0], dp[1], miredToLs(incmd.get("color_temp")).toString());
+                  mcmd["runSync"] = true;
+                  sendDeviceMcmd(mcmd);
+                } elseIf (incmd.has("state")) {
+                  mcmd = setDeviceSwMcmd(dp[0], dp[1], incmd.get("state").lower());
+                  mcmd["runSync"] = true;
+                  sendDeviceMcmd(mcmd);
+                }
+                stDiffed = true;
               }
-              stDiffed = true;
+            } elseIf (mqttMode == "relay" && topic == "casnic/cmds") {
+              log.log("relay handlemessage for " + topic + " " + payload);
+              Map mqcmd = Json:Unmarshaller.unmarshall(payload);
+              if (TS.isEmpty(mqcmd["kdname"]) || TS.isEmpty(mqcmd["cmds"])) {
+                log.log("missing kdname or cmds");
+                return(self);
+              }
+              String kdaddr = getAddrDis(mqcmd["kdname"]);
+              if (TS.isEmpty(kdaddr)) {
+                log.log("no kdaddr for " + mqcmd["kdname"]);
+                return(self);
+              }
+              String cres = prot.sendJvadCmds(kdaddr, mqcmd["cmds"] + "\r\n");
+              if (TS.notEmpty(cres)) {
+                log.log("relay cres " + cres);
+                mqtt.publish("casnic/res/" + mqcmd["reid"], cres);
+              } else {
+                log.log("relay no cres");
+              }
             }
-          } elseIf (mqttMode == "relay" && topic == "casnic/cmds") {
-            log.log("relay handlemessage for " + topic + " " + payload);
-            Map mqcmd = Json:Unmarshaller.unmarshall(payload);
-            if (TS.isEmpty(mqcmd["kdname"]) || TS.isEmpty(mqcmd["cmds"])) {
-              log.log("missing kdname or cmds");
-              return(self);
-            }
-            String kdaddr = getAddrDis(mqcmd["kdname"]);
-            if (TS.isEmpty(kdaddr)) {
-              log.log("no kdaddr for " + mqcmd["kdname"]);
-              return(self);
-            }
-            String cres = prot.sendJvadCmds(kdaddr, mqcmd["cmds"] + "\r\n");
-            if (TS.notEmpty(cres)) {
-              log.log("relay cres " + cres);
-              mqtt.publish("casnic/res/" + mqcmd["reid"], cres);
-            } else {
-              log.log("relay no cres");
-            }
-          } elseIf ((mqttMode == "remote" || mqttMode == "fullRemote") && topic == "casnic/res/" + mqttReId) {
+          }
+          if ((mqttMode == "remote" || mqttMode == "fullRemote") && topic == "casnic/res/" + mqttReId) {
             if (TS.notEmpty(payload)) {
               log.log("got res in mqtt remote " + payload);
               emit(jv) {
@@ -745,7 +752,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             }
           }
         }
-      }
     }
 
     miredToLs(Int mr) Int {
@@ -1269,7 +1275,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.isEmpty(mqttMode)) { mqttMode = "remote"; }
      app.configManager.put("mqtt.mode", mqttMode);
      log.log("set mqttMode " + mqttMode);
-     ifEmit(wajv) {
+     ifEmit(jv) {
       if (def(mqtt)) {
         mqtt.close();
         mqtt = null;
@@ -2134,7 +2140,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         for (var pdc in pdevices) {
           Int dc = pdcount.get(pdc.key);
           if (undef(dc) || dc < pcount) {
-            dc = pcount + 16 + System:Random.getIntMax(16); //(secs * 4), was 12
+            dc = pcount + 16 + System:Random.getIntMax(16); //(secs * 4 + rand secs up to 4), was 16 both
             pdcount.put(pdc.key, dc);
             Map conf = Json:Unmarshaller.unmarshall(pdc.value);
             String did = conf["id"];
@@ -2956,7 +2962,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      slots {
        String cmdsRes;
        Map currCmds;
-       Int aptrs; //12 for 3s (was), 16 for 4s
+       Int aptrs; //12 for 3s (orig), 16 for 4s (was), 24 for 6s
      }
       if (undef(cmdsRes) && def(currCmds)) {
       if (undef(aptrs)) {
@@ -2964,7 +2970,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       } else {
         aptrs++;
       }
-      if (aptrs > 16) {
+      if (aptrs > 24) {
         //timed out
         aptrs = 1;
         processCmdsFail();

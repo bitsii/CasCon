@@ -710,23 +710,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               }
             } elseIf (mqttMode == "relay" && topic == "casnic/cmds") {
               log.log("relay handlemessage for " + topic + " " + payload);
-              Map mqcmd = Json:Unmarshaller.unmarshall(payload);
-              if (TS.isEmpty(mqcmd["kdname"]) || TS.isEmpty(mqcmd["cmds"])) {
-                log.log("missing kdname or cmds");
-                return(self);
-              }
-              String kdaddr = getAddrDis(mqcmd["kdname"]);
-              if (TS.isEmpty(kdaddr)) {
-                log.log("no kdaddr for " + mqcmd["kdname"]);
-                return(self);
-              }
-              String cres = prot.sendJvadCmds(kdaddr, mqcmd["cmds"] + "\r\n");
-              if (TS.notEmpty(cres)) {
-                log.log("relay cres " + cres);
-                mqtt.publish("casnic/res/" + mqcmd["reid"], cres);
-              } else {
-                log.log("relay no cres");
-              }
+              System:Thread.new(System:Invocation.new(self, "handleRelay", Lists.from(topic, payload))).start()
             }
           }
           if ((mqttMode == "remote" || mqttMode == "fullRemote") && topic == "casnic/res/" + mqttReId) {
@@ -752,6 +736,26 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             }
           }
         }
+    }
+
+    handleRelay(String topic, String payload) {
+      Map mqcmd = Json:Unmarshaller.unmarshall(payload);
+      if (TS.isEmpty(mqcmd["kdname"]) || TS.isEmpty(mqcmd["cmds"])) {
+        log.log("missing kdname or cmds");
+        return(self);
+      }
+      String kdaddr = getAddrDis(mqcmd["kdname"]);
+      if (TS.isEmpty(kdaddr)) {
+        log.log("no kdaddr for " + mqcmd["kdname"]);
+        return(self);
+      }
+      String cres = prot.sendJvadCmds(kdaddr, mqcmd["cmds"] + "\r\n");
+      if (TS.notEmpty(cres)) {
+        log.log("relay cres " + cres);
+        mqtt.publish("casnic/res/" + mqcmd["reid"], cres);
+      } else {
+        log.log("relay no cres");
+      }
     }
 
     miredToLs(Int mr) Int {

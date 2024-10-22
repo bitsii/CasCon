@@ -1521,11 +1521,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(sws) && sws.has("q,")) {
        cmds = "dostate q " + dpd + " getsw e";
        //log.log("cmds " + cmds);
-       mcmd = Maps.from("prio", 4, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
+       mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
      } else {
        String cmds = "dostate spass " + dpd + " getsw e";
        //log.log("cmds " + cmds);
-       Map mcmd = Maps.from("prio", 4, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
+       Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
      }
 
      if (backgroundPulse) {
@@ -1605,7 +1605,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           cmds = "dostate q " + dpd + " getrgb e";
         }
         //log.log("cmds " + cmds);
-        mcmd = Maps.from("prio", 4, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
+        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
       } else {
         if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
           cmds = "getstatexd spass " + dpd + " e";
@@ -1613,7 +1613,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         String cmds = "dostate spass " + dpd + " getrgb e";
         }
         //log.log("cmds " + cmds);
-        Map mcmd = Maps.from("prio", 4, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
+        Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
       }
 
       if (backgroundPulse) {
@@ -1715,11 +1715,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (TS.notEmpty(sws) && sws.has("q,")) {
         String cmds = "getstatexd q " + dpd + " e";
         //log.log("cmds " + cmds);
-        Map mcmd = Maps.from("prio", 4, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
+        Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
       } else {
         cmds = "getstatexd spass " + dpd + " e";
         //log.log("cmds " + cmds);
-        mcmd = Maps.from("prio", 4, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
+        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
       }
 
       if (backgroundPulse) {
@@ -1810,7 +1810,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         cmds = "dostate q " + dpd + " getlvl e";
         }
         //log.log("cmds " + cmds);
-        mcmd = Maps.from("prio", 4, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "itype", itype, "cname", cname, "cmds", cmds);
+        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "itype", itype, "cname", cname, "cmds", cmds);
       } else {
         if (itype == "gdim") {
           cmds = "getstatexd spass " + dpd + " e";
@@ -1818,7 +1818,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String cmds = "dostate spass " + dpd + " getlvl e";
         }
         //log.log("cmds " + cmds);
-        Map mcmd = Maps.from("prio", 4, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
+        Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
       }
 
       if (backgroundPulse) {
@@ -1897,11 +1897,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (TS.notEmpty(sws) && sws.has("q,")) {
         cmds = "dostate q " + dpd + " getoif e";
         //log.log("cmds " + cmds);
-        mcmd = Maps.from("prio", 4, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
+        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
       } else {
         String cmds = "dostate spass " + dpd + " getoif e";
         //log.log("cmds " + cmds);
-        Map mcmd = Maps.from("prio", 4, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
+        Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
       }
 
       if (backgroundPulse) {
@@ -3282,12 +3282,21 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (TS.notEmpty(did)) {
           //max waiting per did
           wct = 0;
+          mw = null;
           for (i = cmdQueue.iterator;i.hasNext;;) {
             mc = i.next;
             if (TS.notEmpty(mc["did"]) && mc["did"] == mcmd["did"]) {
               unless (def(mc["ignore"]) && mc["ignore"]) {
                 wct++;
-                if (wct > 6) {
+                if (undef(mw)) {
+                  if (def(mc["mw"])) {
+                    mw = mc["mw"];
+                  } else {
+                    mw = 5 - priority;
+                    if (mw < 0) { mw = 0; }
+                  }
+                }
+                if (wct > mw) {
                   log.log("too many waiting did no adding to cmdQueue");
                   return(false);
                 }
@@ -3298,12 +3307,21 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (TS.notEmpty(mcmd["kdaddr"])) {
           //max waiting per kdaddr
           Int wct = 0;
+          Int mw = null;
           for (var i = cmdQueue.iterator;i.hasNext;;) {
             Map mc = i.next;
             if (TS.notEmpty(mc["kdaddr"]) && mc["kdaddr"] == mcmd["kdaddr"]) {
               unless (def(mc["ignore"]) && mc["ignore"]) {
                 wct++;
-                if (wct > 6) {
+                if (undef(mw)) {
+                  if (def(mc["mw"])) {
+                    mw = mc["mw"];
+                  } else {
+                    mw = 5 - priority;
+                    if (mw < 0) { mw = 0; }
+                  }
+                }
+                if (wct > mw) {
                   log.log("too many waiting kdaddr no adding to cmdQueue");
                   return(false);
                 }
@@ -3487,7 +3505,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
 
      String cmds = "previsnets " + visnetsPos + " e";
-     Map mcmd = Maps.from("prio", 1, "cb", "previsnetsCb", "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 1, "mw", 1, "cb", "previsnetsCb", "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
      sendDeviceMcmd(mcmd);
      return(CallBackUI.getDevWifisResponse(count, tries, wait));
    }
@@ -3686,7 +3704,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         log.log("sending allset cmd");
         if (alStep == "allset") {
           cmds = "allset " + devPin + " " + devPass + " " + devSpass + " " + devDid + " e";
-          mcmd = Maps.from("prio", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
+          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
 
           Map conf = Map.new();
           conf["type"] = devType;
@@ -3700,15 +3718,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           sendDeviceMcmd(mcmd);
         } elseIf (alStep == "getcontroldef") {
           cmds = "getcontroldef " + devSpass + " e";
-          mcmd = Maps.from("prio", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
+          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
           sendDeviceMcmd(mcmd);
         } elseIf (alStep == "setwifi") {
           cmds = "setwifi " + devPass + " hex " + devSsid + " " + devSec + " e";
-          mcmd = Maps.from("prio", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
+          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
           sendDeviceMcmd(mcmd);
         } elseIf (alStep == "restart") {
           cmds = "restart " + devPass + " e";
-          mcmd = Maps.from("prio", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
+          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
           lastSsids = List.new();
           ifEmit(platDroid) {
           emit(jv) {
@@ -3817,7 +3835,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    displayNextDeviceCmdRequest(String ssidn, request) Map {
      //log.log("in displayNextDeviceCmdRequest");
     String cmds = "getapssid e";
-    Map mcmd = Maps.from("prio", 1, "cb", "displayNextDeviceCmdCb", "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
+    Map mcmd = Maps.from("prio", 1, "mw", 1, "cb", "displayNextDeviceCmdCb", "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
     sendDeviceMcmd(mcmd);
     return(null);
    }

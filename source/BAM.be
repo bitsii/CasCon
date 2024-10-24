@@ -2965,19 +2965,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    processCmdsRequest(request) Map {
      slots {
-       String cmdsRes;
        Map currCmds;
-       Int aptrs; //12 for 3s (orig), 16 for 4s (is), 24 for 6s (tried) below in aptrs >
      }
-      if (undef(cmdsRes) && def(currCmds)) {
+      if (def(currCmds) && undef(currCmds["cres"])) {
+      Int aptrs = currCmds["aptrs"];
       if (undef(aptrs)) {
         aptrs = 1;
+        currCmds["aptrs"] = aptrs;
       } else {
         aptrs++;
       }
-      if (aptrs > 16) {
+      if (aptrs > 16) {  //12 for 3s (orig), 16 for 4s (is), 24 for 6s
         //timed out
-        aptrs = 1;
         processCmdsFail();
         return(null);
       }
@@ -2996,7 +2995,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
              """
            }
            if (TS.notEmpty(jvadCmdsRes)) {
-             cmdsRes = jvadCmdsRes;
+             currCmds["cres"] = jvadCmdsRes;
            }
         }
         ifEmit(apwk) {
@@ -3028,19 +3027,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
           if (TS.notEmpty(jspw)) {
             //("lastCres " + jspw).print();
-            cmdsRes = jspw;
+            currCmds["cres"] = jspw;
           } else {
             //"no getLastCres".print();
           }
         }
-        }
+     }
 
-     if (def(cmdsRes) && def(currCmds)) {
-       //return currCmds callback
-       //log.log("got cmdsRes " + cmdsRes);
+     if (def(currCmds) && def(currCmds["cres"])) {
        mcmd = currCmds;
-       mcmd["cres"] = cmdsRes;
-       cmdsRes = null;
        currCmds = null;
        return(processMcmdRes(mcmd, request));
      } elseIf (undef(currCmds)) {
@@ -3057,8 +3052,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               if (def(ignore) && ignore) {
                 log.log("got ignore in pcomrequest, noop");
               } else {
-                cmdsRes = null;
-                aptrs = null;
                 currCmds = mcmd;
                 if (def(mcmd["doRemote"]) && mcmd["doRemote"]) {
                   log.log("doing remote");
@@ -3134,9 +3127,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    processCmdsFail() {
      Map mcmd = currCmds;
-     cmdsRes = null;
      currCmds = null;
-     aptrs = null;
      slots {
        Map cmdsFailMcmd;
        Set failingDevices;

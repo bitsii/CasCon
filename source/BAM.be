@@ -3031,7 +3031,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               if (def(ignore) && ignore) {
                 log.log("got ignore in pcomrequest, noop");
               } else {
-                mcmd["creso"] = OLocker.new(null);
+                prepMcmd(mcmd);
                 currCmds = mcmd;
                 if (def(mcmd["doRemote"]) && mcmd["doRemote"]) {
                   log.log("doing remote");
@@ -3238,7 +3238,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             log.log("got ignore noop");
             return(false);
           }
-          mcmd["creso"] = OLocker.new(null);
+          prepMcmd(mcmd);
           processDeviceMcmd(mcmd);
           processMcmdRes(mcmd, null);
           return(true);
@@ -3347,14 +3347,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      log.log("res was " + res);
      */
 
-  processDeviceMcmd(Map mcmd) {
+  prepMcmd(Map mcmd) {
     //log.log("in processDeviceMcmd");
-    mcmd["pver"] = 1;
+    mcmd["creso"] = OLocker.new(null);
+    unless (mcmd.has("pver")) {
+      mcmd["pver"] = 1;
+    }
     mcmd["iv"] = System:Random.getString(16);
     //log.log("adding tesh in processDeviceMcmd");
     Int teshi = Time:Interval.now().seconds;
     //teshi -= 300;
     mcmd["tesh"] = teshi.toString();
+  }
+
+  processDeviceMcmd(Map mcmd) {
     prot.processDeviceMcmd(mcmd);
 
     return(null);

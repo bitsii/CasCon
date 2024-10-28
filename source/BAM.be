@@ -716,21 +716,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           if ((mqttMode == "remote" || mqttMode == "fullRemote") && topic == "casnic/res/" + mqttReId) {
             if (TS.notEmpty(payload)) {
               log.log("got res in mqtt remote " + payload);
-              emit(jv) {
-                """
-                synchronized(bevp_currCmds) {
-                  """
-                }
                 if (def(currCmds)) {
-                  currCmds["cres"] = payload;
+                  currCmds["creso"].o = payload;
                 } else {
                   log.log("currCmds undef");
                 }
-              emit(jv) {
-                """
-                }
-                """
-              }
             } else {
               log.log("empty payload in remote casnic/res");
             }
@@ -2982,18 +2972,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
         ifEmit(jv) {
            String jvadCmdsRes;
-           emit(jv) {
-             """
-             synchronized(bevp_currCmds) {
-             """
-             }
-
-           jvadCmdsRes = currCmds["cres"];
-           emit(jv) {
-             """
-             }
-             """
-           }
+           jvadCmdsRes = currCmds["creso"].o;
            if (TS.notEmpty(jvadCmdsRes)) {
              currCmds["cres"] = jvadCmdsRes;
            }
@@ -3368,6 +3347,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
   processDeviceMcmd(Map mcmd) {
     //log.log("in processDeviceMcmd");
+    mcmd["creso"] = OLocker.new(null);
     mcmd["pver"] = 1;
     mcmd["iv"] = System:Random.getString(16);
     //log.log("adding tesh in processDeviceMcmd");

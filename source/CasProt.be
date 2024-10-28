@@ -111,17 +111,7 @@ class CasNic:CasProt {
    sendRecvJvadMcmd(String kdaddr, String cmds, Map mcmd) {
       String cres = sendJvadCmds(kdaddr, cmds);
       if (TS.notEmpty(cres)) {
-        emit(jv) {
-          """
-          synchronized(beva_mcmd) {
-            """
-          }
-          mcmd["cres"] = cres;
-        emit(jv) {
-          """
-          }
-          """
-        }
+          mcmd["creso"].o = cres;
       }
    }
 

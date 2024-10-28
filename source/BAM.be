@@ -3031,6 +3031,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               if (def(ignore) && ignore) {
                 log.log("got ignore in pcomrequest, noop");
               } else {
+                mcmd["creso"] = OLocker.new(null);
                 currCmds = mcmd;
                 if (def(mcmd["doRemote"]) && mcmd["doRemote"]) {
                   log.log("doing remote");
@@ -3347,7 +3348,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
   processDeviceMcmd(Map mcmd) {
     //log.log("in processDeviceMcmd");
-    mcmd["creso"] = OLocker.new(null);
     mcmd["pver"] = 1;
     mcmd["iv"] = System:Random.getString(16);
     //log.log("adding tesh in processDeviceMcmd");

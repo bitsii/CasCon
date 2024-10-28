@@ -3238,6 +3238,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             log.log("got ignore noop");
             return(false);
           }
+          mcmd["creso"] = OLocker.new(null);
           processDeviceMcmd(mcmd);
           processMcmdRes(mcmd, null);
           return(true);

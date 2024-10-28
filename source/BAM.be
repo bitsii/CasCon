@@ -3035,8 +3035,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 currCmds = mcmd;
                 if (def(mcmd["doRemote"]) && mcmd["doRemote"]) {
                   log.log("doing remote");
+                  String finCmds = prot.secCmds(mcmd);
                   if (def(mqtt)) {
-                    Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", mcmd["cmds"], "reid", mqttReId);
+                    Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", finCmds, "reid", mqttReId);
                     mqtt.publish("casnic/cmds", Json:Marshaller.marshall(mqcmd));
                     //mcmd["cres"] = "ok"; //tmp to test
                   } else {

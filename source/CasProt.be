@@ -81,13 +81,9 @@ class CasNic:CasProt {
      //log.log("in processDeviceMcmd");
 
        String kdaddr = mcmd["kdaddr"];
-       Int pwt = mcmd["pwt"];
-       String pw = mcmd["pw"];
        String cmds = mcmd["cmds"];
 
-       if (true && pwt > 0 && pwt != 3 && TS.notEmpty(pw)) {
-         cmds = secCmds(pwt, pw, cmds, mcmd);
-       }
+       cmds = secCmds(mcmd);
 
        cmds += "\r\n";
 
@@ -148,40 +144,48 @@ class CasNic:CasProt {
       return(cres);
    }
 
-  secCmds(Int pwt, String pw, String cmds, Map mcmd) String {
-    Int pver = mcmd["pver"];
-    String tesh = mcmd["tesh"];
-    if (pwt < 1 || pver < 4) {
-      //we are dropping everything pre-4 to simplify, and pwt < 1 is passwordless
-      return(cmds);
+  secCmds(Map mcmd) String {
+
+    Int pwt = mcmd["pwt"];
+    String pw = mcmd["pw"];
+    String cmds = mcmd["cmds"];
+
+    if (true && pwt > 0 && pwt != 3 && TS.notEmpty(pw)) {
+      Int pver = mcmd["pver"];
+      String tesh = mcmd["tesh"];
+      if (pwt < 1 || pver < 4) {
+        //we are dropping everything pre-4 to simplify, and pwt < 1 is passwordless
+        return(cmds);
+      }
+      if (pwt == 1) {
+        String ncmd = "ap";
+      } else {
+        ncmd = "sp";
+      }
+      ncmd += pver;
+      String iv = mcmd["iv"];
+      String insec = iv + "," + pw + "," + tesh + ",";
+      var cmdl = cmds.split(" ");
+      cmdl[1] = "X";
+      Int toc = cmdl.length - 1;
+      String sp = " ";
+      for (Int j = 0;j < toc;j++) {
+        insec += cmdl[j] += sp;
+      }
+      //log.log("insec |" + insec + "|");
+      String outsec = sha1hex(insec);
+      //log.log("insec " + insec);
+      //log.log("outsec " + outsec);
+      String fcmds = Text:Strings.new().join(Text:Strings.new().space, cmdl);
+      if (pver == 5) {
+        fcmds = Hex.encode(Crypt.encrypt(iv, pw, fcmds)) += " e";
+      }
+      String henres = ncmd + " " + iv + " " + outsec + " " + tesh + " ";
+      henres += fcmds;
+      log.log("secCmds " + henres);
+      return(henres);
     }
-    if (pwt == 1) {
-      String ncmd = "ap";
-    } else {
-      ncmd = "sp";
-    }
-    ncmd += pver;
-    String iv = mcmd["iv"];
-    String insec = iv + "," + pw + "," + tesh + ",";
-    var cmdl = cmds.split(" ");
-    cmdl[1] = "X";
-    Int toc = cmdl.length - 1;
-    String sp = " ";
-    for (Int j = 0;j < toc;j++) {
-      insec += cmdl[j] += sp;
-    }
-    //log.log("insec |" + insec + "|");
-    String outsec = sha1hex(insec);
-    //log.log("insec " + insec);
-    //log.log("outsec " + outsec);
-    String fcmds = Text:Strings.new().join(Text:Strings.new().space, cmdl);
-    if (pver == 5) {
-      fcmds = Hex.encode(Crypt.encrypt(iv, pw, fcmds)) += " e";
-    }
-    String henres = ncmd + " " + iv + " " + outsec + " " + tesh + " ";
-    henres += fcmds;
-    log.log("secCmds " + henres);
-    return(henres);
+    return(cmds);
    }
 
    sha1hex(String insec) String {

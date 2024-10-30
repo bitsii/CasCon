@@ -1959,12 +1959,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        throw(Alert.new(lastErrorL));
      }
 
-     //checkfailed
-     if (def(cmdsFailMcmd)) {
-       Map mcmd = cmdsFailMcmd;
-       cmdsFailMcmd = null;
-       return(processMcmdRes(mcmd, request));
-     }
      //checkdiffed
      if (undef(cmdQueues.get(0))) {
        Bool qzempty = true;
@@ -2967,8 +2961,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
       if (aptrs > 16) {  //12 for 3s (orig), 16 for 4s (is), 24 for 6s
         //timed out
-        processCmdsFail();
-        return(null);
+        mcmd = currCmds;
+        currCmds = null;
+        return(processCmdsFail(mcmd, request));
       }
         ifEmit(jv) {
            String jvadCmdsRes;
@@ -3106,11 +3101,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        }
    }
 
-   processCmdsFail() {
-     Map mcmd = currCmds;
-     currCmds = null;
+   processCmdsFail(Map mcmd, request) {
+
      slots {
-       Map cmdsFailMcmd;
        Set failingDevices;
      }
 
@@ -3129,10 +3122,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //?failre / timeout callback?
      String kdaddr = mcmd["kdaddr"];
      String kdname = mcmd["kdname"];
-
-     if (mcmd.has("cb")) {
-       cmdsFailMcmd = mcmd;
-     }
 
      var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
      if (TS.notEmpty(kdname)) {
@@ -3166,7 +3155,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            }
          }
        }
-
+       if (mcmd.has("cb")) {
+         return(processMcmdRes(mcmd, request));
+       }
+       return(null);
    }
 
    sendDeviceMcmd(Map mcmd) Bool {

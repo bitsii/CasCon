@@ -3006,7 +3006,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               } else {
               apres = jspw.substring(0, ji);
               }
-              jspw = "popAcs:";
+              jspw = "clearAcs:";
               emit(js) {
               """
               var jsres = prompt(bevl_jspw.bems_toJsString());

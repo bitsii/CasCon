@@ -272,9 +272,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           OLocker discoverNow = OLocker.new(true);
           Bool backgroundPulseOnIdle = false;
           Bool backgroundPulse = backgroundPulseOnIdle;
+          Mqtt mqtt;
           String mqttMode;
           String mqttReId;
-          Mqtt mqtt;
         }
         ifEmit(jv) {
           backgroundPulseOnIdle = true;
@@ -2964,13 +2964,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         //timed out
         mcmd = currCmds;
         currCmds = null;
-        jspw = "clearAcs:";
-        emit(js) {
-        """
-        var jsres = prompt(bevl_jspw.bems_toJsString());
-        bevl_jspw = new be_$class/Text:String$().bems_new(jsres);
-        """
-        }
         return(processCmdsFail(mcmd, request));
       }
         ifEmit(jv) {
@@ -2981,7 +2974,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            }
         }
         ifEmit(apwk) {
-          String apres;
           String jspw = "getLastCres:";
           emit(js) {
           """
@@ -3002,22 +2994,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             }
             if (gotone) {
               if (ji == 0) {
-              apres = "";
+              jspw = "";
               } else {
-              apres = jspw.substring(0, ji);
-              }
-              jspw = "clearAcs:";
-              emit(js) {
-              """
-              var jsres = prompt(bevl_jspw.bems_toJsString());
-              bevl_jspw = new be_$class/Text:String$().bems_new(jsres);
-              """
+              jspw = jspw.substring(0, ji);
               }
             }
           }
-          if (TS.notEmpty(apres)) {
-            //("lastCres " + apres).print();
-            currCmds["cres"] = apres;
+          if (TS.notEmpty(jspw)) {
+            //("lastCres " + jspw).print();
+            currCmds["cres"] = jspw;
           } else {
             //"no getLastCres".print();
           }

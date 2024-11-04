@@ -272,13 +272,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           OLocker discoverNow = OLocker.new(true);
           Bool backgroundPulseOnIdle = false;
           Bool backgroundPulse = backgroundPulseOnIdle;
+          String mqttMode;
+          String mqttReId;
+          Mqtt mqtt;
         }
         ifEmit(jv) {
-          fields {
-            Mqtt mqtt;
-            String mqttMode;
-            String mqttReId;
-          }
           backgroundPulseOnIdle = true;
           backgroundPulse = backgroundPulseOnIdle;
         }
@@ -2966,6 +2964,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         //timed out
         mcmd = currCmds;
         currCmds = null;
+        jspw = "clearAcs:";
+        emit(js) {
+        """
+        var jsres = prompt(bevl_jspw.bems_toJsString());
+        bevl_jspw = new be_$class/Text:String$().bems_new(jsres);
+        """
+        }
         return(processCmdsFail(mcmd, request));
       }
         ifEmit(jv) {
@@ -2976,6 +2981,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            }
         }
         ifEmit(apwk) {
+          String apres;
           String jspw = "getLastCres:";
           emit(js) {
           """
@@ -2996,15 +3002,22 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             }
             if (gotone) {
               if (ji == 0) {
-              jspw = "";
+              apres = "";
               } else {
-              jspw = jspw.substring(0, ji);
+              apres = jspw.substring(0, ji);
+              }
+              jspw = "popAcs:";
+              emit(js) {
+              """
+              var jsres = prompt(bevl_jspw.bems_toJsString());
+              bevl_jspw = new be_$class/Text:String$().bems_new(jsres);
+              """
               }
             }
           }
-          if (TS.notEmpty(jspw)) {
-            //("lastCres " + jspw).print();
-            currCmds["cres"] = jspw;
+          if (TS.notEmpty(apres)) {
+            //("lastCres " + apres).print();
+            currCmds["cres"] = apres;
           } else {
             //"no getLastCres".print();
           }

@@ -716,10 +716,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           if ((mqttMode == "remote" || mqttMode == "fullRemote") && topic == "casnic/res/" + mqttReId) {
             if (TS.notEmpty(payload)) {
               log.log("got res in mqtt remote " + payload);
-                if (def(currCmds)) {
-                  currCmds["creso"].o = payload;
+              Map mqres = Json:Unmarshaller.unmarshall(payload);
+                if (def(currCmds) && TS.notEmpty(currCmds["iv"]) && TS.notEmpty(mqres["iv"]) && mqres["iv"] == currCmds["iv"]) {
+                  log.log("res good, setting to creso");
+                  currCmds["creso"].o = mqres["cres"];
                 } else {
-                  log.log("currCmds undef");
+                  log.log("currCmds undef or preempted");
                 }
             } else {
               log.log("empty payload in remote casnic/res");
@@ -742,7 +744,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       String cres = prot.sendJvadCmds(kdaddr, mqcmd["cmds"] + "\r\n");
       if (TS.notEmpty(cres)) {
         log.log("relay cres " + cres);
-        mqtt.publish("casnic/res/" + mqcmd["reid"], cres);
+        mqcmd["cres"] = cres;
+        mqtt.publish("casnic/res/" + mqcmd["reid"], Json:Marshaller.marshall(mqcmd));
       } else {
         log.log("relay no cres");
       }
@@ -3032,7 +3035,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   log.log("doing remote");
                   String finCmds = prot.secCmds(mcmd);
                   if (def(mqtt)) {
-                    Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", finCmds, "reid", mqttReId);
+                    Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", finCmds, "reid", mqttReId, "iv", mcmd["iv"]);
                     mqtt.publish("casnic/cmds", Json:Marshaller.marshall(mqcmd));
                     //mcmd["cres"] = "ok"; //tmp to test
                   } else {

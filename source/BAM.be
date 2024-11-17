@@ -3060,6 +3060,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          String pw = mcmd["pw"];
          String cres = mcmd["cres"];
          String iv = mcmd["iv"];
+         ifEmit(jv) {
+           Bool rs = mcmd["runSync"];
+           if (def(rs) && rs) {
+            if (TS.isEmpty(mcmd["cres"])) {
+              String jvadCmdsRes;
+              jvadCmdsRes = mcmd["creso"].o;
+              if (TS.notEmpty(jvadCmdsRes)) {
+                mcmd["cres"] = jvadCmdsRes;
+              }
+            }
+           }
+         }
          if (def(pver) && pver == 5 && def(pwt) && pwt > 0 && TS.notEmpty(pw) && TS.notEmpty(iv) && TS.notEmpty(cres)) {
            log.log("will decrypt cres");
            cres = Encode:Hex.decode(cres);

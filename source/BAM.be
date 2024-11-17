@@ -276,7 +276,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String mqttMode;
           String mqttReId;
         }
-        ifEmit(jv) {
+        ifEmit(wajv) {
           backgroundPulseOnIdle = true;
           backgroundPulse = backgroundPulseOnIdle;
         }
@@ -308,7 +308,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         app.pluginsByName.get("Auth").authedUrlsConfigKey = "bridgeAuthedUrls";
       }
 
-      ifEmit(jv) {
+      ifEmit(wajv) {
         System:Thread.new(System:Invocation.new(self, "keepMqttUp", List.new())).start();
       }
 
@@ -322,7 +322,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       initializeDiscoveryListener();
 
-      ifEmit(jv) {
+      ifEmit(wajv) {
         checkStartMqtt();
       }
 
@@ -427,7 +427,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     keepMqttUp() {
-      ifEmit(jv) {
+      ifEmit(wajv) {
         while (true) {
           Time:Sleep.sleepSeconds(20);
           try {
@@ -440,7 +440,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     checkStartMqtt() {
-      ifEmit(jv) {
+      ifEmit(wajv) {
         if (undef(mqtt) || mqtt.isOpen!) {
           if (def(mqtt)) {
             log.log("closing mqtt");
@@ -452,7 +452,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String mqttUser = app.configManager.get("mqtt.user");
           String mqttPass = app.configManager.get("mqtt.pass");
           String mqttMode = app.configManager.get("mqtt.mode");
-          if (TS.isEmpty(mqttMode)) { mqttMode = "remote"; }
+          if (TS.isEmpty(mqttMode)) { mqttMode = "haRelay"; }
           if (TS.isEmpty(mqttBroker) || TS.isEmpty(mqttUser) || TS.isEmpty(mqttPass)) {
             ifEmit(wajv) {
             if (TS.notEmpty(prot.supTok) && TS.notEmpty(prot.supUrl) && prot.doSupAuth) {
@@ -493,7 +493,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     initializeMqtt(String _mqttMode, String mqttBroker, String mqttUser, String mqttPass) {
-      ifEmit(jv) {
+      ifEmit(wajv) {
        log.log("initializing mqtt");
        mqttMode = _mqttMode;
        mqttReId = System:Random.getString(16);
@@ -1254,7 +1254,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
-   saveMqttRequest(String mqttMode, String mqttBroker, String mqttUser, String mqttPass, request) Map {
+   saveMqttRequest(String mqttBroker, String mqttUser, String mqttPass, request) Map {
 
      if (TS.notEmpty(mqttBroker) && TS.notEmpty(mqttUser) && TS.notEmpty(mqttPass)) {
       app.configManager.put("mqtt.broker", mqttBroker);
@@ -1267,11 +1267,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       app.configManager.remove("mqtt.pass");
       log.log("cleared mqtt");
      }
-     if (TS.isEmpty(mqttMode)) { mqttMode = "remote"; }
+     if (TS.isEmpty(mqttMode)) { String mqttMode = "haRelay"; }
      app.configManager.put("mqtt.mode", mqttMode);
      self.mqttMode = mqttMode;
      log.log("set mqttMode " + mqttMode);
-     ifEmit(jv) {
+     ifEmit(wajv) {
       if (def(mqtt)) {
         mqtt.close();
         mqtt = null;

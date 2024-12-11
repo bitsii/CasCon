@@ -276,6 +276,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String mqttMode;
           String mqttReId;
         }
+        slots {
+          Map knc = Map.new();
+          Set remoteAddrs = Set.new();
+        }
         ifEmit(wajv) {
           backgroundPulseOnIdle = true;
           backgroundPulse = backgroundPulseOnIdle;
@@ -913,24 +917,38 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     getAddr(String kdname) {
       String kdaddr;
 
-      slots {
-        Map knc;
-        Map kac;
-      }
-      if (undef(knc)) {
-        knc = Map.new();
-        kac = Map.new();
-      }
-
      if (knc.has(kdname)) {
           kdaddr = knc.get(kdname);
      } else {
-        var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
-        String tkda = haknc.get(kdname);
+        String tkda = reloadAddr(kdname);
         if (TS.notEmpty(tkda)) {
           kdaddr = tkda;
         } else {
-          ifEmit(wajv) {
+          resolveAddr(kdname);
+        }
+     }
+     if (TS.notEmpty(kdaddr)) {
+      //log.log("got kdaddr " + kdaddr + " for " + kdname);
+    } else {
+      log.log("got no kdaddr for " + kdname);
+    }
+      return(kdaddr);
+    }
+
+    reloadAddr(String kdname) String {
+      var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
+      String tkda = haknc.get(kdname);
+      if (TS.notEmpty(tkda)) {
+          String kdaddr = tkda;
+          knc.put(kdname, kdaddr);
+      }
+      return(kdaddr);
+    }
+
+    resolveAddr(String kdname) {
+      String kdaddr;
+       var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
+       ifEmit(wajv) {
             emit(jv) {
               """
               try {
@@ -945,34 +963,27 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             }
           }
           ifEmit(jvad) {
+            discoverNow.o = true;
           emit(jv) {
             """
             //new $class/Text:String$(fnames[i].getBytes("UTF-8"))
-            String kdaddr = InitializeResolveListener.knownDevices.get(beva_kdname.bems_toJvString());
+            kdaddr = InitializeResolveListener.knownDevices.get(beva_kdname.bems_toJvString());
             if (kdaddr != null) {
               bevl_kdaddr =  new $class/Text:String$(kdaddr.getBytes("UTF-8"));
             }
             """
           }
           }
+
+          ifNotEmit(apwk) {
+            if (TS.notEmpty(kdaddr)) {
+              haknc.put(kdname, kdaddr);
+            }
+          }
             ifEmit(apwk) {
                app.runAsync("CasCon", "goGetAddr", Lists.from(kdname));
             }
-        }
 
-      if (TS.notEmpty(kdaddr)) {
-          knc.put(kdname, kdaddr);
-          kac.put(kdaddr, kdname);
-          haknc.put(kdname, kdaddr);
-      }
-     }
-     if (TS.notEmpty(kdaddr)) {
-       //log.log("got kdaddr " + kdaddr + " for " + kdname);
-    } else {
-      log.log("got no kdaddr for " + kdname);
-      discoverNow.o = true;
-    }
-      return(kdaddr);
     }
 
     goGetAddr(String kdname) {
@@ -1432,6 +1443,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //log.log("cmds " + cmds);
 
      Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "pwt", 3, "cmds", cmds);
+     if (System:Random.getIntMax(4) > 2) {
+       //in case something was remote, every once in a while try local to see if back to local net
+       mcmd["forceLocal"] = true;
+     }
 
      if (backgroundPulse) {
        mcmd["runSync"] = true;
@@ -1445,6 +1460,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String cres = mcmd["cres"];
      String leid = mcmd["did"];
      if (TS.notEmpty(cres) && cres.has(";")) {
+        if (TS.notEmpty(mcmd["kdaddr"]) && remoteAddrs.has(mcmd["kdaddr"])) {
+          log.log("clearing kdaddr from remoteAddrs");
+          remoteAddrs.remove(mcmd["kdaddr"]);
+        }
         //log.log("getlastevents cres |" + cres + "|");
         String ores = currentEvents.get(leid);
         if (TS.notEmpty(ores)) {
@@ -1494,11 +1513,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    updateSwState(String did, Int dp, String cname) {
      log.log("in updateSwState " + did + " " + dp);
-
-     if (def(failingDevices) && failingDevices.has(did)) {
-       //log.log("skipping update for failing device " + did);
-       return(null);
-     }
 
      var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
      String ctl = hactls.get(did);
@@ -1577,11 +1591,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    updateRgbState(String did, Int dp, String cname) {
       log.log("in updateRgbState " + did + " " + dp);
-
-      if (def(failingDevices) && failingDevices.has(did)) {
-        //log.log("skipping update for failing device " + did);
-        return(null);
-      }
 
       var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
       String ctl = hactls.get(did);
@@ -1692,11 +1701,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateTempState(String did, Int dp, String cname) {
       log.log("in updateRgbState " + did + " " + dp);
 
-      if (def(failingDevices) && failingDevices.has(did)) {
-        //log.log("skipping update for failing device " + did);
-        return(null);
-      }
-
       var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
       String ctl = hactls.get(did);
       var ctll = ctl.split(",");
@@ -1783,11 +1787,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateLvlState(String did, Int dp, String cname) {
       log.log("in updateLvlState " + did + " " + dp);
 
-      if (def(failingDevices) && failingDevices.has(did)) {
-        //log.log("skipping update for failing device " + did);
-        return(null);
-      }
-
       var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
       String ctl = hactls.get(did);
       var ctll = ctl.split(",");
@@ -1873,11 +1872,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    updateOifState(String did, Int dp, String cname) {
       log.log("in updateOifState " + did + " " + dp);
-
-      if (def(failingDevices) && failingDevices.has(did)) {
-        //log.log("skipping update for failing device " + did);
-        return(null);
-      }
 
       var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
       String ctl = hactls.get(did);
@@ -2420,6 +2414,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        if (def(request)) {
          return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
        }
+     } else {
+       if (def(request)) {
+         return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "none")));
+       }
      }
      return(null);
    }
@@ -2472,6 +2470,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
        }
+     } else {
+       if (def(request)) {
+         stDiffed = true;
+         return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
+        }
      }
      stDiffed = true;
      return(null);
@@ -2576,7 +2579,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        }
      } else {
        if (def(request)) {
-          //return(CallBackUI.reloadResponse());
+         stDiffed = true;
+         return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
         }
      }
      stDiffed = true;
@@ -2679,6 +2683,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
        }
+    } else {
+       if (def(request)) {
+         stDiffed = true;
+         return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
+        }
      }
      stDiffed = true;
      return(null);
@@ -2943,6 +2952,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
        }
+     } else {
+       if (def(request)) {
+         stDiffed = true;
+         return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
+        }
      }
      stDiffed = true;
      return(null);
@@ -3116,10 +3130,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    processCmdsFail(Map mcmd, request) {
 
-     slots {
-       Set failingDevices;
-     }
-
     String did = mcmd["did"];
 
     if (TS.notEmpty(did)) {
@@ -3127,47 +3137,28 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         log.log("in cmds fail clearing currentEvents for did " + did);
         currentEvents.remove(did);
       }
-      unless (def(failingDevices)) { failingDevices = Set.new(); }
-      failingDevices.put(did);
+      String kdaddr = mcmd["kdaddr"];
+      if (TS.notEmpty(kdaddr)) {
+        remoteAddrs.put(kdaddr);
+      }
       clearQueueDid(did);
      }
 
      //?failre / timeout callback?
-     String kdaddr = mcmd["kdaddr"];
      String kdname = mcmd["kdname"];
 
-     var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
      if (TS.notEmpty(kdname)) {
-      log.log("SHOULD NOW EJECT " + kdname);
-      haknc.remove(kdname);
-      if (def(knc)) {
-        knc.remove(kdname);
+      log.log("RERESOLVE " + kdname);
+      ifNotEmit(apwk) {
+        resolveAddr(kdname);
+        reloadAddr(kdname);
       }
-      ifEmit(jvad) {
-        if (TS.notEmpty(kdaddr)) { //if was remote, don't remove, so transition not a problem
-        emit(jv) {
-          """
-        InitializeResolveListener.knownDevices.remove(bevl_kdname.bems_toJvString());
-        """
-        }
-        }
+      ifEmit(apwk) {
+        //avoid race with goGetAddr
+        reloadAddr(kdname);
+        resolveAddr(kdname);
       }
      }
-
-     if (TS.notEmpty(kdaddr)) {
-       log.log("SHOULD NOW EJECT " + kdaddr);
-       if (def(kac)) {
-          String kdn = kac.get(kdaddr);
-          if (TS.notEmpty(kdn)) {
-            String kda = knc.get(kdn);
-            if (TS.notEmpty(kda)) {
-              knc.remove(kdn);
-              haknc.remove(kdn);
-             }
-            kac.remove(kdaddr);
-           }
-         }
-       }
        if (mcmd.has("cb")) {
          return(processMcmdRes(mcmd, request));
        }
@@ -3221,7 +3212,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (def(mqtt) && TS.notEmpty(mqttMode) && mqttMode == "fullRemote") {
           doRemote = true;
         }
+        if (TS.notEmpty(mcmd["kdaddr"]) && remoteAddrs.has(mcmd["kdaddr"])) {
+          unless (mcmd.has("forceLocal") && mcmd["forceLocal"]) {
+            //also, be sure there IS a remote server for device
+            //log.log("in remoteAddrs remove kdaddr");
+            //mcmd.remove("kdaddr");
+          } else {
+            log.log("was forceLocal, did not remove kdaddr");
+          }
+        }
         if (TS.isEmpty(mcmd["kdaddr"])) {
+          log.log("kdaddr empty");
           if (def(mqtt) && TS.notEmpty(mqttMode) && mqttMode == "remote") {
             doRemote = true;
           }
@@ -3313,13 +3314,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
         cmdQueue += mcmd;
         //log.log("added to cmdQueue");
-        if (TS.notEmpty(did)) {
-          if (def(failingDevices) && failingDevices.has(did)) {
-            log.log("did in failing devices, clearing and returning false");
-            failingDevices.remove(did);
-            return(false);
-          }
-        }
         return(true);
       }
       return(false);

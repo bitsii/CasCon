@@ -674,7 +674,7 @@ use class IUHub:Eui {
        currLvl = value;
        any sw = HD.getEle("hat" + setLvlDid + "-" + setLvlPos);
        if (sw.exists) { sw.checked = true; }
-       HD.getEle("devErr").display = "none";
+       //HD.getEle("devErr").display = "none";
        HC.callApp(Lists.from("devActRequest", "setLvl", setLvlDid, setLvlPos, currLvl.toString()));
      }
    }
@@ -703,7 +703,7 @@ use class IUHub:Eui {
      } else {
        currTemp = value;
        HD.getEle("hat" + setTempDid + "-" + setTempPos).checked = true;
-       HD.getEle("devErr").display = "none";
+       //HD.getEle("devErr").display = "none";
        HC.callApp(Lists.from("devActRequest", "setTemp", setTempDid, setTempPos, currTemp.toString()));
      }
    }
@@ -762,7 +762,7 @@ use class IUHub:Eui {
 
        unless (def(ignoreNextColorChange) && ignoreNextColorChange) {
         log.log("colorChanged r,g,b " + rgb);
-        HD.getEle("devErr").display = "none";
+        //HD.getEle("devErr").display = "none";
         HD.getEle("hat" + setColorDid + "-" + setColorPos).checked = true;
         HC.callApp(Lists.from("devActRequest", "setRgb", setColorDid, setColorPos, rgb));
        } else {
@@ -999,7 +999,7 @@ use class IUHub:Eui {
        ''';
        try {
          HD.getElementById("hadsList").innerHTML = ih;
-         HD.getEle("devErr").display = "none";
+         //HD.getEle("devErr").display = "none";
        } catch (any e) {
          log.log("got except writing  hadsList");
          HD.reload();

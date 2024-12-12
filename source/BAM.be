@@ -967,7 +967,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           emit(jv) {
             """
             //new $class/Text:String$(fnames[i].getBytes("UTF-8"))
-            kdaddr = InitializeResolveListener.knownDevices.get(beva_kdname.bems_toJvString());
+            String kdaddr = InitializeResolveListener.knownDevices.get(beva_kdname.bems_toJvString());
             if (kdaddr != null) {
               bevl_kdaddr =  new $class/Text:String$(kdaddr.getBytes("UTF-8"));
             }
@@ -1443,10 +1443,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //log.log("cmds " + cmds);
 
      Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "pwt", 3, "cmds", cmds);
-     if (System:Random.getIntMax(4) > 2) {
-       //in case something was remote, every once in a while try local to see if back to local net
-       mcmd["forceLocal"] = true;
+     if (System:Random.getIntMax(10) > 7) {
+       //in case something was remote or offline, every once in a while try local to see if back to local net
+       //mcmd["forceLocal"] = true;
      }
+     mcmd["skipIfRemote"] = true;
 
      if (backgroundPulse) {
        mcmd["runSync"] = true;
@@ -3213,12 +3214,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           doRemote = true;
         }
         if (TS.notEmpty(mcmd["kdaddr"]) && remoteAddrs.has(mcmd["kdaddr"])) {
-          unless (mcmd.has("forceLocal") && mcmd["forceLocal"]) {
-            //also, be sure there IS a remote server for device
-            //log.log("in remoteAddrs remove kdaddr");
-            //mcmd.remove("kdaddr");
-          } else {
-            log.log("was forceLocal, did not remove kdaddr");
+          if (mcmd.has("skipIfRemote") && mcmd["skipIfRemote"]) {
+            unless (mcmd.has("forceLocal") && mcmd["forceLocal"]) {
+              //also, be sure there IS a remote server for device
+              //log.log("in remoteAddrs remove kdaddr");
+              mcmd.remove("kdaddr");
+            } else {
+              log.log("was forceLocal, did not remove kdaddr");
+            }
           }
         }
         if (TS.isEmpty(mcmd["kdaddr"])) {

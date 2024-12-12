@@ -1443,7 +1443,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //log.log("cmds " + cmds);
 
      Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "pwt", 3, "cmds", cmds);
-     if (System:Random.getIntMax(10) > 7) {
+     if (System:Random.getIntMax(15) > 14) {
        //in case something was remote or offline, every once in a while try local to see if back to local net
        //mcmd["forceLocal"] = true;
      }
@@ -3222,6 +3222,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             } else {
               log.log("was forceLocal, did not remove kdaddr");
             }
+          } else {
+            //it's not polling, something is being attempted
+            //in future, if remote is supported, don't do this
+            remoteAddrs.remove(mcmd["kdaddr"]);
           }
         }
         if (TS.isEmpty(mcmd["kdaddr"])) {

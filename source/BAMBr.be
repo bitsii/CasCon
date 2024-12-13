@@ -22,11 +22,11 @@ use Time:Interval;
 
 emit(js) {
   """
-  if (typeof(window) !== 'undefined') {
+  /*if (typeof(window) !== 'undefined') {
   window.addEventListener('touchstart', function() {
   callUI('gotAction');
 });
-  }
+  }*/
   """
 }
 
@@ -44,13 +44,6 @@ use class IUHub:Eui {
           }
           log.log("authless " + authless);
         }
-    }
-
-    gotAction() {
-      //log.log("got some action");
-      ifEmit(apwk) {
-        lastAction = Time:Interval.now().seconds;
-      }
     }
     
     handleCallOut(Map arg) {
@@ -82,19 +75,6 @@ use class IUHub:Eui {
    }
 
    manageStateUpdates() {
-     ifEmit(apwk) {
-      slots {
-        Int lastAction;
-      }
-      if (undef(lastAction)) {
-        lastAction = Time:Interval.now().seconds;
-      }
-      Int ns = Time:Interval.now().seconds;
-      if (ns - lastAction > 30) {
-        //log.log("lastAction a while ago skipping manageStateUpdatesRequest");
-        return(self);
-      }
-     }
      unless (loggedIn) { return(self); }
      HC.callApp(Lists.from("manageStateUpdatesRequest"));
    }

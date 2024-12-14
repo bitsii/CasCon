@@ -1512,7 +1512,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
-   updateSwState(String did, Int dp, String cname) {
+   updateSwState(String did, Int dp, String cname, String repsu) {
      log.log("in updateSwState " + did + " " + dp);
 
      var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
@@ -1537,7 +1537,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        //log.log("cmds " + cmds);
        Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
      }
-
+     mcmd["repsu"] = repsu;
      if (backgroundPulse) {
        mcmd["runSync"] = true;
      }
@@ -1590,7 +1590,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
-   updateRgbState(String did, Int dp, String cname) {
+   updateRgbState(String did, Int dp, String cname, String repsu) {
       log.log("in updateRgbState " + did + " " + dp);
 
       var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
@@ -1620,7 +1620,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         //log.log("cmds " + cmds);
         Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
       }
-
+      mcmd["repsu"] = repsu;
       if (backgroundPulse) {
         mcmd["runSync"] = true;
       }
@@ -1699,7 +1699,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
-   updateTempState(String did, Int dp, String cname) {
+   updateTempState(String did, Int dp, String cname, String repsu) {
       log.log("in updateRgbState " + did + " " + dp);
 
       var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
@@ -1721,7 +1721,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         //log.log("cmds " + cmds);
         mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
       }
-
+      mcmd["repsu"] = repsu;
       if (backgroundPulse) {
         mcmd["runSync"] = true;
       }
@@ -1785,7 +1785,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
-   updateLvlState(String did, Int dp, String cname) {
+   updateLvlState(String did, Int dp, String cname, String repsu) {
       log.log("in updateLvlState " + did + " " + dp);
 
       var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
@@ -1815,7 +1815,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         //log.log("cmds " + cmds);
         Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
       }
-
+      mcmd["repsu"] = repsu;
       if (backgroundPulse) {
         mcmd["runSync"] = true;
       }
@@ -1871,7 +1871,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
-   updateOifState(String did, Int dp, String cname) {
+   updateOifState(String did, Int dp, String cname, String repsu) {
       log.log("in updateOifState " + did + " " + dp);
 
       var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
@@ -1893,7 +1893,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         //log.log("cmds " + cmds);
         Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
       }
-
+      mcmd["repsu"] = repsu;
       if (backgroundPulse) {
         mcmd["runSync"] = true;
       }
@@ -2075,20 +2075,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 log.log("doing updateXState for " + k);
                 var ks = k.split(",");
                 if (ks[0] == "sw") {
-                  updateSwState(ks[1], Int.new(ks[2]), ks[0]);
+                  updateSwState(ks[1], Int.new(ks[2]), ks[0], k);
                 } elseIf (ks[0] == "dim" || ks[0] == "gdim") {
-                  updateSwState(ks[1], Int.new(ks[2]), ks[0]);
-                  updateLvlState(ks[1], Int.new(ks[2]), ks[0]);
+                  updateSwState(ks[1], Int.new(ks[2]), ks[0], k);
+                  updateLvlState(ks[1], Int.new(ks[2]), ks[0], k);
                 } elseIf (ks[0] == "pwm") {
-                  updateLvlState(ks[1], Int.new(ks[2]), ks[0]);
+                  updateLvlState(ks[1], Int.new(ks[2]), ks[0], k);
                 } elseIf (ks[0] == "rgb" || ks[0] == "rgbgdim" || ks[0] == "rgbcwgd" || ks[0] == "rgbcwsgd") {
-                  updateSwState(ks[1], Int.new(ks[2]), ks[0]);
-                  updateRgbState(ks[1], Int.new(ks[2]), ks[0]);
+                  updateSwState(ks[1], Int.new(ks[2]), ks[0], k);
+                  updateRgbState(ks[1], Int.new(ks[2]), ks[0], k);
                 } elseIf (ks[0] == "cwgd") {
-                  updateSwState(ks[1], Int.new(ks[2]), ks[0]);
-                  updateTempState(ks[1], Int.new(ks[2]), ks[0]);
+                  updateSwState(ks[1], Int.new(ks[2]), ks[0], k);
+                  updateTempState(ks[1], Int.new(ks[2]), ks[0], k);
                 } elseIf (ks[0] == "oui") {
-                  updateOifState(ks[1], Int.new(ks[2]), ks[0]);
+                  updateOifState(ks[1], Int.new(ks[2]), ks[0], k);
                   //updateOuiState(ks[1], Int.new(ks[2]), ks[0]);
                 }
               } catch (any e) {
@@ -2416,12 +2416,29 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
        }
      } else {
-       if (def(request)) {
-         return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "none")));
-       }
+       //if (def(request)) {
+       //  return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "none")));
+       //}
      }
-     processCmdsRequest(request);
-     return(null);
+     if (def(request)) {
+      if (def(currCmds) && currCmds.has("did") && currCmds.has("prio")) {
+        log.log("past preempt 1 " + currCmds["prio"] + " " + currCmds["did"] + " " + mcmd["did"]);
+        if (currCmds["prio"] > 1 && currCmds["did"] != mcmd["did"]) {
+          log.log("preempting");
+          if (currCmds.has("repsu")) {
+            pendingStateUpdates += currCmds["repsu"];
+          }
+          currCmds = null;
+        }
+      } else {
+        log.log("failed preempt 1");
+      }
+      Map mres = processCmdsRequest(request);
+      if (def(mres)) {
+       return(mres);
+      }
+     }
+     return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "none")));
    }
 
    setDeviceSwMcmd(String did, String iposs, String state) Map {

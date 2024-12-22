@@ -84,16 +84,18 @@ use class IUHub:Eui {
    }
 
    gotTouch() {
-      log.log("gotTouch");
+      //log.log("gotTouch");
       //lastAction = Time:Interval.now().seconds;
     }
 
     docHidden() {
       log.log("docHidden");
+      visible = false;
     }
 
     docVisible() {
       log.log("docVisible");
+      visible = true;
     }
 
    manageStateUpdates() {
@@ -108,6 +110,13 @@ use class IUHub:Eui {
       log.log("lastAction a while ago skipping manageStateUpdatesRequest");
       return(self);
     }*/
+    slots {
+      Bool visible;
+    }
+    if (def(visible) && visible!) {
+      log.log("not visible, noop");
+      return(self);
+    }
      unless (loggedIn) { return(self); }
      HC.callApp(Lists.from("manageStateUpdatesRequest"));
    }

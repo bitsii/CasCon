@@ -23,9 +23,9 @@ use Time:Interval;
 emit(js) {
   """
   if (typeof(window) !== 'undefined') {
-    print("window is defined");
+    console.log("window is defined");
   window.addEventListener('touchstart', function() {
-  callUI('gotTouch');
+  callUI('gotAction');
 });
   }
 
@@ -83,9 +83,9 @@ use class IUHub:Eui {
       }
    }
 
-   gotTouch() {
-      //log.log("gotTouch");
-      //lastAction = Time:Interval.now().seconds;
+   gotAction() {
+      log.log("gotAction");
+      lastAction = Time:Interval.now().seconds;
     }
 
     docHidden() {
@@ -99,26 +99,27 @@ use class IUHub:Eui {
     }
 
    manageStateUpdates() {
-    /*slots {
+    slots {
       Int lastAction;
     }
     if (undef(lastAction)) {
       lastAction = Time:Interval.now().seconds;
     }
-    Int ns = Time:Interval.now().seconds;
+    /*Int ns = Time:Interval.now().seconds;
     if (ns - lastAction > 10) {
-      log.log("lastAction a while ago skipping manageStateUpdatesRequest");
+      log.log("lastAction a while ago pulsing less");
       return(self);
     }*/
     slots {
       Bool visible;
     }
+    Bool doPulse = true;
     if (def(visible) && visible!) {
-      log.log("not visible, noop");
-      return(self);
+      //log.log("not visible");
+      doPulse = false;
     }
      unless (loggedIn) { return(self); }
-     HC.callApp(Lists.from("manageStateUpdatesRequest"));
+     HC.callApp(Lists.from("manageStateUpdatesRequest", doPulse));
    }
 
    checkCx() {

@@ -1933,20 +1933,23 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
-   manageStateUpdatesRequest(request) {
+   manageStateUpdatesRequest(Bool doPulse, request) {
 
      fields {
        String lastError;
      }
-     if (backgroundPulse) {
-      log.log("disabling backgroundPulse");
-      backgroundPulse = false;
-     }
 
      ifEmit(wajv) {
       slots {
-        Int pulseCheck = Time:Interval.now().seconds;
+        if (doPulse) {
+          Int pulseCheck = Time:Interval.now().seconds;
+        }
       }
+     }
+
+     if (doPulse && backgroundPulse) {
+      log.log("disabling backgroundPulse");
+      backgroundPulse = false;
      }
 
      if (TS.notEmpty(lastError)) {
@@ -1972,11 +1975,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      ifEmit(wajv) {
        unless (backgroundPulse) {
-         pulseDevices();
+         if (doPulse) {
+          pulseDevices();
+         }
        }
      }
      ifNotEmit(wajv) {
-      pulseDevices();
+       if (doPulse) {
+        pulseDevices();
+       }
      }
      //log.log("done w manageStateUpdatesRequest");
      return(null);
@@ -2216,8 +2223,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    pollDiscoveryInnerJvad() {
      while(true) {
-      log.log("start runDiscoveryInner");
+      //log.log("start runDiscoveryInner");
       if (discoverNow.o) {
+        log.log("starting discovery");
         startDiscovery();
         log.log("started discovery");
         Time:Sleep.sleepSeconds(10);

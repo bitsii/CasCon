@@ -2419,6 +2419,27 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       mcmd = setDeviceRgbMcmd(rhan, rpos, rstate);
      }
 
+     Bool preempt = false;
+     if (def(request)) {
+      Map hcc = currCmds;
+      if (def(hcc) && TS.notEmpty(hcc["did"]) && def(hcc["prio"]) && def(mcmd) && TS.notEmpty(mcmd["did"])) {
+        log.log("past preempt 1 " + hcc["prio"] + " " + hcc["did"] + " " + mcmd["did"]);
+        if (hcc["prio"] > 1 && hcc["did"] != mcmd["did"]) {
+          unless (def(mcmd["runSync"]) && mcmd["runSync"]) {
+            log.log("will prempt!!!!!");
+            preempt = true;
+            if (TS.notEmpty(hcc["repsu"])) {
+              pendingStateUpdates += hcc["repsu"];
+            }
+          } else {
+            log.log("not preempt 2");
+          }
+        } else {
+          log.log("not preempt 1");
+        }
+      }
+     }
+
      if (sendDeviceMcmd(mcmd)!) {
        if (def(request)) {
          return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "block")));
@@ -2428,24 +2449,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        //  return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "none")));
        //}
      }
-     if (def(request)) {
-      if (def(currCmds) && currCmds.has("did") && currCmds.has("prio")) {
-        log.log("past preempt 1 " + currCmds["prio"] + " " + currCmds["did"] + " " + mcmd["did"]);
-        if (currCmds["prio"] > 1 && currCmds["did"] != mcmd["did"]) {
-          log.log("preempting");
-          if (currCmds.has("repsu")) {
-            pendingStateUpdates += currCmds["repsu"];
-          }
-          currCmds = null;
-        }
-      } else {
-        log.log("failed preempt 1");
-      }
+
+     if (preempt) {
+      log.log("preempting now!!!!!");
+      currCmds = null;
       Map mres = processCmdsRequest(request);
       if (def(mres)) {
        return(mres);
       }
      }
+
      return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "none")));
    }
 

@@ -22,11 +22,20 @@ use Time:Interval;
 
 emit(js) {
   """
-  /*if (typeof(window) !== 'undefined') {
+  if (typeof(window) !== 'undefined') {
+    print("window is defined");
   window.addEventListener('touchstart', function() {
-  callUI('gotAction');
+  callUI('gotTouch');
 });
-  }*/
+  }
+
+  document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    callUI('docHidden');
+  } else {
+    callUI('docVisible');
+  }
+});
   """
 }
 
@@ -45,7 +54,7 @@ use class IUHub:Eui {
           log.log("authless " + authless);
         }
     }
-    
+
     handleCallOut(Map arg) {
       hc.call(arg);
     }
@@ -74,7 +83,31 @@ use class IUHub:Eui {
       }
    }
 
+   gotTouch() {
+      log.log("gotTouch");
+      //lastAction = Time:Interval.now().seconds;
+    }
+
+    docHidden() {
+      log.log("docHidden");
+    }
+
+    docVisible() {
+      log.log("docVisible");
+    }
+
    manageStateUpdates() {
+    /*slots {
+      Int lastAction;
+    }
+    if (undef(lastAction)) {
+      lastAction = Time:Interval.now().seconds;
+    }
+    Int ns = Time:Interval.now().seconds;
+    if (ns - lastAction > 10) {
+      log.log("lastAction a while ago skipping manageStateUpdatesRequest");
+      return(self);
+    }*/
      unless (loggedIn) { return(self); }
      HC.callApp(Lists.from("manageStateUpdatesRequest"));
    }

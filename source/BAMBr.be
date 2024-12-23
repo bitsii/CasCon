@@ -105,11 +105,6 @@ use class IUHub:Eui {
     if (undef(lastAction)) {
       lastAction = Time:Interval.now().seconds;
     }
-    /*Int ns = Time:Interval.now().seconds;
-    if (ns - lastAction > 10) {
-      log.log("lastAction a while ago pulsing less");
-      return(self);
-    }*/
     slots {
       Bool visible;
     }
@@ -117,6 +112,29 @@ use class IUHub:Eui {
     if (def(visible) && visible!) {
       //log.log("not visible");
       doPulse = false;
+    }
+    Bool isMob = false;
+    ifEmit(jvad) {
+      isMob = true;
+    }
+    ifEmit(apwk) {
+      isMob = true;
+    }
+    Int ns = Time:Interval.now().seconds;
+    Int lgap = ns - lastAction;
+    Int lgapFreq = 120;
+    Int lgapHead = 6;
+    if (lgap > lgapFreq) {
+      //log.log("lgap a while ago pulsing less");
+      if (isMob) {
+        //log.log("isMob");
+        if (lgap % lgapFreq < lgapFreq - lgapHead) {
+          //log.log("doPulse false in lastAction");
+          doPulse = false;
+        } else {
+          //log.log("doPulse true in lastAction");
+        }
+      }
     }
      unless (loggedIn) { return(self); }
      HC.callApp(Lists.from("manageStateUpdatesRequest", doPulse));

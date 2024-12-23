@@ -1443,9 +1443,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //log.log("cmds " + cmds);
 
      Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "pwt", 3, "cmds", cmds);
-     if (System:Random.getIntMax(10) > 8) {  //4-8 seconds (av 6) per
+     if (System:Random.getIntMax(10) > 8) {  //4-8 seconds (av 6) per device try, this should be once a minute
        //in case something was remote or offline, every once in a while try local to see if back to local net
-       //mcmd["forceLocal"] = true;
+       mcmd["forceLocal"] = true;
      }
      mcmd["skipIfRemote"] = true;
 

@@ -698,6 +698,7 @@ use class IUHub:Eui {
        any sw = HD.getEle("hat" + setLvlDid + "-" + setLvlPos);
        if (sw.exists) { sw.checked = true; }
        //HD.getEle("devErr").display = "none";
+       gotAction();
        HC.callApp(Lists.from("devActRequest", "setLvl", setLvlDid, setLvlPos, currLvl.toString()));
      }
    }
@@ -727,6 +728,7 @@ use class IUHub:Eui {
        currTemp = value;
        HD.getEle("hat" + setTempDid + "-" + setTempPos).checked = true;
        //HD.getEle("devErr").display = "none";
+       gotAction();
        HC.callApp(Lists.from("devActRequest", "setTemp", setTempDid, setTempPos, currTemp.toString()));
      }
    }
@@ -787,6 +789,7 @@ use class IUHub:Eui {
         log.log("colorChanged r,g,b " + rgb);
         //HD.getEle("devErr").display = "none";
         HD.getEle("hat" + setColorDid + "-" + setColorPos).checked = true;
+        gotAction();
         HC.callApp(Lists.from("devActRequest", "setRgb", setColorDid, setColorPos, rgb));
        } else {
         log.log("colorChanged first ignored " + rgb);
@@ -934,7 +937,7 @@ use class IUHub:Eui {
       String forsw = '''
         <div class="item-after">
              <label class="toggle">
-               <input type="checkbox" onclick="callApp('devActRequest', 'setSw', 'IDOFDEVICE', 'POSOFDEVICE', toOnOff(document.getElementById('hatIDOFDEVICE-POSOFDEVICE').checked));return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
+               <input type="checkbox" onclick="callUI('gotAction');callApp('devActRequest', 'setSw', 'IDOFDEVICE', 'POSOFDEVICE', toOnOff(document.getElementById('hatIDOFDEVICE-POSOFDEVICE').checked));return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
                <span class="toggle-icon"></span>
              </label>
            </div>

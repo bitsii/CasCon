@@ -113,7 +113,7 @@ use class IUHub:Eui {
       //log.log("not visible");
       doPulse = false;
     }
-    Bool isMob = false;
+    /*Bool isMob = false;
     ifEmit(jvad) {
       isMob = true;
     }
@@ -135,7 +135,7 @@ use class IUHub:Eui {
           //log.log("doPulse true in lastAction");
         }
       }
-    }
+    }*/
      unless (loggedIn) { return(self); }
      HC.callApp(Lists.from("manageStateUpdatesRequest", doPulse));
    }

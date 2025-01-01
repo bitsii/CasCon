@@ -162,9 +162,17 @@ class CasNic:CasProt {
       } else {
         ncmd = "sp";
       }
+      //the max version I know
+      if (pver > 6) {
+        pver = 4;
+      }
       ncmd += pver;
       String iv = mcmd["iv"];
       String insec = iv + "," + pw + "," + tesh + ",";
+      if (pver > 5) {
+        String reId = mcmd["reid"];
+        insec = insec + reId + ",";
+      }
       var cmdl = cmds.split(" ");
       cmdl[1] = "X";
       Int toc = cmdl.length - 1;
@@ -181,6 +189,9 @@ class CasNic:CasProt {
         fcmds = Hex.encode(Crypt.encrypt(iv, pw, fcmds)) += " e";
       }
       String henres = ncmd + " " + iv + " " + outsec + " " + tesh + " ";
+      if (pver > 5) {
+        henres = henres + reId + " ";
+      }
       henres += fcmds;
       log.log("secCmds " + henres);
       return(henres);

@@ -274,7 +274,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           Bool backgroundPulse = backgroundPulseOnIdle;
           Mqtt mqtt;
           String mqttMode;
-          String mqttReId;
+          String reId;
         }
         slots {
           Map knc = Map.new();
@@ -284,6 +284,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           backgroundPulseOnIdle = true;
           backgroundPulse = backgroundPulseOnIdle;
         }
+        reId = System:Random.getString(12);
         super.new();
         log = IO:Logs.get(self);
         IO:Logs.turnOnAll();
@@ -500,7 +501,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       ifEmit(wajv) {
        log.log("initializing mqtt");
        mqttMode = _mqttMode;
-       mqttReId = System:Random.getString(16);
        mqtt = Mqtt.new();
        mqtt.broker = mqttBroker;
        mqtt.user = mqttUser;
@@ -513,7 +513,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           mqtt.subscribe("homeassistant/status");
         }
         if (mqttMode == "remote" || mqttMode == "fullRemote") {
-          mqtt.subscribe("casnic/res/" + mqttReId);
+          mqtt.subscribe("casnic/res/" + reId);
         }
         if (mqttMode == "relay") {
           mqtt.subscribe("casnic/cmds");
@@ -715,7 +715,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               System:Thread.new(System:Invocation.new(self, "handleRelay", Lists.from(topic, payload))).start()
             }
           }
-          if ((mqttMode == "remote" || mqttMode == "fullRemote") && topic == "casnic/res/" + mqttReId) {
+          if ((mqttMode == "remote" || mqttMode == "fullRemote") && topic == "casnic/res/" + reId) {
             if (TS.notEmpty(payload)) {
               log.log("got res in mqtt remote " + payload);
               Map mqres = Json:Unmarshaller.unmarshall(payload);
@@ -3087,7 +3087,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   log.log("doing remote");
                   String finCmds = prot.secCmds(mcmd);
                   if (def(mqtt)) {
-                    Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", finCmds, "reid", mqttReId, "iv", mcmd["iv"]);
+                    Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", finCmds, "reid", reId, "iv", mcmd["iv"]);
                     mqtt.publish("casnic/cmds", Json:Marshaller.marshall(mqcmd));
                     //mcmd["cres"] = "ok"; //tmp to test
                   } else {
@@ -3219,11 +3219,23 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
           String sws = haspecs.get(did);
           if (TS.notEmpty(sws)) {
-            if (sws.has("p4,")) {
-              mcmd["pver"] = 4;
+            if (sws.has(".") && sws.has(",")) {
+              sws = sws.substring(0, sws.find("."));
+              var swl = sws.split(",");
+              for (var swe in swl) {
+                //log.log("swe " + swe);
+                if (swe.begins("p")) {
+                  Int sp = Int.new(swe.substring(1, swe.length));
+                  //log.log("sp " + sp);
+                  if (undef(spm) || spm < sp) {
+                    Int spm = sp;
+                  }
+                }
+              }
             }
-            if (sws.has("p5,")) {
-              mcmd["pver"] = 5;
+            if (def(spm)) {
+              //log.log("spm " + spm);
+              mcmd["pver"] = spm;
             }
           }
           Int pwt = mcmd["pwt"];
@@ -3400,6 +3412,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       mcmd["pver"] = 1;
     }
     mcmd["iv"] = System:Random.getString(16);
+    mcmd["reid"] = reId;
     //log.log("adding tesh in processDeviceMcmd");
     Int teshi = Time:Interval.now().seconds;
     //teshi -= 300;

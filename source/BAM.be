@@ -3126,12 +3126,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             }
            }
          }
-         if (def(pver) && pver == 5 && def(pwt) && pwt > 0 && TS.notEmpty(pw) && TS.notEmpty(iv) && TS.notEmpty(cres)) {
-           log.log("will decrypt cres");
-           cres = Encode:Hex.decode(cres);
-           cres = Crypt.decrypt(iv, pw, cres);
-           log.log("decrypted cres" + cres);
-           mcmd["cres"] = cres;
+         if (def(pver) && pver > 4 && def(pwt) && pwt > 0 && TS.notEmpty(pw) && TS.notEmpty(iv) && TS.notEmpty(cres)) {
+           if (pver == 5) {
+             log.log("will decrypt cres");
+             cres = Encode:Hex.decode(cres);
+             cres = Crypt.decrypt(iv, pw, cres);
+             log.log("decrypted cres" + cres);
+             mcmd["cres"] = cres;
+           } else {
+             log.log("will pull iv,reid off cres |" + cres + "|");
+             cres = cres.substring(cres.find(" ") + 1, cres.length);
+             log.log("final cres |" + cres + "|");
+             mcmd["cres"] = cres;
+           }
          }
          return(self.invoke(mcmd["cb"], Lists.from(mcmd, request)));
        }

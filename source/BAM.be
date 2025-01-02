@@ -1552,7 +1552,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
+   deIvReidMCres(Map mcmd) {
+     if (def(mcmd) && mcmd.has("pwt") && mcmd["pwt"] == 3) {
+       String cres = mcmd["cres"];
+       if (TS.notEmpty(cres) && cres.has(" ")) {
+          log.log("removing iv,reid in deIvReidMCres");
+          cres = cres.substring(cres.find(" ") + 1, cres.length);
+          mcmd["cres"] = cres;
+       }
+     }
+   }
+
    updateSwStateCb(Map mcmd, request) Map {
+     deIvReidMCres(mcmd);
      String cres = mcmd["cres"];
      String did = mcmd["did"];
      String itype = mcmd["itype"];

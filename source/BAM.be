@@ -1439,10 +1439,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        log.elog("error in gle", e);
        return(null);
      }
-     String cmds = "getlastevents q e";
+     String iv = System:Random.getString(16);
+     String cmds = "getlastevents q " + iv + "," + reId + " e";
      //log.log("cmds " + cmds);
 
-     Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "pwt", 3, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "pwt", 3, "cmds", cmds, "iv", iv);
      if (System:Random.getIntMax(10) > 8) {  //4-8 seconds (av 6) per device try, this should be once a minute
        //in case something was remote or offline, every once in a while try local to see if back to local net
        mcmd["forceLocal"] = true;
@@ -1464,6 +1465,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (TS.notEmpty(mcmd["kdaddr"]) && remoteAddrs.has(mcmd["kdaddr"])) {
           log.log("clearing kdaddr from remoteAddrs");
           remoteAddrs.remove(mcmd["kdaddr"]);
+        }
+        if (cres.has(" ") && cres.find(" ") < cres.find(";")) {
+          //log.log("dropping iv,reid from gle res");
+          cres = cres.substring(cres.find(" ") + 1, cres.length);
         }
         //log.log("getlastevents cres |" + cres + "|");
         String ores = currentEvents.get(leid);
@@ -1529,9 +1534,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
      String sws = haspecs.get(did);
      if (TS.notEmpty(sws) && sws.has("q,")) {
-       cmds = "dostate q " + dpd + " getsw e";
+       String iv = System:Random.getString(16);
+       cmds = "dostate q " + dpd + " getsw " + iv + "," + reId + " e";
        //log.log("cmds " + cmds);
-       mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
+       mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
      } else {
        String cmds = "dostate spass " + dpd + " getsw e";
        //log.log("cmds " + cmds);
@@ -1604,13 +1610,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
       String sws = haspecs.get(did);
       if (TS.notEmpty(sws) && sws.has("q,")) {
+        String iv = System:Random.getString(16);
         if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
-          cmds = "getstatexd q " + dpd + " e";
+          cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
         } else {
-          cmds = "dostate q " + dpd + " getrgb e";
+          cmds = "dostate q " + dpd + " getrgb " + iv + "," + reId + " e";
         }
         //log.log("cmds " + cmds);
-        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
+        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       } else {
         if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
           cmds = "getstatexd spass " + dpd + " e";
@@ -1713,9 +1720,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
       String sws = haspecs.get(did);
       if (TS.notEmpty(sws) && sws.has("q,")) {
-        String cmds = "getstatexd q " + dpd + " e";
+        String iv = System:Random.getString(16);
+        String cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
         //log.log("cmds " + cmds);
-        Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
+        Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       } else {
         cmds = "getstatexd spass " + dpd + " e";
         //log.log("cmds " + cmds);
@@ -1799,13 +1807,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
       String sws = haspecs.get(did);
       if (TS.notEmpty(sws) && sws.has("q,")) {
+        String iv = System:Random.getString(16);
         if (itype == "gdim") {
-        cmds = "getstatexd q " + dpd + " e";
+        cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
         } else {
-        cmds = "dostate q " + dpd + " getlvl e";
+        cmds = "dostate q " + dpd + " getlvl " + iv + "," + reId + " e";
         }
         //log.log("cmds " + cmds);
-        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "itype", itype, "cname", cname, "cmds", cmds);
+        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       } else {
         if (itype == "gdim") {
           cmds = "getstatexd spass " + dpd + " e";
@@ -1885,9 +1894,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
       String sws = haspecs.get(did);
       if (TS.notEmpty(sws) && sws.has("q,")) {
-        cmds = "dostate q " + dpd + " getoif e";
+        String iv = System:Random.getString(16);
+        cmds = "dostate q " + dpd + " getoif " + iv + "," + reId + " e";
         //log.log("cmds " + cmds);
-        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds);
+        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       } else {
         String cmds = "dostate spass " + dpd + " getoif e";
         //log.log("cmds " + cmds);
@@ -3418,7 +3428,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     unless (mcmd.has("pver")) {
       mcmd["pver"] = 1;
     }
-    mcmd["iv"] = System:Random.getString(16);
+    unless (mcmd.has("iv")) {
+      mcmd["iv"] = System:Random.getString(16);
+    }
     mcmd["reid"] = reId;
     //log.log("adding tesh in processDeviceMcmd");
     Int teshi = Time:Interval.now().seconds;

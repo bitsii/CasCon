@@ -1649,6 +1649,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    updateRgbStateCb(Map mcmd, request) Map {
+     deIvReidMCres(mcmd);
      String cres = mcmd["cres"];
      String did = mcmd["did"];
      String itype = mcmd["itype"];
@@ -1753,6 +1754,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
 
    updateTempStateCb(Map mcmd, request) Map {
+     deIvReidMCres(mcmd);
      String cres = mcmd["cres"];
      String did = mcmd["did"];
      String itype = mcmd["itype"];
@@ -1846,6 +1848,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    updateLvlStateCb(Map mcmd, request) Map {
+     deIvReidMCres(mcmd);
      String cres = mcmd["cres"];
      String did = mcmd["did"];
      Int dp = mcmd["dp"];
@@ -1925,6 +1928,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    updateOifStateCb(Map mcmd, request) Map {
+     deIvReidMCres(mcmd);
      String cres = mcmd["cres"];
      String did = mcmd["did"];
      Int dp = mcmd["dp"];

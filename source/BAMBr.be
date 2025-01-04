@@ -29,6 +29,7 @@ emit(js) {
 });
   }
 
+  if (typeof(document) !== 'undefined') {
   document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     callUI('docHidden');
@@ -36,6 +37,7 @@ emit(js) {
     callUI('docVisible');
   }
 });
+  }
   """
 }
 

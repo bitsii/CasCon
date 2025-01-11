@@ -2444,13 +2444,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      } elseIf (aType == "setRgb") {
       mcmd = setDeviceRgbMcmd(rhan, rpos, rstate);
      }
+     mcmd["mw"] = 3;
 
      Bool preempt = false;
      if (def(request)) {
       Map hcc = currCmds;
       if (def(hcc) && TS.notEmpty(hcc["did"]) && def(hcc["prio"]) && def(mcmd) && TS.notEmpty(mcmd["did"])) {
         log.log("past preempt 1 " + hcc["prio"] + " " + hcc["did"] + " " + mcmd["did"]);
-        if (hcc["prio"] > 1 && hcc["did"] != mcmd["did"]) {
+        if (hcc["prio"] > 1) {
           unless (def(mcmd["runSync"]) && mcmd["runSync"]) {
             log.log("will prempt!!!!!");
             preempt = true;
@@ -3175,7 +3176,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //clear pending
       for (var kv in cmdQueues) {
         Container:LinkedList cmdQueue = kv.value;
-        if (def(cmdQueue)) {
+        if (def(cmdQueue) && kv.key > 1) {
           for (Map mcmdcl in cmdQueue) {
             if (TS.notEmpty(mcmdcl["did"]) && mcmdcl["did"] == did) {
               log.log("marking ignore in cmdQueue did");

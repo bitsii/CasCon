@@ -2480,11 +2480,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (preempt) {
       log.log("preempting now!!!!!");
       currCmds = null;
-      Map mres = processCmdsRequest(request);
-      if (def(mres)) {
-       return(mres);
-      }
      }
+    Map mres = processCmdsRequest(request);
+    if (def(mres)) {
+      return(mres);
+    }
 
      return(CallBackUI.setElementsDisplaysResponse(Maps.from("devErr", "none")));
    }

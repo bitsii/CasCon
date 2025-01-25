@@ -242,14 +242,6 @@ use class IUHub:Eui {
         dma.display = "block";
       }
      }
-     /*dma = HD.getEle("divMqttMode");
-     ifEmit(wajv) {
-      if (dma.display == "block") {
-        dma.display = "none";
-      } else {
-        dma.display = "block";
-      }
-     }*/
    }
 
    wantSettings(String devId) {
@@ -437,6 +429,8 @@ use class IUHub:Eui {
       HD.getEle("mqmremote").checked = true;
     } elseIf (mqttMode == "fullRemote") {
       HD.getEle("mqmfullremote").checked = true;
+    } elseIf (mqttMode == "relay") {
+      HD.getEle("mqmrelay").checked = true;
     } elseIf (mqttMode == "haRelay") {
       HD.getEle("mqmharelay").checked = true;
     }
@@ -448,6 +442,8 @@ use class IUHub:Eui {
       mqttMode = "remote";
      } elseIf (HD.getEle("mqmfullremote").checked) {
       mqttMode = "fullRemote";
+     } elseIf (HD.getEle("mqmrelay").checked) {
+      mqttMode = "relay";
      } elseIf (HD.getEle("mqmharelay").checked) {
       mqttMode = "haRelay";
      }

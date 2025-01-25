@@ -444,10 +444,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
     }
 
-    prepMqttMode() {
-      if (TS.isEmpty(mqttMode)) { mqttMode = "haRelay"; }
-    }
-
     checkStartMqtt() {
       ifEmit(wajv) {
         if (undef(mqtt) || mqtt.isOpen!) {
@@ -461,7 +457,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String mqttUser = app.configManager.get("mqtt.user");
           String mqttPass = app.configManager.get("mqtt.pass");
           String mqttMode = app.configManager.get("mqtt.mode");
-          prepMqttMode();
+          if (TS.isEmpty(mqttMode)) { mqttMode = "haRelay"; }
           if (TS.isEmpty(mqttBroker) || TS.isEmpty(mqttUser) || TS.isEmpty(mqttPass)) {
             ifEmit(wajv) {
             if (TS.notEmpty(prot.supTok) && TS.notEmpty(prot.supUrl) && prot.doSupAuth) {
@@ -519,6 +515,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (mqttMode == "remote" || mqttMode == "fullRemote") {
           mqtt.subscribe("casnic/res/" + reId);
         }
+        if (mqttMode == "relay") {
+          mqtt.subscribe("casnic/cmds");
+        }
         mqtt.subscribe("casnic/ktlo");
         setupMqttDevices();
        } else {
@@ -544,7 +543,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         Map devices = Map.new();
         Map ctls = Map.new();
         Map topubs = Map.new();
-        if (mqttMode == "haRelay") {
+        if (mqttMode == "relay" || mqttMode == "haRelay") {
           for (any kv in hadevs.getMap()) {
             String did = kv.key;
             String confs = kv.value;
@@ -711,6 +710,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 }
                 stDiffed = true;
               }
+            } elseIf (mqttMode == "relay" && topic == "casnic/cmds") {
+              log.log("relay handlemessage for " + topic + " " + payload);
+              System:Thread.new(System:Invocation.new(self, "handleRelay", Lists.from(topic, payload))).start()
             }
           }
           if ((mqttMode == "remote" || mqttMode == "fullRemote") && topic == "casnic/res/" + reId) {
@@ -1237,7 +1239,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    loadMqttModeRequest(request) Map {
      //app.configManager.remove("mqtt.mode"); return(null);
      String mqttMode = app.configManager.get("mqtt.mode");
-     if (TS.isEmpty(mqttMode)) { prepMqttMode(); }
+     if (TS.isEmpty(mqttMode)) { mqttMode = "remote"; }
      return(CallBackUI.mqttModeResponse(mqttMode));
    }
 
@@ -1263,7 +1265,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
-   saveMqttRequest(String _mqttMode, String mqttBroker, String mqttUser, String mqttPass, request) Map {
+   saveMqttRequest(String mqttBroker, String mqttUser, String mqttPass, request) Map {
 
      if (TS.notEmpty(mqttBroker) && TS.notEmpty(mqttUser) && TS.notEmpty(mqttPass)) {
       app.configManager.put("mqtt.broker", mqttBroker);
@@ -1276,9 +1278,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       app.configManager.remove("mqtt.pass");
       log.log("cleared mqtt");
      }
-     if (TS.isEmpty(_mqttMode)) { prepMqttMode(); }
-     else { mqttMode = _mqttMode; }
+     if (TS.isEmpty(mqttMode)) { String mqttMode = "haRelay"; }
      app.configManager.put("mqtt.mode", mqttMode);
+     self.mqttMode = mqttMode;
      log.log("set mqttMode " + mqttMode);
      ifEmit(wajv) {
       if (def(mqtt)) {
@@ -3112,7 +3114,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   log.log("doing remote");
                   String finCmds = prot.secCmds(mcmd);
                   if (def(mqtt)) {
-                    mqtt.publish("casnic/cmds", finCmds);
+                    Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", finCmds, "reid", reId, "iv", mcmd["iv"]);
+                    mqtt.publish("casnic/cmds", Json:Marshaller.marshall(mqcmd));
+                    //mcmd["cres"] = "ok"; //tmp to test
                   } else {
                     log.log("failed doing remote mqtt undef");
                   }
@@ -3326,11 +3330,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             return(false);
           }
         }
-        Int priority = mcmd["prio"];
-        if (undef(priority)) {
-          log.log("prio undefined in sendDeviceMcmd");
-          priority = 5;
-        }
         Bool rs = mcmd["runSync"];
         if (def(rs) && rs) {
           Bool ignore = mcmd["ignore"];
@@ -3342,6 +3341,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           processDeviceMcmd(mcmd);
           processMcmdRes(mcmd, null);
           return(true);
+        }
+        Int priority = mcmd["prio"];
+        if (undef(priority)) {
+          log.log("prio undefined in sendDeviceMcmd");
+          priority = 5;
         }
 
         Container:LinkedList cmdQueue = cmdQueues.get(priority);

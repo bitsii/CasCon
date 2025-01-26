@@ -492,7 +492,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             initializeMqtt(mqttMode, mqttBroker, mqttUser, mqttPass);
           }
         } else {
-          mqtt.publish("casnic/ktlo", "yo");
+          mqtt.publish("casnic/ktlo/" + reId, "yo");
         }
       }
     }
@@ -518,7 +518,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (mqttMode == "relay") {
           mqtt.subscribe("casnic/cmds");
         }
-        mqtt.subscribe("casnic/ktlo");
+        mqtt.subscribe("casnic/ktlo/" + reId);
         setupMqttDevices();
        } else {
          if (TS.notEmpty(mqtt.lastError)) {
@@ -661,7 +661,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     handleMessage(String topic, String payload) {
       if (TS.notEmpty(topic) && TS.notEmpty(payload)) {
-        if (topic == "casnic/ktlo") { return(self); } //noop
+        if (topic.begins("casnic/ktlo")) { return(self); } //noop
         ifEmit(wajv) {
           //log.log("in bam handlemessage for " + topic + " " + payload);
             if (mqttMode == "haRelay") {

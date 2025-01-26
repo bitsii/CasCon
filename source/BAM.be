@@ -1265,7 +1265,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
-   saveMqttRequest(String mqttBroker, String mqttUser, String mqttPass, request) Map {
+   saveMqttRequest(String mqttMode, String mqttBroker, String mqttUser, String mqttPass, request) Map {
 
      if (TS.notEmpty(mqttBroker) && TS.notEmpty(mqttUser) && TS.notEmpty(mqttPass)) {
       app.configManager.put("mqtt.broker", mqttBroker);
@@ -1278,7 +1278,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       app.configManager.remove("mqtt.pass");
       log.log("cleared mqtt");
      }
-     if (TS.isEmpty(mqttMode)) { String mqttMode = "haRelay"; }
+     if (TS.isEmpty(mqttMode)) { mqttMode = "haRelay"; }
      app.configManager.put("mqtt.mode", mqttMode);
      self.mqttMode = mqttMode;
      log.log("set mqttMode " + mqttMode);
@@ -3330,6 +3330,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             return(false);
           }
         }
+        Int priority = mcmd["prio"];
+        if (undef(priority)) {
+          log.log("prio undefined in sendDeviceMcmd");
+          priority = 5;
+        }
         Bool rs = mcmd["runSync"];
         if (def(rs) && rs) {
           Bool ignore = mcmd["ignore"];
@@ -3341,11 +3346,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           processDeviceMcmd(mcmd);
           processMcmdRes(mcmd, null);
           return(true);
-        }
-        Int priority = mcmd["prio"];
-        if (undef(priority)) {
-          log.log("prio undefined in sendDeviceMcmd");
-          priority = 5;
         }
 
         Container:LinkedList cmdQueue = cmdQueues.get(priority);

@@ -235,13 +235,11 @@ use class IUHub:Eui {
 
    toggleAdvanced() {
      any dma = HD.getEle("divMqttAdvanced");
-     ifEmit(wajv) {
       if (dma.display == "block") {
         dma.display = "none";
       } else {
         dma.display = "block";
       }
-     }
    }
 
    wantSettings(String devId) {

@@ -280,7 +280,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           Map knc = Map.new();
           Set remoteAddrs = Set.new();
         }
-        ifEmit(wajv) {
+        ifEmit(jv) {
           backgroundPulseOnIdle = true;
           backgroundPulse = backgroundPulseOnIdle;
         }
@@ -313,7 +313,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         app.pluginsByName.get("Auth").authedUrlsConfigKey = "bridgeAuthedUrls";
       }
 
-      ifEmit(wajv) {
+      ifEmit(jv) {
         System:Thread.new(System:Invocation.new(self, "keepMqttUp", List.new())).start();
       }
 
@@ -327,7 +327,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       initializeDiscoveryListener();
 
-      ifEmit(wajv) {
+      ifEmit(jv) {
         checkStartMqtt();
       }
 
@@ -432,7 +432,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     keepMqttUp() {
-      ifEmit(wajv) {
+      ifEmit(jv) {
         while (true) {
           Time:Sleep.sleepSeconds(20);
           try {
@@ -445,7 +445,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     checkStartMqtt() {
-      ifEmit(wajv) {
+      ifEmit(jv) {
         if (undef(mqtt) || mqtt.isOpen!) {
           if (def(mqtt)) {
             log.log("closing mqtt");
@@ -498,7 +498,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     initializeMqtt(String _mqttMode, String mqttBroker, String mqttUser, String mqttPass) {
-      ifEmit(wajv) {
+      ifEmit(jv) {
        log.log("initializing mqtt");
        mqttMode = _mqttMode;
        mqtt = Mqtt.new();
@@ -1282,7 +1282,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      app.configManager.put("mqtt.mode", mqttMode);
      self.mqttMode = mqttMode;
      log.log("set mqttMode " + mqttMode);
-     ifEmit(wajv) {
+     ifEmit(jv) {
       if (def(mqtt)) {
         mqtt.close();
         mqtt = null;

@@ -327,9 +327,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       initializeDiscoveryListener();
 
-      ifEmit(jv) {
+
         checkStartMqtt();
-      }
+
 
     }
 
@@ -445,7 +445,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     checkStartMqtt() {
-      ifEmit(jv) {
+
         if (undef(mqtt) || mqtt.isOpen!) {
           if (def(mqtt)) {
             log.log("closing mqtt");
@@ -494,11 +494,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         } else {
           mqtt.publish("casnic/ktlo/" + reId, "yo");
         }
-      }
+
     }
 
     initializeMqtt(String _mqttMode, String mqttBroker, String mqttUser, String mqttPass) {
-      ifEmit(jv) {
+
        log.log("initializing mqtt");
        mqttMode = _mqttMode;
        mqtt = Mqtt.new();
@@ -529,7 +529,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        }
        //mqtt.subscribe("test");
        //mqtt.publish("test", "hi from casnic");
-      }
+
     }
 
     setupMqttDevices() {
@@ -1282,13 +1282,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      app.configManager.put("mqtt.mode", mqttMode);
      self.mqttMode = mqttMode;
      log.log("set mqttMode " + mqttMode);
-     ifEmit(jv) {
+
       if (def(mqtt)) {
         mqtt.close();
         mqtt = null;
       }
       checkStartMqtt();
-     }
+
      return(CallBackUI.reloadResponse());
    }
    

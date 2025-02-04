@@ -326,9 +326,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
 
       initializeDiscoveryListener();
-
-
-        checkStartMqtt();
+      checkStartMqtt();
 
 
     }
@@ -507,7 +505,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        mqtt.pass = mqttPass;
        mqtt.messageHandler = self;
        mqtt.open();
-       if (mqtt.isOpen) {
+       if (mqtt.canSubscribe) {
         log.log("mqtt opened");
         if (mqttMode == "haRelay") {
           mqtt.subscribe("homeassistant/status");
@@ -521,6 +519,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         mqtt.subscribe("casnic/ktlo/" + reId);
         setupMqttDevices();
        } else {
+         log.log("mqtt not open");
          if (TS.notEmpty(mqtt.lastError)) {
            lastError = "Mqtt Error: " + mqtt.lastError;
          }
@@ -3047,14 +3046,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         currCmds = null;
         return(processCmdsFail(mcmd, request));
       }
-        ifEmit(jv) {
            String jvadCmdsRes;
            jvadCmdsRes = currCmds["creso"].o;
            if (TS.notEmpty(jvadCmdsRes)) {
              currCmds["cres"] = jvadCmdsRes;
            }
-        }
+
         ifEmit(apwk) {
+          if (undef(currCmds["cres"])) {
           String jspw = "getLastCres:";
           emit(js) {
           """
@@ -3088,6 +3087,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             //"no getLastCres".print();
           }
         }
+       }
      }
 
      if (def(currCmds) && def(currCmds["cres"])) {

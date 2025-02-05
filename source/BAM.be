@@ -2029,11 +2029,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      Int ns = Time:Interval.now().seconds;
 
-     if (def(lastRun) && ns - lastRun > 20) {
+     if (undef(lastRun)) {
+       lastRun = ns;
+     }
+     if (ns - lastRun > 20) {
        log.log("lastRun a while ago doing");
        checkStartMqtt();
+       lastRun = ns;
      }
-     lastRun = ns;
 
      if (undef(pcount) || pcount > 9999) {
        pcount = 0;

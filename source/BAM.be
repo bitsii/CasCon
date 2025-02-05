@@ -280,7 +280,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           Map knc = Map.new();
           Set remoteAddrs = Set.new();
         }
-        ifEmit(jv) {
+        ifEmit(wajv) {
           backgroundPulseOnIdle = true;
           backgroundPulse = backgroundPulseOnIdle;
         }
@@ -311,10 +311,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       app.configManager;
       if (def(app.pluginsByName.get("Auth"))) {
         app.pluginsByName.get("Auth").authedUrlsConfigKey = "bridgeAuthedUrls";
-      }
-
-      ifEmit(jv) {
-        System:Thread.new(System:Invocation.new(self, "keepMqttUp", List.new())).start();
       }
 
       ifEmit(wajv) {
@@ -429,28 +425,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
     }
 
-    keepMqttUp() {
-      ifEmit(jv) {
-        while (true) {
-          Time:Sleep.sleepSeconds(20);
-          try {
-            checkStartMqtt();
-          } catch (any e) {
-            log.elog("except in keepMqttUp", e);
-          }
-        }
-      }
-    }
-
     checkStartMqtt() {
 
         if (undef(mqtt) || mqtt.isOpen!) {
-          if (def(mqtt)) {
-            log.log("closing mqtt");
-            var mqtt2 = mqtt;
-            mqtt = null;
-            mqtt2.close();
-          }
           String mqttBroker = app.configManager.get("mqtt.broker");
           String mqttUser = app.configManager.get("mqtt.user");
           String mqttPass = app.configManager.get("mqtt.pass");
@@ -518,13 +495,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
         mqtt.subscribe("casnic/ktlo/" + reId);
         setupMqttDevices();
-       } else {
-         log.log("mqtt not open");
-         if (TS.notEmpty(mqtt.lastError)) {
-           lastError = "Mqtt Error: " + mqtt.lastError;
-         }
-        mqtt.close();
-        mqtt = null;
        }
        //mqtt.subscribe("test");
        //mqtt.publish("test", "hi from casnic");
@@ -533,6 +503,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     setupMqttDevices() {
       ifEmit(wajv) {
+        if (def(mqtt) && mqtt.isOpen) {
         var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
         var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
         var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
@@ -655,6 +626,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         for (any pkv in topubs) {
           mqtt.publish(pkv.key, pkv.value);
         }
+       }
       }
     }
 
@@ -666,9 +638,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             if (mqttMode == "haRelay") {
               if (topic == "homeassistant/status" && payload == "online") {
                 log.log("ha startedup");
-                mqtt.close();
-                mqtt = null;
-                checkStartMqtt();
+                setupMqttDevices();
               } elseIf (topic.begins("homeassistant/switch/") && topic.ends("/set")) {
                 log.log("ha switched");
                 var ll = topic.split("/");
@@ -1042,11 +1012,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      saveDeviceRequest(conf["id"], confs, request);
      //rectlDeviceRequest(conf["id"], request);
      ifEmit(wajv) {
-      if (def(mqtt)) {
-        mqtt.close();
-        mqtt = null;
-      }
-      checkStartMqtt();
+      setupMqttDevices();
      }
      return(CallBackUI.reloadResponse());
      //return(null);
@@ -1282,9 +1248,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      self.mqttMode = mqttMode;
      log.log("set mqttMode " + mqttMode);
 
-      if (def(mqtt)) {
+      if (def(mqtt) && mqtt.isOpen) {
         mqtt.close();
-        mqtt = null;
       }
       checkStartMqtt();
 
@@ -2059,20 +2024,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        Map pdevices; //hadevs cpy
        Map pspecs; //haspecs cpy
        Map pdcount; //id to last getlastevents count
-       //Int lastRun;
+       Int lastRun;
      }
 
      Int ns = Time:Interval.now().seconds;
 
-     /*if (undef(lastRun) || ns - lastRun > 20) {
-       log.log("lastRun a while ago clearing events and reloading");
-       stDiffed = true;
-       pendingStateUpdates = null;
-       currentEvents = null;
-       pdevices = null;
-       pdcount = null;
+     if (def(lastRun) && ns - lastRun > 20) {
+       log.log("lastRun a while ago doing");
+       checkStartMqtt();
      }
-     lastRun = ns;*/
+     lastRun = ns;
 
      if (undef(pcount) || pcount > 9999) {
        pcount = 0;
@@ -2414,11 +2375,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
         hactls.put(did, controlDef);
         ifEmit(wajv) {
-          if (def(mqtt)) {
-            mqtt.close();
-            mqtt = null;
-          }
-          checkStartMqtt();
+          setupMqttDevices();
         }
       }
       //if (def(request)) {

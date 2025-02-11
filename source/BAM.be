@@ -1334,7 +1334,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     String cmds = "doswspec spass e";
     //log.log("cmds " + cmds);
 
-    Map mcmd = Maps.from("prio", 3, "cb", "updateSpecCb", "did", did, "pwt", 2, "cmds", cmds);
+    Map mcmd = Maps.from("prio", 3, "cb", "updateSpecCb", "did", did, "pwt", 2, "forceLocal", true, "cmds", cmds);
 
     if (backgroundPulse) {
       mcmd["runSync"] = true;
@@ -2036,7 +2036,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        lastRun = ns;
      }
      if (ns - lastRun > 20) {
-       log.log("lastRun a while ago doing");
+       //log.log("lastRun a while ago doing");
        checkStartMqtt();
        //locAddrs = Set.new();
        lastRun = ns;
@@ -3275,7 +3275,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
         if (mcmd.has("forceLocal") && mcmd["forceLocal"]) {
-          log.log("got forceLocal");
+          //log.log("got forceLocal");
           doRemote = false;
         }
         if (doRemote) {
@@ -3541,7 +3541,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
 
      String cmds = "previsnets " + visnetsPos + " e";
-     Map mcmd = Maps.from("prio", 1, "mw", 1, "cb", "previsnetsCb", "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 1, "mw", 1, "cb", "previsnetsCb", "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
      sendDeviceMcmd(mcmd);
      return(CallBackUI.getDevWifisResponse(count, tries, wait));
    }
@@ -3740,7 +3740,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         log.log("sending allset cmd");
         if (alStep == "allset") {
           cmds = "allset " + devPin + " " + devPass + " " + devSpass + " " + devDid + " e";
-          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
+          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
 
           Map conf = Map.new();
           conf["type"] = devType;
@@ -3754,15 +3754,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           sendDeviceMcmd(mcmd);
         } elseIf (alStep == "getcontroldef") {
           cmds = "getcontroldef " + devSpass + " e";
-          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
+          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
           sendDeviceMcmd(mcmd);
         } elseIf (alStep == "setwifi") {
           cmds = "setwifi " + devPass + " hex " + devSsid + " " + devSec + " e";
-          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
+          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
           sendDeviceMcmd(mcmd);
         } elseIf (alStep == "restart") {
           cmds = "restart " + devPass + " e";
-          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
+          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
           lastSsids = List.new();
           ifEmit(platDroid) {
           emit(jv) {
@@ -3871,7 +3871,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    displayNextDeviceCmdRequest(String ssidn, request) Map {
      //log.log("in displayNextDeviceCmdRequest");
     String cmds = "getapssid e";
-    Map mcmd = Maps.from("prio", 1, "mw", 1, "cb", "displayNextDeviceCmdCb", "kdaddr", "192.168.4.1", "pwt", 0, "cmds", cmds);
+    Map mcmd = Maps.from("prio", 1, "mw", 1, "cb", "displayNextDeviceCmdCb", "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
     sendDeviceMcmd(mcmd);
     return(null);
    }

@@ -115,6 +115,9 @@ use class IUHub:Eui {
       //log.log("not visible");
       doPulse = false;
     }
+    if (def(inDeviceSetup) && inDeviceSetup) {
+      doPulse = false;
+    }
     /*Bool isMob = false;
     ifEmit(jvad) {
       isMob = true;

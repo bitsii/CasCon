@@ -278,7 +278,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
         slots {
           Map knc = Map.new();
-          Set remoteAddrs = Set.new();
+          Set locAddrs = Set.new();
         }
         ifEmit(wajv) {
           backgroundPulseOnIdle = true;
@@ -1413,7 +1413,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        //in case something was remote or offline, every once in a while try local to see if back to local net
        mcmd["forceLocal"] = true;
      }
-     mcmd["skipIfRemote"] = true;
 
      if (backgroundPulse) {
        mcmd["runSync"] = true;
@@ -1427,10 +1426,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String cres = mcmd["cres"];
      String leid = mcmd["did"];
      if (TS.notEmpty(cres) && cres.has(";")) {
-        if (TS.notEmpty(mcmd["kdaddr"]) && remoteAddrs.has(mcmd["kdaddr"])) {
-          log.log("clearing kdaddr from remoteAddrs");
-          remoteAddrs.remove(mcmd["kdaddr"]);
-        }
         //if (cres.has(" ") && cres.find(" ") < cres.find(";")) {
           //log.log("dropping iv,reid from gle res");
         //  cres = cres.substring(cres.find(" ") + 1, cres.length);
@@ -2043,6 +2038,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (ns - lastRun > 20) {
        log.log("lastRun a while ago doing");
        checkStartMqtt();
+       //locAddrs = Set.new();
        lastRun = ns;
      }
 
@@ -3103,6 +3099,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    processMcmdRes(Map mcmd, request) {
+       if (TS.notEmpty(mcmd["kdaddr"])) {
+        unless (mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) {
+          locAddrs.put(mcmd["kdaddr"]);
+        }
+       }
        if (mcmd.has("cb")) {
          Int pver = mcmd["pver"];
          Int pwt = mcmd["pwt"];
@@ -3181,7 +3182,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
       String kdaddr = mcmd["kdaddr"];
       if (TS.notEmpty(kdaddr)) {
-        remoteAddrs.put(kdaddr);
+        locAddrs.remove(kdaddr);
       }
       clearQueueDid(did);
      }
@@ -3202,6 +3203,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
      }
        if (mcmd.has("cb")) {
+         mcmd["fromCmdsFail"] = true;
          return(processMcmdRes(mcmd, request));
        }
        return(null);
@@ -3263,32 +3265,21 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
         Bool doRemote = false;
-        if (def(mqtt) && TS.notEmpty(mqttMode) && mqttMode == "fullRemote") {
-          doRemote = true;
-        }
-        if (TS.notEmpty(mcmd["kdaddr"]) && remoteAddrs.has(mcmd["kdaddr"])) {
-          if (mcmd.has("skipIfRemote") && mcmd["skipIfRemote"]) {
-            unless (mcmd.has("forceLocal") && mcmd["forceLocal"]) {
-              //also, be sure there IS a remote server for device
-              //log.log("in remoteAddrs remove kdaddr");
-              mcmd.remove("kdaddr");
-            } else {
-              log.log("was forceLocal, did not remove kdaddr");
-            }
-          } else {
-            //it's not polling, something is being attempted
-            //in future, if remote is supported, don't do this
-            remoteAddrs.remove(mcmd["kdaddr"]);
-          }
-        }
-        if (TS.isEmpty(mcmd["kdaddr"])) {
-          log.log("kdaddr empty");
-          if (def(mqtt) && TS.notEmpty(mqttMode) && mqttMode == "remote") {
+        if (def(mqtt) && mqtt.isOpen && TS.notEmpty(mqttMode)) {
+          if (mqttMode == "fullRemote") {
             doRemote = true;
+          } elseIf (mqttMode == "remote") {
+            unless (TS.notEmpty(mcmd["kdaddr"]) && locAddrs.has(mcmd["kdaddr"])) {
+              doRemote = true;
+            }
           }
-          unless (doRemote) {
-            return(false);
-          }
+        }
+        if (mcmd.has("forceLocal") && mcmd["forceLocal"]) {
+          log.log("got forceLocal");
+          doRemote = false;
+        }
+        if (doRemote) {
+          mcmd.remove("kdaddr");
         }
         if (doRemote) {
           if (TS.notEmpty(mcmd["kdname"]) && TS.notEmpty(mcmd["cmds"])) {

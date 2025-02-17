@@ -687,12 +687,27 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           if ((mqttMode == "remote" || mqttMode == "fullRemote") && topic == "casnic/res/" + reId) {
             if (TS.notEmpty(payload)) {
               log.log("got res in mqtt remote " + payload);
-              Map mqres = Json:Unmarshaller.unmarshall(payload);
-                if (def(currCmds) && TS.notEmpty(currCmds["iv"]) && TS.notEmpty(mqres["iv"]) && mqres["iv"] == currCmds["iv"]) {
+
+              //Map mqres = Json:Unmarshaller.unmarshall(payload);
+              //String resiv = mqres["iv"];
+              //String rescres = mqres["cres"];
+
+              log.log("getting iv in remote res");
+              String rescres = payload;
+              String resivcr = rescres.substring(0, rescres.find(" "));
+              String resiv = resivcr.substring(0, resivcr.find(","));
+              log.log("resivcr |" + resivcr + "| resiv |" + resiv + "|");
+
+                if (def(currCmds) && TS.notEmpty(currCmds["iv"]) && TS.notEmpty(resiv) && resiv == currCmds["iv"]) {
                   log.log("res good, setting to creso");
-                  currCmds["creso"].o = mqres["cres"];
+                  currCmds["creso"].o = rescres;
                 } else {
-                  log.log("currCmds undef or preempted");
+                  log.log("currCmds undef or preempted ");
+                  if (TS.notEmpty(currCmds["iv"])) {
+                    log.log("currCmds iv |" + currCmds["iv"] + "|");
+                  } else {
+                    log.log("currCmds iv empty");
+                  }
                 }
             } else {
               log.log("empty payload in remote casnic/res");
@@ -716,7 +731,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (TS.notEmpty(cres)) {
         log.log("relay cres " + cres);
         mqcmd["cres"] = cres;
-        mqtt.publish("casnic/res/" + mqcmd["reid"], Json:Marshaller.marshall(mqcmd));
+        //mqtt.publish("casnic/res/" + mqcmd["reid"], Json:Marshaller.marshall(mqcmd));
+        mqtt.publish("casnic/res/" + mqcmd["reid"], cres);
       } else {
         log.log("relay no cres");
       }

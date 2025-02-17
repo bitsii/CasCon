@@ -717,6 +717,32 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     handleRelay(String topic, String payload) {
+      if (TS.notEmpty(payload) && payload.begins("rel1:")) {
+        String kdn = payload.substring(payload.find(":") + 1, payload.find(";"));
+        String cmds = payload.substring(payload.find(";") + 1, payload.length);
+        log.log("relay kdn |" + kdn + "| cmds |" + cmds + "|");
+      } else {
+        log.log("malformed relay request");
+        return(self);
+      }
+      String kdaddr = getAddrDis(kdn);
+      if (TS.isEmpty(kdaddr)) {
+        log.log("no kdaddr for " + kdn);
+        return(self);
+      }
+      String cres = prot.sendJvadCmds(kdaddr, cmds + "\r\n");
+      if (TS.notEmpty(cres)) {
+        log.log("relay cres " + cres);
+        String resivcr = cres.substring(0, cres.find(" "));
+        String resreid = resivcr.substring(resivcr.find(",") + 1, resivcr.length);
+        log.log("resivcr |" + resivcr + "| resreid |" + resreid + "|");
+        mqtt.publish("casnic/res/" + resreid, cres);
+      } else {
+        log.log("relay no cres");
+      }
+    }
+
+    handleRelayJson(String topic, String payload) {
       Map mqcmd = Json:Unmarshaller.unmarshall(payload);
       if (TS.isEmpty(mqcmd["kdname"]) || TS.isEmpty(mqcmd["cmds"])) {
         log.log("missing kdname or cmds");
@@ -3094,8 +3120,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   log.log("doing remote");
                   String finCmds = prot.secCmds(mcmd);
                   if (def(mqtt)) {
-                    Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", finCmds, "reid", reId, "iv", mcmd["iv"]);
-                    mqtt.publish("casnic/cmds", Json:Marshaller.marshall(mqcmd));
+                    //Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", finCmds, "reid", reId, "iv", mcmd["iv"]);
+                    finCmds = "rel1:" + mcmd["kdname"] + ";" + finCmds;
+                    mqtt.publish("casnic/cmds", finCmds);
                     //mcmd["cres"] = "ok"; //tmp to test
                   } else {
                     log.log("failed doing remote mqtt undef");

@@ -1404,8 +1404,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        return(null);
      }
      String iv = System:Random.getString(16);
-     String cmds = "getlastevents q e";
-     //String cmds = "getlastevents q " + iv + "," + reId + " e";
+     //String cmds = "getlastevents q e";
+     String cmds = "getlastevents q " + iv + "," + reId + " e";
      //log.log("cmds " + cmds);
 
      Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "pwt", 3, "cmds", cmds, "iv", iv);
@@ -1426,10 +1426,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String cres = mcmd["cres"];
      String leid = mcmd["did"];
      if (TS.notEmpty(cres) && cres.has(";")) {
-        //if (cres.has(" ") && cres.find(" ") < cres.find(";")) {
+        if (cres.has(" ") && cres.find(" ") < cres.find(";")) {
           //log.log("dropping iv,reid from gle res");
-        //  cres = cres.substring(cres.find(" ") + 1, cres.length);
-        //}
+          cres = cres.substring(cres.find(" ") + 1, cres.length);
+        }
         //log.log("getlastevents cres |" + cres + "|");
         String ores = currentEvents.get(leid);
         if (TS.notEmpty(ores)) {
@@ -1495,8 +1495,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String sws = haspecs.get(did);
      if (TS.notEmpty(sws) && sws.has("q,")) {
        String iv = System:Random.getString(16);
-       cmds = "dostate q " + dpd + " getsw e";
-       //cmds = "dostate q " + dpd + " getsw " + iv + "," + reId + " e";
+       //cmds = "dostate q " + dpd + " getsw e";
+       cmds = "dostate q " + dpd + " getsw " + iv + "," + reId + " e";
        //log.log("cmds " + cmds);
        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
      } else {
@@ -1525,7 +1525,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    updateSwStateCb(Map mcmd, request) Map {
-     //deIvReidMCres(mcmd);
+     deIvReidMCres(mcmd);
      String cres = mcmd["cres"];
      String did = mcmd["did"];
      String itype = mcmd["itype"];
@@ -1585,11 +1585,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (TS.notEmpty(sws) && sws.has("q,")) {
         String iv = System:Random.getString(16);
         if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
-          cmds = "getstatexd q " + dpd + " e";
-          //cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
+          //cmds = "getstatexd q " + dpd + " e";
+          cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
         } else {
-          cmds = "dostate q " + dpd + " getrgb e";
-          //cmds = "dostate q " + dpd + " getrgb " + iv + "," + reId + " e";
+          //cmds = "dostate q " + dpd + " getrgb e";
+          cmds = "dostate q " + dpd + " getrgb " + iv + "," + reId + " e";
         }
         //log.log("cmds " + cmds);
         mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
@@ -1612,7 +1612,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    updateRgbStateCb(Map mcmd, request) Map {
-     //deIvReidMCres(mcmd);
+     deIvReidMCres(mcmd);
      String cres = mcmd["cres"];
      String did = mcmd["did"];
      String itype = mcmd["itype"];
@@ -1697,8 +1697,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       String sws = haspecs.get(did);
       if (TS.notEmpty(sws) && sws.has("q,")) {
         String iv = System:Random.getString(16);
-        String cmds = "getstatexd q " + dpd + " e";
-        //String cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
+        //String cmds = "getstatexd q " + dpd + " e";
+        String cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
         //log.log("cmds " + cmds);
         Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       } else {
@@ -1718,7 +1718,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
 
    updateTempStateCb(Map mcmd, request) Map {
-     //deIvReidMCres(mcmd);
+     deIvReidMCres(mcmd);
      String cres = mcmd["cres"];
      String did = mcmd["did"];
      String itype = mcmd["itype"];
@@ -1787,11 +1787,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (TS.notEmpty(sws) && sws.has("q,")) {
         String iv = System:Random.getString(16);
         if (itype == "gdim") {
-          cmds = "getstatexd q " + dpd + " e";
-        //cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
+          //cmds = "getstatexd q " + dpd + " e";
+          cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
         } else {
-        cmds = "dostate q " + dpd + " getlvl e";
-        //cmds = "dostate q " + dpd + " getlvl " + iv + "," + reId + " e";
+          //cmds = "dostate q " + dpd + " getlvl e";
+          cmds = "dostate q " + dpd + " getlvl " + iv + "," + reId + " e";
         }
         //log.log("cmds " + cmds);
         mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
@@ -1814,7 +1814,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    updateLvlStateCb(Map mcmd, request) Map {
-     //deIvReidMCres(mcmd);
+     deIvReidMCres(mcmd);
      String cres = mcmd["cres"];
      String did = mcmd["did"];
      Int dp = mcmd["dp"];
@@ -1876,8 +1876,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       String sws = haspecs.get(did);
       if (TS.notEmpty(sws) && sws.has("q,")) {
         String iv = System:Random.getString(16);
-        cmds = "dostate q " + dpd + " getoif e";
-        //cmds = "dostate q " + dpd + " getoif " + iv + "," + reId + " e";
+        //cmds = "dostate q " + dpd + " getoif e";
+        cmds = "dostate q " + dpd + " getoif " + iv + "," + reId + " e";
         //log.log("cmds " + cmds);
         mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       } else {
@@ -1895,7 +1895,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    updateOifStateCb(Map mcmd, request) Map {
-     //deIvReidMCres(mcmd);
+     deIvReidMCres(mcmd);
      String cres = mcmd["cres"];
      String did = mcmd["did"];
      Int dp = mcmd["dp"];

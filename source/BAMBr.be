@@ -425,30 +425,18 @@ use class IUHub:Eui {
 
    }
 
-   mqttModeResponse(String mqttMode) {
-    if (mqttMode == "remote") {
-      HD.getEle("mqmremote").checked = true;
-    } elseIf (mqttMode == "fullRemote") {
-      HD.getEle("mqmfullremote").checked = true;
-    } elseIf (mqttMode == "relay") {
-      HD.getEle("mqmrelay").checked = true;
-    } elseIf (mqttMode == "haRelay") {
-      HD.getEle("mqmharelay").checked = true;
-    }
-   }
-
    setMqttMode() {
      String mqttMode = "";
      if (HD.getEle("mqmremote").checked) {
       mqttMode = "remote";
-     } elseIf (HD.getEle("mqmfullremote").checked) {
-      mqttMode = "fullRemote";
      } elseIf (HD.getEle("mqmrelay").checked) {
       mqttMode = "relay";
      } elseIf (HD.getEle("mqmharelay").checked) {
       mqttMode = "haRelay";
      }
      HD.getEle("mqttMode").value = mqttMode;
+     log.log("set mqttMode to " + mqttMode);
+     HC.callApp(Lists.from("loadMqttRequest", mqttMode));
    }
    
    //devSendCmd devSeeRes

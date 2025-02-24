@@ -582,6 +582,12 @@ use class IUHub:Eui {
          conf["controlDef"] = controlDef;
        }
      }
+     if (TS.notEmpty(devId) def(specs) && specs.has(devId)) {
+       String spec = specs.get(devId);
+       if (TS.notEmpty(spec)) {
+         conf["spec"] = spec;
+       }
+     }
      String confs = Json:Marshaller.marshall(conf);
      log.log("sharing confs " + confs);
      //HC.callApp(Lists.from("saveDeviceRequest", devId, confs));
@@ -899,10 +905,11 @@ use class IUHub:Eui {
      }
    }
    
-   getDevicesResponse(Map devices, Map ctls, Map states, Map _levels, Map _rgbs, Map _cws, Map _oifs, Int nsecs) {
+   getDevicesResponse(Map devices, Map ctls, Map _specs, Map states, Map _levels, Map _rgbs, Map _cws, Map _oifs, Int nsecs) {
      log.log("in getDevicesResponse");
      slots {
        Map devCtls = ctls;
+       Map specs = _specs;
        Map levels = _levels;
        Map rgbs = _rgbs;
        Map cws = _cws;

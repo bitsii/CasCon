@@ -1025,6 +1025,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        hactls.put(conf["id"], controlDef);
        conf.remove("controlDef");
      }
+     String spec = conf["spec"];
+     if (TS.notEmpty(spec)) {
+       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+       haspecs.put(conf["id"], spec);
+       conf.remove("spec");
+     }
      confs = Json:Marshaller.marshall(conf);
      saveDeviceRequest(conf["id"], confs, request);
      //rectlDeviceRequest(conf["id"], request);
@@ -1275,6 +1281,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      var uhex = Hex.encode(account.user);
      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
      var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
      var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
      var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
      var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
@@ -1283,6 +1290,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      var haof = app.kvdbs.get("HAOF"); //haof - device id pos to oif
      Map devices = Map.new();
      Map ctls = Map.new();
+     Map specs = Map.new();
      Map states = Map.new();
      Map levels = Map.new();
      Map rgbs = Map.new();
@@ -1332,13 +1340,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
        }
+       String spec = haspecs.get(did);
+       if (TS.notEmpty(spec)) {
+         specs.put(did, spec);
+       }
      }
      if (def(nextInform)) {
        Int nsecs = nextInform.seconds;
      } else {
        nsecs = 0;
      }
-     return(CallBackUI.getDevicesResponse(devices, ctls, states, levels, rgbs, cws, oifs, nsecs));
+     return(CallBackUI.getDevicesResponse(devices, ctls, specs, states, levels, rgbs, cws, oifs, nsecs));
    }
 
    updateSpec(String did) {
@@ -1347,7 +1359,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     String cmds = "doswspec spass e";
     //log.log("cmds " + cmds);
 
-    Map mcmd = Maps.from("prio", 3, "cb", "updateSpecCb", "did", did, "pwt", 2, "forceLocal", true, "cmds", cmds);
+    Map mcmd = Maps.from("prio", 3, "cb", "updateSpecCb", "did", did, "pwt", 2, "cmds", cmds);
 
     if (backgroundPulse) {
       mcmd["runSync"] = true;
@@ -2038,7 +2050,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      slots {
        Bool stDiffed;
        Set pendingStateUpdates;
-       Set pendingSpecs;
        Map currentEvents;
        Int pcount;
        Map pdevices; //hadevs cpy
@@ -2066,9 +2077,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      pcount++;
      if (undef(pendingStateUpdates)) {
        pendingStateUpdates = Set.new();
-     }
-     if (undef(pendingSpecs)) {
-       pendingSpecs = Set.new();
      }
      if (undef(currentEvents)) {
        currentEvents = Map.new();
@@ -2123,18 +2131,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           return(null);
         }
      }
-     if (pcount % 6 == 0 && pendingSpecs.notEmpty) {
-       Set spToDel = Set.new();
-       for (String spdid in pendingSpecs) {
-          updateSpec(spdid);
-          spToDel += spdid;
-          break;
-       }
-       for (String spk in spToDel) {
-         pendingSpecs.remove(spk);
-         return(null);
-       }
-     }
 
       Map lpd = pdevices;
       Map lpc = pdcount;
@@ -2146,12 +2142,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             pdcount.put(pdc.key, dc);
             Map conf = Json:Unmarshaller.unmarshall(pdc.value);
             String did = conf["id"];
-            if (TS.notEmpty(did) && pspecs.has(did) && pspecs.get(did) != "1.p4,p2.phx.4") {
-              getLastEvents(pdc.value);
-              break;
-            } elseIf (TS.notEmpty(did)) {
-              pendingSpecs.put(did);
-            }
+            getLastEvents(pdc.value);
+            break;
           }
         }
       }
@@ -3781,6 +3773,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           cmds = "getcontroldef " + devSpass + " e";
           mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
           sendDeviceMcmd(mcmd);
+        } elseIf (alStep == "doswspec") {
+          cmds = "doswspec " + devSpass + " e";
+          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
+          sendDeviceMcmd(mcmd);
         } elseIf (alStep == "setwifi") {
           cmds = "setwifi " + devPass + " hex " + devSsid + " " + devSec + " e";
           mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
@@ -3833,8 +3829,33 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
          hactls.put(disDevId, controlDef);
          clearQueueKdaddr("192.168.4.1");
-         alStep = "setwifi";
+         haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+         String cchkspk = haspecs.get(disDevId);
+         if (TS.notEmpty(cchkspk) && cchkspk == "1.p4,p2.phx.4") {
+           alStep = "doswspec";
+         } else {
+           if (TS.isEmpty(cchkspk)) {
+             haspecs.put(disDevId, "1,p2.gsh.4");
+           }
+           alStep = "setwifi";
+         }
        }
+     } elseIf (alStep == "doswspec") {
+       if (TS.notEmpty(cres) && cres.has("p2.")) {
+          haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+          var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+          log.log("got swspec");
+          haspecs.put(disDevId, cres);
+          var sl = cres.split(".");
+          String dt = sl[1];
+          String confs = hadevs.get(disDevId);
+          Map conf = Json:Unmarshaller.unmarshall(confs);
+          conf["type"] = dt;
+          confs = Json:Marshaller.marshall(conf);
+          hadevs.put(disDevId, confs);
+          clearQueueKdaddr("192.168.4.1");
+          alStep = "setwifi";
+        }
      } elseIf (alStep == "setwifi") {
        if (TS.notEmpty(cres) && cres.has("Wifi Setup Written")) {
          log.log("wifi setup worked");

@@ -672,11 +672,13 @@
         </div>
         <div id="divMqttAdvanced" style="display: none;">
         <input type="hidden" id="mqttMode" value=""/>
+        <div id="divMqttModeChoice" style="display: none;">
         <fieldset><legend>Select MQTT Profile to configure</legend>
         <div><input type="radio" id="mqmremote" name="drone" value="huey" oninput="callUI('setMqttMode');"/><label for="mqmremote">Remote</label></div>
         <div><input type="radio" id="mqmrelay" name="drone" value="huey" oninput="callUI('setMqttMode');"/><label for="mqmrelay">Relay</label></div>
         <div><input type="radio" id="mqmharelay" name="drone" value="huey" oninput="callUI('setMqttMode');"/><label for="mqmharelay">Homeassistant Relay</label></div>
         </fieldset>
+        </div>
 
         <f7-list>
         <f7-list-item>MQTT Broker</f7-list-item>
@@ -713,7 +715,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="100"
+            value="101"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

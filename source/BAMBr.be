@@ -243,6 +243,22 @@ use class IUHub:Eui {
       } else {
         dma.display = "block";
       }
+      ifEmit(wajv) {
+        dma = HD.getEle("divMqttModeChoice");
+        if (dma.display == "block") {
+          dma.display = "none";
+        } else {
+          dma.display = "block";
+        }
+      }
+      ifEmit(jvad) {
+        HD.getEle("mqttMode").value = "remote";
+        HC.callApp(Lists.from("loadMqttRequest", "remote"));
+      }
+      ifEmit(apwk) {
+        HD.getEle("mqttMode").value = "remote";
+        HC.callApp(Lists.from("loadMqttRequest", "remote"));
+      }
    }
 
    wantSettings(String devId) {

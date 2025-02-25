@@ -278,7 +278,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         slots {
           Map knc = Map.new();
           Set locAddrs = Set.new();
-          Bool mqttFullRemote = true;
+          Bool mqttFullRemote = false;
         }
         ifEmit(wajv) {
           backgroundPulseOnIdle = true;
@@ -1434,9 +1434,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //log.log("cmds " + cmds);
 
      Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "pwt", 3, "cmds", cmds, "iv", iv);
-     if (System:Random.getIntMax(8) > 6) {  //4-8 seconds (av 6) per device try, this should be once a minute
+     Int jit = System:Random.getIntMax(9);
+     if (jit > 2 && jit < 6) {  //4-8 seconds (av 6) per device try
        //in case something was remote or offline, every once in a while try local to see if back to local net
        mcmd["forceLocal"] = true;
+     } elseIf (jit > 5) {
+       //also see if should be cleared from remote fails from time to time
+       mcmd["forceRemote"] = true;
      }
 
      if (backgroundPulse) {
@@ -1542,7 +1546,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (def(mcmd) && mcmd.has("pwt") && mcmd["pwt"] == 3) {
        String cres = mcmd["cres"];
        if (TS.notEmpty(cres) && cres.has(" ")) {
-          log.log("removing iv,reid in deIvReidMCres");
+          //log.log("removing iv,reid in deIvReidMCres");
           cres = cres.substring(cres.find(" ") + 1, cres.length);
           mcmd["cres"] = cres;
        }
@@ -2066,7 +2070,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (ns - lastRun > 20) {
        //log.log("lastRun a while ago doing");
        checkStartMqtt();
-       //locAddrs = Set.new();
        lastRun = ns;
      }
 
@@ -3089,7 +3092,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 prepMcmd(mcmd);
                 currCmds = mcmd;
                 if (def(mcmd["doRemote"]) && mcmd["doRemote"]) {
-                  log.log("doing remote");
+                  //log.log("doing remote");
                   String finCmds = prot.secCmds(mcmd);
                   Mqtt mqtt = mqtts["remote"];
                   if (def(mqtt) && mqtt.isOpen) {
@@ -3115,10 +3118,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    processMcmdRes(Map mcmd, request) {
-       if (TS.notEmpty(mcmd["kdaddr"])) {
-        unless (mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) {
-          locAddrs.put(mcmd["kdaddr"]);
-        }
+       unless (mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) {
+         if (TS.notEmpty(mcmd["kdaddr"])) {
+           locAddrs.put(mcmd["kdaddr"]);
+         } elseIf (TS.notEmpty(mcmd["kdname"])) {
+           var harfails = app.kvdbs.get("HARFAILS"); //harfails - kdname to remote failing
+           harfails.remove(mcmd["kdname"]);
+         }
        }
        if (mcmd.has("cb")) {
          Int pver = mcmd["pver"];
@@ -3190,21 +3196,23 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    processCmdsFail(Map mcmd, request) {
 
     String did = mcmd["did"];
-
+    String kdaddr = mcmd["kdaddr"];
+    String kdname = mcmd["kdname"];
     if (TS.notEmpty(did)) {
       if (def(currentEvents)) {
         log.log("in cmds fail clearing currentEvents for did " + did);
         currentEvents.remove(did);
       }
-      String kdaddr = mcmd["kdaddr"];
       if (TS.notEmpty(kdaddr)) {
         locAddrs.remove(kdaddr);
+      } elseIf (TS.notEmpty(kdname)) {
+        var harfails = app.kvdbs.get("HARFAILS"); //harfails - kdname to remote failing
+        harfails.put(kdname, kdname);
       }
       clearQueueDid(did);
      }
 
      //?failre / timeout callback?
-     String kdname = mcmd["kdname"];
 
      if (TS.notEmpty(kdname)) {
       log.log("RERESOLVE " + kdname);
@@ -3287,21 +3295,29 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             doRemote = true;
           } else {
             unless (TS.notEmpty(mcmd["kdaddr"]) && locAddrs.has(mcmd["kdaddr"])) {
-              doRemote = true;
+              var harfails = app.kvdbs.get("HARFAILS"); //harfails - kdname to remote failing
+              unless (TS.notEmpty(mcmd["kdname"]) && harfails.has(mcmd["kdname"])) {
+                doRemote = true;
+              }
             }
+          }
+          if (mcmd.has("forceRemote") && mcmd["forceRemote"]) {
+            //log.log("got forceRemote");
+            doRemote = true;
           }
         }
         if (mcmd.has("forceLocal") && mcmd["forceLocal"]) {
           //log.log("got forceLocal");
           doRemote = false;
         }
+        mcmd.put("doRemote", doRemote);
+        log.log("doRemote " + doRemote);
         if (doRemote) {
           mcmd.remove("kdaddr");
         }
         if (doRemote) {
           if (TS.notEmpty(mcmd["kdname"]) && TS.notEmpty(mcmd["cmds"])) {
             mcmd.remove("runSync");
-            mcmd.put("doRemote", true);
           } else {
             return(false);
           }

@@ -710,7 +710,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             currCmds["creso"].o = rescres;
           } else {
             log.log("currCmds undef or preempted ");
-            if (TS.notEmpty(currCmds["iv"])) {
+            if (def(currCmds) && TS.notEmpty(currCmds["iv"])) {
               log.log("currCmds iv |" + currCmds["iv"] + "|");
             } else {
               log.log("currCmds iv empty");
@@ -1475,9 +1475,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (jit > 2 && jit < 6) {  //4-8 seconds (av 6) per device try
        //in case something was remote or offline, every once in a while try local to see if back to local net
        mcmd["forceLocal"] = true;
+       mcmd["ignoreFail"] = true;
      } elseIf (jit > 5) {
        //also see if should be cleared from remote fails from time to time
        mcmd["forceRemote"] = true;
+       mcmd["ignoreFail"] = true;
      }
 
      if (backgroundPulse) {
@@ -3217,6 +3219,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     String did = mcmd["did"];
     String kdaddr = mcmd["kdaddr"];
     String kdname = mcmd["kdname"];
+    if (def(mcmd["ignoreFail"]) && mcmd["ignoreFail"]) {
+      //log.log("ignoreFail set, ignoring fail");
+      return(null);
+    }
     if (TS.notEmpty(did)) {
       if (def(currentEvents)) {
         log.log("in cmds fail clearing currentEvents for did " + did);

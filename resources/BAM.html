@@ -333,8 +333,9 @@
                 <f7-link onclick="callUI('clearQrShare');callEle('qrerr', 'displaySet', 'none');return false;" popup-close>Close</f7-link>
               </f7-nav-right>
             </f7-navbar>
-            <f7-block>Share your device with Casnic on another phone or tablet.  Make sure Casnic is installed on the destination, then click Display Code. Point the the camera application on the the destination phone at the square code on this screen, accept the prompts to open casnic, go to Web Address, and accept the share on the destination. For more information click <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#sharing-a-device');return false;" href='#'>here for Help.</f7-link> </f7-block>
+            <f7-block>Share your device with another installation of Casnic.  To share with another phone or tablet, make sure Casnic is installed on the destination, then click Display Code. Point the the camera application on the the destination phone at the square code on this screen, accept the prompts to open casnic, go to Web Address, and accept the share on the destination. To share with a remote Relay device, click Share to Relay.  For more information click <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#sharing-a-device');return false;" href='#'>here for Help.</f7-link> </f7-block>
             <!--<f7-button class="col" onclick="callUI('showQrShare', false);return false;" outline>Display Restricted Code</f7-button>-->
+            <f7-button class="col" onclick="callUI('shareToRelay', true);return false;" outline>Share to Relay</f7-button>
             <f7-button class="col" onclick="callUI('showQrShare', true);return false;" outline>Display Code</f7-button>
             <div id="qrsharediv" style="margin: 20px 0 0 20px;"></div>
             <div id="qrerr" style="margin: 20px 0 0 20px;display: none;">You must have a device configured in the application and selected in Settings before you can share</div>
@@ -708,6 +709,15 @@
       <f7-row tag="p">
           <f7-button class="col" onclick="callApp('saveMqttRequest', document.getElementById('mqttMode').value, document.getElementById('mqttBroker').value, document.getElementById('mqttUser').value, document.getElementById('mqttPass').value);return false;" outline>Save MQTT</f7-button>
         </f7-row>
+        <div id="divMqttAShare" style="display: none;">
+        <div class="item-title" style="width:150px;">Relay Accepts Shares over Mqtt</div>
+        <div class="item-after">
+        <label class="toggle">
+          <input type="checkbox" onclick="callApp('saveMqAsRequest', toOnOff(document.getElementById('mqAutoSw').checked));return true;" id="mqAutoSw"/>
+          <span class="toggle-icon"></span>
+        </label>
+        </div>
+        </div>
         </div>
         <f7-list>
           <f7-list-item>
@@ -715,7 +725,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="103"
+            value="104"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

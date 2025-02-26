@@ -496,6 +496,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
         if (mqttMode == "relay") {
           mqtt.subscribe("casnic/cmds");
+          mqtt.subscribe("casnic/shares");
         }
         mqtt.subscribe("casnic/ktlo/" + reId);
         setupMqttDevices(mqttMode);
@@ -683,7 +684,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           stDiffed = true;
         } elseIf (topic == "casnic/cmds") {
           log.log("relay handlemessage for " + topic + " " + payload);
-          System:Thread.new(System:Invocation.new(self, "handleRelay", Lists.from(topic, payload))).start()
+          System:Thread.new(System:Invocation.new(self, "handleRelay", Lists.from(topic, payload))).start();
+        } elseIf (topic == "casnic/shares") {
+          String ashare = app.configManager.get("mqtt.autoShare");
+          if (TS.isEmpty(ashare) || ashare == "on") {
+            log.log("would now auto accept share");
+            log.log(payload);
+            acceptShareRequest(payload, null);
+          }
         } elseIf (topic == "casnic/res/" + reId) {
           log.log("got res in mqtt remote " + payload);
 
@@ -838,8 +846,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         //log.log("lastDid empty");
         retnext = true;
       }
-      Account account = request.context.get("account");
-      var uhex = Hex.encode(account.user);
+      //Account account = request.context.get("account");
+      var uhex = Hex.encode("Adrian");
       var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
       var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
       var halv = app.kvdbs.get("HALV"); //halv - device id to lvl
@@ -1018,7 +1026,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      clearCxRequest(request);
      String confs = Encode:Hex.decode(cx);
      Map conf = Json:Unmarshaller.unmarshall(confs);
-     conf["id"] = System:Random.getString(11);
+
+     //dedupe reshares
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     for (any kv in hadevs.getMap()) {
+      String did = kv.key;
+      String dconfs = kv.value;
+      Map dconf = Json:Unmarshaller.unmarshall(dconfs);
+      if (TS.notEmpty(dconf["ondid"]) && TS.notEmpty(conf["ondid"]) && conf["ondid"] == dconf["ondid"]) {
+        conf["id"] = dconf["id"];
+      }
+     }
+     if (TS.isEmpty(conf["id"])) {
+       conf["id"] = System:Random.getString(11);
+     }
      String controlDef = conf["controlDef"];
      if (TS.notEmpty(controlDef)) {
        var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
@@ -1045,8 +1066,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    deleteDeviceRequest(String did, request) Map {
      log.log("in removeDeviceRequest " + did);
      
-    Account account = request.context.get("account");
-    var uhex = Hex.encode(account.user);
+    //Account account = request.context.get("account");
+    var uhex = Hex.encode("Adrian");
     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device aid to config
     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
@@ -1182,8 +1203,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //log.log("in addDeviceRequest " + confs);
      log.log("in saveDeviceRequest");
      
-     Account account = request.context.get("account");
-     var uhex = Hex.encode(account.user);
+     //Account account = request.context.get("account");
+     var uhex = Hex.encode("Adrian");
      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
      //var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
      //var hasw = app.kvdbs.get("HASW"); //hasw - device id to switch state
@@ -1202,8 +1223,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    loadWifiRequest(request) Map {
-     Account account = request.context.get("account");
-     var uhex = Hex.encode(account.user);
+     //Account account = request.context.get("account");
+     var uhex = Hex.encode("Adrian");
      var hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
 
      String ssid = hawifi.get(uhex + ".ssid.0");
@@ -1224,12 +1245,28 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
 
      return(CallBackUI.setElementsValuesResponse(Maps.from("mqttBroker", mqttBroker, "mqttUser" mqttUser, "mqttPass", mqttPass)));
+
+   }
+
+   saveMqAsRequest(String ashare, request) Map {
+     log.log("got mqAsSet " + ashare);
+     app.configManager.put("mqtt.autoShare", ashare);
+     return(null);
+   }
+
+   loadMqAsRequest(request) Map {
+     String ashare = app.configManager.get("mqtt.autoShare");
+     if (TS.isEmpty(ashare)) {
+       ashare = "on";
+       app.configManager.put("mqtt.autoShare", ashare);
+     }
+     return(CallBackUI.mqAsResponse(ashare));
    }
 
    saveWifiRequest(String ssid, String sec, Bool reloadAfter, request) Map {
 
-     Account account = request.context.get("account");
-     var uhex = Hex.encode(account.user);
+     //Account account = request.context.get("account");
+     var uhex = Hex.encode("Adrian");
      var hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
 
      if (TS.notEmpty(ssid) && TS.notEmpty(sec)) {
@@ -1277,8 +1314,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    
    getDevicesRequest(request) Map {
      log.log("in getDevicesRequest");
-     Account account = request.context.get("account");
-     var uhex = Hex.encode(account.user);
+     //Account account = request.context.get("account");
+     var uhex = Hex.encode("Adrian");
      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
      var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
@@ -2280,8 +2317,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateWifiRequest(String did, request) Map {
      log.log("in updateWifiRequest " + did);
 
-     Account account = request.context.get("account");
-     var uhex = Hex.encode(account.user);
+     //Account account = request.context.get("account");
+     var uhex = Hex.encode("Adrian");
 
      var hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
      String devSsid = Hex.encode(hawifi.get(uhex + ".ssid.0"));
@@ -2309,33 +2346,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         return(CallBackUI.reloadResponse());
       }
       return(null);
-   }
-
-   shdefCb(Map mcmd, request) Map {
-     String cress = mcmd["cres"];
-     if (TS.notEmpty(cress)) {
-      log.log("got cress in shdefCb " + cress);
-      if (cress.begins("shdef:")) {
-        var cres = cress.split(":");
-        //have it all, make and save, put in for controldef
-
-        Map conf = Map.new();
-        conf["type"] = cres[1];
-        conf["id"] = System:Random.getString(11);
-        conf["ondid"] = cres[2];
-        conf["name"] = Hex.decode(cres[5]);
-        conf["pass"] = cres[3];
-        conf["spass"] = cres[4];
-        String confs = Json:Marshaller.marshall(conf);
-        saveDeviceRequest(conf["id"], confs, request);
-        rectlDeviceRequest(conf["id"], request);
-      } else {
-        throw(Alert.new("Unable to receive share info.  Get a new share code and try again."));
-      }
-     } else {
-       throw(Alert.new("Unable to receive share info.  Make sure this device is on the same wifi network as the device you are sharing to it."));
-     }
-     return(null);
    }
 
    restartDevRequest(String did, request) Map {
@@ -3117,6 +3127,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
+   shareToMqttRequest(String shBlob, request) {
+     log.log("try publishing shBlob to mqtt");
+     Mqtt mqtt = mqtts["remote"];
+     if (def(mqtt) && mqtt.isOpen) {
+       mqtt.publish("casnic/shares", shBlob);
+       log.log("share published");
+     }
+   }
+
    processMcmdRes(Map mcmd, request) {
        unless (mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) {
          if (TS.notEmpty(mcmd["kdaddr"])) {
@@ -3311,7 +3330,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           doRemote = false;
         }
         mcmd.put("doRemote", doRemote);
-        log.log("doRemote " + doRemote);
+        //log.log("doRemote " + doRemote);
         if (doRemote) {
           mcmd.remove("kdaddr");
         }
@@ -3537,8 +3556,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      Int tries = 200;
      Int wait = 1000;
 
-     Account account = request.context.get("account");
-     var uhex = Hex.encode(account.user);
+     //Account account = request.context.get("account");
+     var uhex = Hex.encode("Adrian");
      var hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
 
      String ssid = hawifi.get(uhex + ".ssid.0");
@@ -3740,8 +3759,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         String alStep;
       }
 
-      Account account = request.context.get("account");
-      var uhex = Hex.encode(account.user);
+      //Account account = request.context.get("account");
+      var uhex = Hex.encode("Adrian");
 
       if (TS.isEmpty(devPass)) {
         Int dps = System:Random.getIntMax(4) + 16;

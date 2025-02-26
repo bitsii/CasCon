@@ -250,14 +250,22 @@ use class IUHub:Eui {
         } else {
           dma.display = "block";
         }
+        dma = HD.getEle("divMqttAShare");
+        if (dma.display == "block") {
+          dma.display = "none";
+        } else {
+          dma.display = "block";
+        }
       }
       ifEmit(jvad) {
         HD.getEle("mqttMode").value = "remote";
         HC.callApp(Lists.from("loadMqttRequest", "remote"));
+        HC.callApp(Lists.from("loadMqAsRequest"));
       }
       ifEmit(apwk) {
         HD.getEle("mqttMode").value = "remote";
         HC.callApp(Lists.from("loadMqttRequest", "remote"));
+        HC.callApp(Lists.from("loadMqAsRequest"));
       }
    }
 
@@ -453,6 +461,16 @@ use class IUHub:Eui {
      HD.getEle("mqttMode").value = mqttMode;
      log.log("set mqttMode to " + mqttMode);
      HC.callApp(Lists.from("loadMqttRequest", mqttMode));
+     HC.callApp(Lists.from("loadMqAsRequest"));
+   }
+
+   mqAsResponse(String ashare) {
+     log.log("in mqAsResponse");
+     if (TS.notEmpty(ashare) && ashare == "on") {
+       HD.getEle("mqAutoSw").checked = true;
+     } else {
+       HD.getEle("mqAutoSw").checked = false;
+     }
    }
    
    //devSendCmd devSeeRes
@@ -551,6 +569,17 @@ use class IUHub:Eui {
         new QRCode("qrsharediv", bevl_qrsh.bems_toJsString());
         """
       }
+     } else {
+       HD.getEle("qrerr").display = "block";
+     }
+   }
+
+   shareToRelay(Bool admin) {
+     genDeviceShare(admin);
+     clearQrShare();
+     if (TS.notEmpty(HD.getElementById("shBlob").value)) {
+      String mqsh = HD.getElementById("shBlob").value;
+      HC.callApp(Lists.from("shareToMqttRequest", mqsh));
      } else {
        HD.getEle("qrerr").display = "block";
      }

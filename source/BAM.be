@@ -939,7 +939,33 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(kdaddr);
     }
 
+    considerTds(String kdname) Bool {
+      if (TS.isEmpty(kdname)) { return(false); }
+      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+      for (any kv in hadevs.getMap()) {
+        String did = kv.key;
+        String confs = kv.value;
+        Map conf = Json:Unmarshaller.unmarshall(confs);
+        String dkdname = "CasNic" + conf["ondid"];
+        if (dkdname == kdname) {
+          String spec = haspecs.get(did);
+          if (spec.has("nm,")) {
+            log.log("FOUND NOMDNS, MUST DO TDS");
+            if (def(pendingTds)) {
+              pendingTds += did;
+            }
+            return(true);
+          }
+        }
+      }
+      return(false);
+    }
+
     resolveAddr(String kdname) {
+      if (considerTds(kdname)) {
+        return(self);
+      }
       String kdaddr;
        var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
        ifEmit(wajv) {
@@ -1436,6 +1462,62 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
       }
       return(null);
+   }
+
+   resolveTds(String did) {
+    log.log("in resolveTds " + did);
+    //find a did with t1
+
+    var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+    var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+
+    List topt = List.new();
+    for (any kv in hadevs.getMap()) {
+      String godid = kv.key;
+      String spec = haspecs.get(godid);
+      if (spec.has("t1,")) {
+        unless (spec.has("nm,")) {
+          topt += godid;
+        }
+      }
+    }
+    if (topt.length > 0) {
+      godid = topt.get(System:Random.getIntMax(topt.length));
+    }
+
+    if (TS.isEmpty(godid)) {
+      log.log("found no dev to try gettda for");
+      return(null);
+    }
+
+    String confs = hadevs.get(did);
+    Map conf = Json:Unmarshaller.unmarshall(confs);
+    String dkdname = "CasNic" + conf["ondid"];
+
+    String cmds = "gettda spass " + dkdname + " e";
+    //log.log("cmds " + cmds);
+
+    log.log("going to resolveTds sendDeviceMcmd");
+
+    Map mcmd = Maps.from("prio", 3, "cb", "resolveTdsCb", "did", godid, "dkdname", dkdname, "pwt", 2, "cmds", cmds);
+
+    if (backgroundPulse) {
+      mcmd["runSync"] = true;
+    }
+    sendDeviceMcmd(mcmd);
+
+    return(null);
+   }
+
+   resolveTdsCb(Map mcmd, request) Map {
+     String cres = mcmd["cres"];
+     String dkdname = mcmd["dkdname"];
+     var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
+     if (TS.notEmpty(cres) && cres != "undefined" && cres != "ok") {
+       log.log("resolveTdsCb got " + cres + " for " + dkdname);
+       haknc.put(dkdname, cres);
+     }
+     return(null);
    }
 
    getSecQ(Map conf) {
@@ -2093,6 +2175,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      slots {
        Bool stDiffed;
        Set pendingStateUpdates;
+       Set pendingTds;
        Map currentEvents;
        Int pcount;
        Map pdevices; //hadevs cpy
@@ -2120,6 +2203,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (undef(pendingStateUpdates)) {
        pendingStateUpdates = Set.new();
      }
+     if (undef(pendingTds)) {
+       pendingTds = Set.new();
+     }
      if (undef(currentEvents)) {
        currentEvents = Map.new();
      }
@@ -2131,6 +2217,29 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        pdevices = hadevs.getMap();
        var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        pspecs = haspecs.getMap();
+     }
+
+     if (pcount % 3 == 0) {
+      Set toDelTd = Set.new();
+      if (def(pendingTds)) {
+        for (k in pendingTds) {
+            if (TS.notEmpty(k)) {
+              try {
+                resolveTds(k);
+              } catch (e) {
+                log.elog("Error resolving Tds", e);
+              }
+              toDelTd += k;
+              break;
+            }
+          }
+        }
+        for (k in toDelTd) {
+          pendingTds.remove(k);
+        }
+        if (toDelTd.notEmpty) {
+          return(null);
+        }
      }
 
      if (pcount % 2 == 0) {

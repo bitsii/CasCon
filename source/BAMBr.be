@@ -331,30 +331,29 @@ use class IUHub:Eui {
             sde.click();
           }
           ifEmit(apwk) {
-            HD.getEle("foundiTxt").display = "none";
-            HD.getEle("discoTxt").display = "block";
+            HD.getEle("foundApwk").display = "none";
+            HD.getEle("discoApwk").display = "block";
           }
           ifEmit(jvad) {
-            HD.getEle("foundaTxt").display = "none";
-            HD.getEle("siscoTxt").display = "block";
+            HD.getEle("foundJvad").display = "none";
+            HD.getEle("discoJvad").display = "block";
           }
           ifEmit(wajv) {
-            HD.getEle("foundiTxt").display = "none";
-            HD.getEle("wiskyTxt").display = "block";
+            HD.getEle("foundWajv").display = "none";
+            HD.getEle("discoWajv").display = "block";
           }
         } else {
           ifEmit(apwk) {
-            HD.getEle("discoTxt").display = "none";
-            HD.getEle("foundiTxt").display = "block";
+            HD.getEle("discoApwk").display = "none";
+            HD.getEle("foundApwk").display = "block";
           }
           ifEmit(jvad) {
-            HD.getEle("siscoTxt").display = "none";
-            //acshewly, depending on if the pin is empty or not
-            HD.getEle("foundaTxt").display = "block";
+            HD.getEle("discoJvad").display = "none";
+            HD.getEle("foundJvad").display = "block";
           }
           ifEmit(wajv) {
-            HD.getEle("wiskyTxt").display = "none";
-            HD.getEle("foundiTxt").display = "block";
+            HD.getEle("discoWajv").display = "none";
+            HD.getEle("foundWajv").display = "block";
           }
         }
        }
@@ -666,10 +665,12 @@ use class IUHub:Eui {
      }
      disDevId = System:Random.getString(11);
 
-     HD.getEle("discoTxt").display = "none";
-     HD.getEle("siscoTxt").display = "none";
-     HD.getEle("foundaTxt").display = "none";
-     HD.getEle("foundiTxt").display = "none";
+     HD.getEle("discoApwk").display = "none";
+     HD.getEle("discoWajv").display = "none";
+     HD.getEle("discoJvad").display = "none";
+     HD.getEle("foundApwk").display = "none";
+     HD.getEle("foundWajv").display = "none";
+     HD.getEle("foundJvad").display = "none";
      HD.getEle("doingSetup").display = "block";
      HD.getEle("doingSetupSpin").display = "block";
 

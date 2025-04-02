@@ -130,7 +130,7 @@
           </f7-navbar>
           <f7-toolbar bottom>
               <f7-row tag="p">
-                  <f7-button class="col" onclick="callEle('openDiscover', 'click');return false;" large fill raised>Setup a Device</f7-button>
+                  <f7-button class="col" onclick="callEle('openDiscover', 'click');return false;" large fill raised>Add Device</f7-button>
                 </f7-row>
 
           </f7-toolbar>
@@ -333,9 +333,10 @@
                 <f7-link onclick="callUI('clearQrShare');callEle('qrerr', 'displaySet', 'none');return false;" popup-close>Close</f7-link>
               </f7-nav-right>
             </f7-navbar>
-            <f7-block>Share your device with another installation of Casnic.  To share with another phone or tablet, make sure Casnic is installed on the destination, then click Display Code. Point the the camera application on the the destination phone at the square code on this screen, accept the prompts to open casnic, go to Web Address, and accept the share on the destination. To share with a remote Relay device, click Share to Relay.  For more information click <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#sharing-a-device');return false;" href='#'>here for Help.</f7-link> </f7-block>
+            <!-- To share with a remote Relay device, click Share to Relay.-->
+            <f7-block><b>To share with a mobile phone or tablet<b> click Display Code, then point the camera application on the other device at the code, and accept the prompts to go to Web Address. For more information click <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#sharing-a-device');return false;" href='#'>here for Help.</f7-link> </f7-block>
             <!--<f7-button class="col" onclick="callUI('showQrShare', false);return false;" outline>Display Restricted Code</f7-button>-->
-            <f7-button class="col" onclick="callUI('shareToRelay', true);return false;" outline>Share to Relay</f7-button>
+            <!--<f7-button class="col" onclick="callUI('shareToRelay', true);return false;" outline>Share to Relay</f7-button>-->
             <f7-button class="col" onclick="callUI('showQrShare', true);return false;" outline>Display Code</f7-button>
             <div id="qrsharediv" style="margin: 20px 0 0 20px;"></div>
             <div id="qrerr" style="margin: 20px 0 0 20px;display: none;">You must have a device configured in the application and selected in Settings before you can share</div>
@@ -447,7 +448,7 @@
   <!-- Discover Template -->
   <template id="page-discover">
     <f7-page>
-      <f7-navbar title="Setup A Device" back-link="Back"></f7-navbar>
+      <f7-navbar title="Add Device" back-link="Back"></f7-navbar>
       <f7-block>
                 <f7-list>
                 <input type="hidden" id="disDevType" value=""/>
@@ -483,14 +484,15 @@
                 <f7-button id="settleWifiButton" icon-f7='cloud_download' popup-open="#settlewifi" style="display: none;"></f7-button>
 
               <f7-row tag="p">
-              <div id="discoTxt" style="display: none;">To setup your device - unplug and re plug it in (setup is only available for first 30 minutes of power), go to your phone's Settings, click Wifi, connect to the network that begins with Casnic and includes your device type.  Then return here and wait for name and type to appear. If the device was already setup on another phone, open the device on that phone and click Share instead.</div>
-              <div id="wiskyTxt" style="display: none;">It's recommended you setup devices using the mobile app and then share them to this app.  To setup here - unplug and re plug it in (setup is only available for first 30 minutes of power), and connect the computer to the Wifi network that begins with Casnic and includes your device type. Then return here and wait for name and type to appear. If the device was already setup on a phone, open the device on that phone and click Share instead.</div>
-            <!-- The password for the network is the set of letters in the network name following CasnicI, between the first set of hyphens (-). -->
-            <div id="siscoTxt" style="display: none;">To setup your device - unplug and re plug it in (setup is only available for first 30 minutes of power).  If the device was already setup on another phone, open the device on that phone and click Share to share it instead.</div>
-            <div id="foundiTxt" style="display: none;">A device has been found - change the name if you like and click Begin Setup.</div>
-            <div id="foundaTxt" style="display: none;">A device has been found - change the name if you like and click Begin Setup. Choose Connect when asked.</div>
-            <div id="doingSetup" style="display: none;">Setting up device</div>
-            </f7-row>
+              <!-- The password for the network is the set of letters in the network name following CasnicI, between the first set of hyphens (-). -->
+              <div id="discoApwk" style="display: none;">Unplug and re-plugin your device.  <b>Go to your phone's wifi settings, look for a network with Casnic in the name, and join it.</b>  Then return here and wait for the device information to appear.  <b>To add a device which has already been setup</b> click the device name in the App where it was setup and choose <b>Share</b>.</div>
+              <div id="discoWajv" style="display: none;">Unplug and re-plugin your device.  <b>Go to your computer's wifi settings, look for a network with Casnic in the name, and join it.</b>  Then return here and wait for the device information to appear.  <b>To add a device which has already been setup</b> click the device name in the App where it was setup and choose <b>Share</b>.</div>
+              <div id="discoJvad" style="display: none;">Unplug and re-plugin your device, then click <b>Scan for Devices</b>.  <b>To add a device which has already been setup</b> click the device name in the App where it was setup and choose <b>Share</b>.</div>
+              <div id="foundApwk" style="display: none;">A device has been found - change the name if you like and click <b>Begin Setup</b>.</div>
+              <div id="foundWajv" style="display: none;">A device has been found - change the name if you like and click <b>Begin Setup</b>.</div>
+              <div id="foundJvad" style="display: none;">A device has been found - change the name if you like and click <b>Begin Setup</b>. Then, when prompted, <b>Choose Connect</b>.</div>
+              <div id="doingSetup" style="display: none;">Setting up device</div>
+              </f7-row>
             <f7-row tag="p">
             <div id="doingSetupSpin" style="display: none;">
             <f7-preloader />
@@ -725,7 +727,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="105"
+            value="106"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

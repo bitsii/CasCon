@@ -237,6 +237,7 @@ use class IUHub:Eui {
    }
 
    toggleAdvanced() {
+     if (true) { return(self); }
      any dma = HD.getEle("divMqttAdvanced");
       if (dma.display == "block") {
         dma.display = "none";

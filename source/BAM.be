@@ -2193,10 +2193,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (undef(lastRun)) {
        lastRun = ns;
      }
-     if (ns - lastRun > 20) {
+     if (ns - lastRun > 40) {
        //log.log("lastRun a while ago doing");
-       checkStartMqtt();
        lastRun = ns;
+       checkStartMqtt();
      }
 
      if (undef(pcount) || pcount > 9999) {
@@ -3221,8 +3221,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   String finCmds = prot.secCmds(mcmd);
                   Mqtt mqtt = mqtts["remote"];
                   if (def(mqtt) && mqtt.isOpen) {
-                    //finCmds = "rel1:" + mcmd["kdname"] + ";" + finCmds;
-                    mqtt.publish("casnic/cmd/" + mcmd["ondid"], finCmds);
+                    if (TS.notEmpty(mcmd["spec"]) && mcmd["spec"].has("dm,")) {
+                      log.log("doing direct smc");
+                      mqtt.publish("casnic/cmd/" + mcmd["ondid"], finCmds);
+                    } else {
+                      log.log("doing proxy smc");
+                      finCmds = "rel1:" + mcmd["kdname"] + ";" + finCmds;
+                      mqtt.publish("casnic/cmds", finCmds);
+                    }
                     //mcmd["cres"] = "ok"; //tmp to test
                   } else {
                     log.log("failed doing remote mqtt undef");
@@ -3385,6 +3391,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
           String sws = haspecs.get(did);
           if (TS.notEmpty(sws)) {
+            mcmd["spec"] = sws;
             if (sws.has(".") && sws.has(",")) {
               sws = sws.substring(0, sws.find("."));
               var swl = sws.split(",");
@@ -4019,7 +4026,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           clearQueueKdaddr("192.168.4.1");
           Map mqr = loadMqtt("relay");
           //haRelay, elseIf, gh type
-          if (cres.has("dm,") || cres.has("pm,") && TS.notEmpty(mqr["mqttBroker"]) && TS.notEmpty(mqr["mqttUser"]) && TS.notEmpty(mqr["mqttPass"])) {
+          if (cres.has("dm,") || cres.has("gm,") && TS.notEmpty(mqr["mqttBroker"]) && TS.notEmpty(mqr["mqttUser"]) && TS.notEmpty(mqr["mqttPass"])) {
             alStep = "setsmcr";
           } else {
             alStep = "setwifi";

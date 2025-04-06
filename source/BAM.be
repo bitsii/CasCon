@@ -3217,9 +3217,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   String finCmds = prot.secCmds(mcmd);
                   Mqtt mqtt = mqtts["remote"];
                   if (def(mqtt) && mqtt.isOpen) {
-                    //Map mqcmd = Maps.from("kdname", mcmd["kdname"], "cmds", finCmds, "reid", reId, "iv", mcmd["iv"]);
-                    finCmds = "rel1:" + mcmd["kdname"] + ";" + finCmds;
-                    mqtt.publish("casnic/cmds", finCmds);
+                    //finCmds = "rel1:" + mcmd["kdname"] + ";" + finCmds;
+                    mqtt.publish("casnic/cmd/" + mcmd["ondid"], finCmds);
                     //mcmd["cres"] = "ok"; //tmp to test
                   } else {
                     log.log("failed doing remote mqtt undef");
@@ -3378,6 +3377,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String kdaddr = getAddrDis(kdname);
           mcmd["kdname"] = kdname;
           mcmd["kdaddr"] = kdaddr;
+          mcmd["ondid"] = conf["ondid"];
           var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
           String sws = haspecs.get(did);
           if (TS.notEmpty(sws)) {

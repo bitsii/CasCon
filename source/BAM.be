@@ -707,6 +707,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
           if (def(currCmds) && TS.notEmpty(currCmds["iv"]) && TS.notEmpty(resiv) && resiv == currCmds["iv"]) {
             log.log("res good, setting to creso");
+            Int lmt = rescres.find("\r");
+            if (def(lmt)) { rescres = rescres.substring(0, lmt); }
+            lmt = rescres.find("\n");
+            if (def(lmt)) { rescres = rescres.substring(0, lmt); }
             currCmds["creso"].o = rescres;
           } else {
             log.log("currCmds undef or preempted ");

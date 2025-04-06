@@ -427,8 +427,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     checkStartMqtt() {
        checkStartMqtt("remote");
-       checkStartMqtt("relay");
-       checkStartMqtt("haRelay");
+       //checkStartMqtt("relay");
+       //checkStartMqtt("haRelay");
     }
 
     checkStartMqtt(String mqttMode) {
@@ -1260,7 +1260,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(CallBackUI.setElementsValuesResponse(Maps.from("wifiSsid", ssid, "wifiSec" sec)));
    }
 
-   loadMqttRequest(String mqttMode, request) Map {
+   loadMqtt(String mqttMode) Map {
      if (TS.notEmpty(mqttMode)) {
       String mqttBroker = app.configManager.get("mqtt." + mqttMode + ".broker");
       String mqttUser = app.configManager.get("mqtt." + mqttMode + ".user");
@@ -1269,9 +1269,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (undef(mqttUser)) { mqttUser = ""; }
       if (undef(mqttPass)) { mqttPass = ""; }
      }
+     return(Maps.from("mqttBroker", mqttBroker, "mqttUser" mqttUser, "mqttPass", mqttPass));
+   }
 
-     return(CallBackUI.setElementsValuesResponse(Maps.from("mqttBroker", mqttBroker, "mqttUser" mqttUser, "mqttPass", mqttPass)));
-
+   loadMqttRequest(String mqttMode, request) Map {
+     return(CallBackUI.setElementsValuesResponse(loadMqtt(mqttMode)));
    }
 
    saveMqAsRequest(String ashare, request) Map {
@@ -1312,9 +1314,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    saveMqttRequest(String mqttMode, String mqttBroker, String mqttUser, String mqttPass, request) Map {
-
      if (TS.notEmpty(mqttMode)) {
       if (TS.notEmpty(mqttBroker) && TS.notEmpty(mqttUser) && TS.notEmpty(mqttPass)) {
+        mqttBroker = mqttBroker.swap(" ", "");
+        //mqttUser = mqttUser.swap(" ", "");
+        //mqttPass = mqttPass.swap(" ", "");
         app.configManager.put("mqtt." + mqttMode + ".broker", mqttBroker);
         app.configManager.put("mqtt." + mqttMode + ".user", mqttUser);
         app.configManager.put("mqtt." + mqttMode + ".pass", mqttPass);
@@ -3927,6 +3931,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           cmds = "doswspec " + devSpass + " e";
           mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
           sendDeviceMcmd(mcmd);
+        } elseIf (alStep == "setsmcr") {
+          Map mqr = loadMqtt("relay");
+          //TS.notEmpty(mqr["mqttBroker"]) && TS.notEmpty(mqr["mqttUser"]) && TS.notEmpty(mqr["mqttPass"])
+          String bkr = mqr["mqttBroker"];
+          bkr = bkr.swap("//", "");
+          bkr = bkr.swap(" ", "");
+          cmds = "setsmc " + devPass + " nohex " + bkr + " " + mqr["mqttUser"] + " " + mqr["mqttPass"] + " e";
+          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
+          sendDeviceMcmd(mcmd);
         } elseIf (alStep == "setwifi") {
           cmds = "setwifi " + devPass + " hex " + devSsid + " " + devSec + " e";
           mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
@@ -4004,8 +4017,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           confs = Json:Marshaller.marshall(conf);
           hadevs.put(disDevId, confs);
           clearQueueKdaddr("192.168.4.1");
-          alStep = "setwifi";
+          Map mqr = loadMqtt("relay");
+          //haRelay, elseIf, gh type
+          if (cres.has("dm,") || cres.has("pm,") && TS.notEmpty(mqr["mqttBroker"]) && TS.notEmpty(mqr["mqttUser"]) && TS.notEmpty(mqr["mqttPass"])) {
+            alStep = "setsmcr";
+          } else {
+            alStep = "setwifi";
+          }
         }
+     } elseIf (alStep == "setsmcr") {
+       if (TS.notEmpty(cres) && cres.has("smcok")) {
+         alStep = "setwifi";
+       }
      } elseIf (alStep == "setwifi") {
        if (TS.notEmpty(cres) && cres.has("Wifi Setup Written")) {
          log.log("wifi setup worked");

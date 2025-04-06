@@ -2467,6 +2467,35 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
+   updateMqttRequest(String did, request) Map {
+     log.log("in updateMqttRequest " + did);
+
+      Map mqr = loadMqtt("relay");
+      //TS.notEmpty(mqr["mqttBroker"]) && TS.notEmpty(mqr["mqttUser"]) && TS.notEmpty(mqr["mqttPass"])
+      String bkr = mqr["mqttBroker"];
+      bkr = bkr.swap("//", "");
+      bkr = bkr.swap(" ", "");
+      String cmds = "setsmc pass nohex " + bkr + " " + mqr["mqttUser"] + " " + mqr["mqttPass"] + " e";
+
+
+     Map mcmd = Maps.from("prio", 2, "cb", "updateMqttCb", "did", did, "pwt", 1, "cmds", cmds);
+     sendDeviceMcmd(mcmd);
+
+     return(null);
+   }
+
+   updateMqttCb(Map mcmd, request) Map {
+     String cres = mcmd["cres"];
+     String did = mcmd["did"];
+     if (TS.notEmpty(cres)) {
+        log.log("got cres " + cres);
+      }
+      if (def(request)) {
+        return(CallBackUI.reloadResponse());
+      }
+      return(null);
+   }
+
    restartDevRequest(String did, request) Map {
      log.log("in restartDevRequest " + did);
 

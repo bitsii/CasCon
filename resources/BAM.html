@@ -557,6 +557,9 @@
                   <f7-button class="col" onclick="callApp('updateWifiRequest', document.getElementById('devId').value);return false;" outline>Update Wifi</f7-button>
                 </f7-row>
                 <f7-row tag="p">
+                  <f7-button class="col" onclick="callApp('updateMqttRequest', document.getElementById('devId').value);return false;" outline>Update Mqtt</f7-button>
+                </f7-row>
+                <f7-row tag="p">
                   <f7-button class="col" onclick="callApp('restartDevRequest', document.getElementById('devId').value);return false;" outline>Restart</f7-button>
                 </f7-row>
                  <f7-row tag="p">
@@ -727,7 +730,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="107"
+            value="108"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

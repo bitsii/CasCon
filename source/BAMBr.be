@@ -251,12 +251,12 @@ use class IUHub:Eui {
         } else {
           dma.display = "block";
         }
-        dma = HD.getEle("divMqttAShare");
+        /*dma = HD.getEle("divMqttAShare");
         if (dma.display == "block") {
           dma.display = "none";
         } else {
           dma.display = "block";
-        }
+        }*/
       }
       ifEmit(jvad) {
         HD.getEle("mqttMode").value = "remote";

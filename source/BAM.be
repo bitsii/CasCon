@@ -2188,7 +2188,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        Int pcount;
        Map pdevices; //hadevs cpy
        Map pspecs; //haspecs cpy
-       Map pdcount; //id to last getlastevents count
+       Map gletimes; //id to last getlastevents seconds
        Int lastRun;
      }
 
@@ -2205,7 +2205,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      if (undef(pcount) || pcount > 9999) {
        pcount = 0;
-       pdcount = null;
      }
      pcount++;
      if (undef(pendingStateUpdates)) {
@@ -2217,8 +2216,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (undef(currentEvents)) {
        currentEvents = Map.new();
      }
-     if (undef(pdcount)) {
-       pdcount = Map.new();
+     if (undef(gletimes)) {
+       gletimes = Map.new();
      }
      if (undef(pdevices)) {
        var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
@@ -2291,14 +2290,24 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
      }
 
-      Map lpd = pdevices;
-      Map lpc = pdcount;
-      if (def(lpd) && def (lpc)) {
+      Int glesecs = 6 + System:Random.getIntMax(9);
+      if (def(pdevices) && def (gletimes)) {
+        //log.log("in gletimes");
         for (var pdc in pdevices) {
-          Int dc = pdcount.get(pdc.key);
-          if (undef(dc) || dc < pcount) {
-            dc = pcount + 16 + System:Random.getIntMax(16); //(secs * 4 + rand secs up to 4), was 16 both
-            pdcount.put(pdc.key, dc);
+          //log.log("in devices");
+          Int dc = gletimes.get(pdc.key);
+          if (undef(dc)) {
+            //log.log("no dc");
+            gletimes.put(pdc.key, ns);
+            dc = ns;
+          } else {
+            //log.log("got dc");
+          }
+          Int nsdiff = ns - dc;
+          //log.log("nsdiff " + nsdiff + " glesecs " + glesecs);
+          if (ns - dc > glesecs) {
+            //log.log("gonna gle");
+            gletimes.put(pdc.key, ns);
             Map conf = Json:Unmarshaller.unmarshall(pdc.value);
             String did = conf["id"];
             getLastEvents(pdc.value);

@@ -244,7 +244,7 @@ use class IUHub:Eui {
       } else {
         dma.display = "block";
       }
-      ifEmit(wajv) {
+      //ifEmit(wajv) {
         dma = HD.getEle("divMqttModeChoice");
         if (dma.display == "block") {
           dma.display = "none";
@@ -257,8 +257,8 @@ use class IUHub:Eui {
         } else {
           dma.display = "block";
         }*/
-      }
-      ifEmit(jvad) {
+      //}
+      /*ifEmit(jvad) {
         HD.getEle("mqttMode").value = "remote";
         HC.callApp(Lists.from("loadMqttRequest", "remote"));
         HC.callApp(Lists.from("loadMqAsRequest"));
@@ -267,7 +267,7 @@ use class IUHub:Eui {
         HD.getEle("mqttMode").value = "remote";
         HC.callApp(Lists.from("loadMqttRequest", "remote"));
         HC.callApp(Lists.from("loadMqAsRequest"));
-      }
+      }*/
    }
 
    wantSettings(String devId) {

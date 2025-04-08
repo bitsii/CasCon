@@ -2290,7 +2290,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
      }
 
-      Int glesecs = 6 + System:Random.getIntMax(9);
+      Int glesecs = 4 + System:Random.getIntMax(4);
+      //Int glesecs = 6 + System:Random.getIntMax(6);
       if (def(pdevices) && def (gletimes)) {
         //log.log("in gletimes");
         for (var pdc in pdevices) {
@@ -2298,8 +2299,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           Int dc = gletimes.get(pdc.key);
           if (undef(dc)) {
             //log.log("no dc");
-            gletimes.put(pdc.key, ns);
-            dc = ns;
+            //gletimes.put(pdc.key, ns);
+            dc = 0;
           } else {
             //log.log("got dc");
           }
@@ -2587,7 +2588,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      } elseIf (aType == "setRgb") {
       mcmd = setDeviceRgbMcmd(rhan, rpos, rstate);
      }
-     mcmd["mw"] = 3;
+     //mcmd["mw"] = 3;
+     mcmd["mw"] = 5;
 
      Bool preempt = false;
      if (def(request)) {

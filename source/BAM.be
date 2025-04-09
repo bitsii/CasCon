@@ -3193,6 +3193,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (aptrs > 16) {  //12 for 3s (orig), 16 for 4s (is), 24 for 6s
         //timed out
         mcmd = currCmds;
+        log.log("failing in aptrs > 16");
         currCmds = null;
         return(processCmdsFail(mcmd, request));
       }
@@ -3203,6 +3204,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            }
 
         ifEmit(apwk) {
+          unless (def(currCmds["doRemote"]) && currCmds["doRemote"]) {
           if (undef(currCmds["cres"])) {
           String jspw = "getLastCres:";
           emit(js) {
@@ -3237,11 +3239,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             //"no getLastCres".print();
           }
         }
+        }
        }
      }
 
      if (def(currCmds) && def(currCmds["cres"])) {
        mcmd = currCmds;
+       log.log("got currCmds n cres will process res");
        currCmds = null;
        return(processMcmdRes(mcmd, request));
      } elseIf (undef(currCmds)) {

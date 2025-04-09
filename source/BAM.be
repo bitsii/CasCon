@@ -1546,7 +1546,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(sq);
    }
 
-   getLastEvents(String confs) {
+   getLastEvents(String confs, Bool firstRun) {
      //log.log("in getLastEvents");
 
      try {
@@ -1562,6 +1562,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "pwt", 3, "cmds", cmds, "iv", iv);
      Int jit = System:Random.getIntMax(9);
+     if (firstRun) { jit = 4; }
      if (jit > 2 && jit < 6) {  //4-8 seconds (av 6) per device try
        //in case something was remote or offline, every once in a while try local to see if back to local net
        mcmd["forceLocal"] = true;
@@ -2311,7 +2312,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             gletimes.put(pdc.key, ns);
             Map conf = Json:Unmarshaller.unmarshall(pdc.value);
             String did = conf["id"];
-            getLastEvents(pdc.value);
+            if (dc == 0) { //firstrun force local to get to using local asap if available
+              getLastEvents(pdc.value, true);
+            } else {
+              getLastEvents(pdc.value, false);
+            }
             break;
           }
         }

@@ -2588,8 +2588,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      } elseIf (aType == "setRgb") {
       mcmd = setDeviceRgbMcmd(rhan, rpos, rstate);
      }
-     //mcmd["mw"] = 3;
-     mcmd["mw"] = 5;
+     mcmd["mw"] = 3;
+     //mcmd["mw"] = 5;
 
      Bool preempt = false;
      if (def(request)) {
@@ -3183,17 +3183,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        Map currCmds;
      }
       if (def(currCmds) && undef(currCmds["cres"])) {
+      Int ns = Time:Interval.now().seconds;
       Int aptrs = currCmds["aptrs"];
       if (undef(aptrs)) {
-        aptrs = 1;
+        aptrs = ns;
         currCmds["aptrs"] = aptrs;
-      } else {
-        aptrs++;
       }
-      if (aptrs > 16) {  //12 for 3s (orig), 16 for 4s (is), 24 for 6s
+      if (ns - aptrs > 4) { //howmany secs to wait, was counting 1/4 seconds and 16 so 4, starting there
         //timed out
         mcmd = currCmds;
-        log.log("failing in aptrs > 16");
+        log.log("failing in aptrs " + aptrs + " " + ns);
         currCmds = null;
         return(processCmdsFail(mcmd, request));
       }

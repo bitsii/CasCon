@@ -2424,7 +2424,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         //multicastLock.acquire();
         nsdManager = (NsdManager) be.BEC_3_2_4_10_UIJvAdWebBrowser.MainActivity.appContext.getSystemService(Context.NSD_SERVICE);
         nsdManager.discoverServices(
-        "_http._tcp.", NsdManager.PROTOCOL_DNS_SD, discoveryListener);
+        "_casnic._tcp.", NsdManager.PROTOCOL_DNS_SD, discoveryListener);
        //multicastLock.release();
        } catch (Exception e) { System.out.println("error in startdiscovery"); }
        """

@@ -2511,6 +2511,83 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
+   unshareFromMatrRequest(String sdid, request) Map {
+     return(matrep("unshare", sdid, request));
+   }
+
+   shareToMatrRequest(String sdid, request) Map {
+       return(matrep("share", sdid, request));
+   }
+
+   matrep(String act, String sdid, request) Map {
+     log.log("in matrep " + act + " " + sdid);
+
+     String sconf;
+     String gdid;
+     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+     for (any kv in hadevs.getMap()) {
+      String did = kv.key;
+      String dconfs = kv.value;
+      String sws = haspecs.get(did);
+      if (TS.notEmpty(sws) && sws.has("a1,")) {
+        gdid = did;
+      }
+      if (did == sdid) {
+        sconf = dconfs;
+      }
+     }
+     if (TS.isEmpty(gdid)) {
+       log.log("missing gateway did");
+       return(null);
+     }
+     if (TS.isEmpty(sconf)) {
+       log.log("missing share conf");
+       return(null);
+     }
+
+     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
+
+     Map conf = Json:Unmarshaller.unmarshall(sconf);
+
+     //matrep pass add ool ondid 0 spass e
+
+      String ctl = hactls.get(sdid);
+      if (TS.notEmpty(ctl)) {
+        var ctll = ctl.split(",");
+        log.log("got ctl " + ctl);
+        for (Int i = 1;i < ctll.length;i++) {
+          String itype = ctll.get(i);
+          log.log("got ctled itype " + itype + " pos " + i);
+          if (itype == "gdim" || itype == "sw") {
+            Int ipos = i.copy();
+            ipos--;
+            if (act == "share") {
+              String cmds = "matrep pass add ool " + conf["ondid"] + " " + ipos + " " + conf["spass"] + " e";
+            } else {
+              cmds = "matrep pass rm ool " + conf["ondid"] + " " + ipos + " " + " e";
+            }
+            Map mcmd = Maps.from("prio", 2, "cb", "matrepCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
+            sendDeviceMcmd(mcmd);
+          }
+        }
+      }
+
+     return(null);
+   }
+
+   matrepCb(Map mcmd, request) Map {
+     String cres = mcmd["cres"];
+     String did = mcmd["did"];
+     if (TS.notEmpty(cres)) {
+        log.log("got cres " + cres);
+      }
+      if (def(request)) {
+        return(CallBackUI.reloadResponse());
+      }
+      return(null);
+   }
+
    restartDevRequest(String did, request) Map {
      log.log("in restartDevRequest " + did);
 
@@ -3435,6 +3512,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
           String confs = hadevs.get(did);
           Map conf = Json:Unmarshaller.unmarshall(confs);
+          //log.log("ondid " + conf["ondid"]);
           String kdname = "CasNic" + conf["ondid"];
           String kdaddr = getAddrDis(kdname);
           mcmd["kdname"] = kdname;

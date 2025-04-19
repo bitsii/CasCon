@@ -151,6 +151,7 @@ class CasNic:CasProt {
     String cmds = mcmd["cmds"];
 
     if (true && pwt > 0 && pwt != 3 && TS.notEmpty(pw)) {
+      //log.log("pwd " + pwt + " pw " + pw);
       Int pver = mcmd["pver"];
       String tesh = mcmd["tesh"];
       if (pwt < 1 || pver < 4) {

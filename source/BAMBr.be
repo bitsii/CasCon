@@ -574,12 +574,11 @@ use class IUHub:Eui {
      }
    }
 
-   shareToRelay(Bool admin) {
-     genDeviceShare(admin);
+   shareToMatr(Bool admin) {
+     String devId = HD.getElementById("devId").value;
      clearQrShare();
-     if (TS.notEmpty(HD.getElementById("shBlob").value)) {
-      String mqsh = HD.getElementById("shBlob").value;
-      HC.callApp(Lists.from("shareToMqttRequest", mqsh));
+     if (TS.notEmpty(devId)) {
+      HC.callApp(Lists.from("shareToMatrRequest", devId));
      } else {
        HD.getEle("qrerr").display = "block";
      }

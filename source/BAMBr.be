@@ -251,6 +251,20 @@ use class IUHub:Eui {
         } else {
           dma.display = "block";
         }
+        dma = HD.getEle("divMqFull");
+        if (dma.display == "block") {
+          dma.display = "none";
+        } else {
+          dma.display = "block";
+        }
+        dma = HD.getEle("divMqDis");
+        if (dma.display == "block") {
+          dma.display = "none";
+        } else {
+          dma.display = "block";
+        }
+        HC.callApp(Lists.from("loadMqFullRequest"));
+        HC.callApp(Lists.from("loadMqDisRequest"));
         /*dma = HD.getEle("divMqttAShare");
         if (dma.display == "block") {
           dma.display = "none";
@@ -462,6 +476,24 @@ use class IUHub:Eui {
      log.log("set mqttMode to " + mqttMode);
      HC.callApp(Lists.from("loadMqttRequest", mqttMode));
      HC.callApp(Lists.from("loadMqAsRequest"));
+   }
+
+   mqFullResponse(String ashare) {
+     log.log("in mqFullResponse");
+     if (TS.notEmpty(ashare) && ashare == "on") {
+       HD.getEle("mqFullSw").checked = true;
+     } else {
+       HD.getEle("mqFullSw").checked = false;
+     }
+   }
+
+   mqDisResponse(String ashare) {
+     log.log("in mqDisResponse");
+     if (TS.notEmpty(ashare) && ashare == "on") {
+       HD.getEle("mqDisSw").checked = true;
+     } else {
+       HD.getEle("mqDisSw").checked = false;
+     }
    }
 
    mqAsResponse(String ashare) {

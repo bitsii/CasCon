@@ -426,9 +426,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     checkStartMqtt() {
+      String mqft = app.configManager.get("mqtt.fullTime");
+      if (TS.notEmpty(mqft) && mqft == "on") {
+        mqttFullRemote = true;
+      } else {
+        mqttFullRemote = false;
+      }
+      String mqdis = app.configManager.get("mqtt.disabled");
+      if (TS.isEmpty(mqdis) || mqdis != "on") {
        checkStartMqtt("remote");
        //checkStartMqtt("relay");
        //checkStartMqtt("haRelay");
+      }
     }
 
     checkStartMqtt(String mqttMode) {
@@ -1280,9 +1289,45 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(CallBackUI.setElementsValuesResponse(loadMqtt(mqttMode)));
    }
 
-   saveMqAsRequest(String ashare, request) Map {
-     log.log("got mqAsSet " + ashare);
-     app.configManager.put("mqtt.autoShare", ashare);
+   loadMqFullRequest(request) Map {
+     String ashare = app.configManager.get("mqtt.fullTime");
+     if (TS.isEmpty(ashare)) {
+       ashare = "off";
+       app.configManager.put("mqtt.fullTime", ashare);
+     }
+     return(CallBackUI.mqFullResponse(ashare));
+   }
+
+   saveMqFullRequest(String ashare, request) Map {
+     log.log("got mqFull " + ashare);
+     app.configManager.put("mqtt.fullTime", ashare);
+     if (ashare == "on") {
+       mqttFullRemote = true;
+     } else {
+       mqttFullRemote = false;
+     }
+     return(null);
+   }
+
+   loadMqDisRequest(request) Map {
+     String ashare = app.configManager.get("mqtt.disabled");
+     if (TS.isEmpty(ashare)) {
+       ashare = "off";
+       app.configManager.put("mqtt.disabled", ashare);
+     }
+     return(CallBackUI.mqDisResponse(ashare));
+   }
+
+   saveMqDisRequest(String ashare, request) Map {
+     log.log("got mqDis " + ashare);
+     app.configManager.put("mqtt.disabled", ashare);
+     if (ashare == "on") {
+       for (any kv in mqtts.container) {
+         if (def(kv.value) && kv.value.isOpen) {
+           kv.value.close();
+         }
+       }
+     }
      return(null);
    }
 
@@ -1293,6 +1338,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        app.configManager.put("mqtt.autoShare", ashare);
      }
      return(CallBackUI.mqAsResponse(ashare));
+   }
+
+   saveMqAsRequest(String ashare, request) Map {
+     log.log("got mqAsSet " + ashare);
+     app.configManager.put("mqtt.autoShare", ashare);
+     return(null);
    }
 
    saveWifiRequest(String ssid, String sec, Bool reloadAfter, request) Map {

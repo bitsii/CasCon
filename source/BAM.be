@@ -2750,18 +2750,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       Map hcc = currCmds;
       if (def(hcc) && TS.notEmpty(hcc["did"]) && def(hcc["prio"]) && def(mcmd) && TS.notEmpty(mcmd["did"])) {
         log.log("past preempt 1 " + hcc["prio"] + " " + hcc["did"] + " " + mcmd["did"]);
-        if (hcc["prio"] > 1) {
-          unless (def(mcmd["runSync"]) && mcmd["runSync"]) {
-            log.log("will prempt!!!!!");
-            preempt = true;
-            if (TS.notEmpty(hcc["repsu"])) {
-              pendingStateUpdates += hcc["repsu"];
-            }
-          } else {
-            log.log("not preempt 2");
+        unless (def(mcmd["runSync"]) && mcmd["runSync"]) {
+          log.log("will prempt!!!!!");
+          preempt = true;
+          if (TS.notEmpty(hcc["repsu"])) {
+            pendingStateUpdates += hcc["repsu"];
           }
         } else {
-          log.log("not preempt 1");
+          log.log("not preempt 2");
         }
       }
      }

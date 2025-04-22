@@ -3393,10 +3393,34 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
 
      if (def(currCmds) && def(currCmds["cres"])) {
-       mcmd = currCmds;
-       //log.log("got currCmds n cres will process res");
-       currCmds = null;
-       return(processMcmdRes(mcmd, request));
+       if (def(currCmds["pwt"]) && currCmds["pwt"] > 0) {
+        String rescres = currCmds["cres"];
+        Int rf1 = rescres.find(" ");
+        if (def(rf1)) {
+            String resivcr = rescres.substring(0, rf1);
+            Int rf2 = resivcr.find(",");
+            if (def(rf2)) {
+              String resiv = resivcr.substring(0, rf2);
+              log.log("resivcr |" + resivcr + "| resiv |" + resiv + "|");
+            }
+        }
+        if (TS.notEmpty(currCmds["iv"]) && TS.notEmpty(resiv) && resiv == currCmds["iv"]) {
+          mcmd = currCmds;
+          //log.log("got currCmds n cres will process res");
+          currCmds = null;
+          return(processMcmdRes(mcmd, request));
+        } else {
+          log.log("diff iv, preempted!!!!!!!!!!!!!!!!");
+          if (def(currCmds["creso"])) { currCmds["creso"].o = null; }
+          currCmds["cres"] = null;
+        }
+       } else {
+         log.log("no iv check");
+         mcmd = currCmds;
+         //log.log("got currCmds n cres will process res");
+         currCmds = null;
+         return(processMcmdRes(mcmd, request));
+       }
      } elseIf (undef(currCmds)) {
        //try a few times, for ignores
        for (Int j = 0;j < 20;j++) {

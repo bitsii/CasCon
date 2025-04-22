@@ -963,7 +963,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         String dkdname = "CasNic" + conf["ondid"];
         if (dkdname == kdname) {
           String spec = haspecs.get(did);
-          if (spec.has("nm,")) {
+          if (TS.notEmpty(spec) && spec.has("nm,")) {
             log.log("FOUND NOMDNS, MUST DO TDS");
             if (def(pendingTds)) {
               pendingTds += did;
@@ -1534,8 +1534,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     for (any kv in hadevs.getMap()) {
       String godid = kv.key;
       String spec = haspecs.get(godid);
-      if (spec.has("t1,")) {
-        unless (spec.has("nm,")) {
+      if (TS.notEmpty(spec) && spec.has("t1,")) {
+        unless (TS.notEmpty(spec) && spec.has("nm,")) {
           topt += godid;
         }
       }
@@ -3377,7 +3377,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      if (def(currCmds) && def(currCmds["cres"])) {
        mcmd = currCmds;
-       log.log("got currCmds n cres will process res");
+       //log.log("got currCmds n cres will process res");
        currCmds = null;
        return(processMcmdRes(mcmd, request));
      } elseIf (undef(currCmds)) {

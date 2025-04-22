@@ -1617,11 +1617,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (jit > 2 && jit < 6) {  //4-8 seconds (av 6) per device try
        //in case something was remote or offline, every once in a while try local to see if back to local net
        mcmd["forceLocal"] = true;
-       mcmd["ignoreFail"] = true;
+       mcmd["smallFail"] = true;
      } elseIf (jit > 5) {
        //also see if should be cleared from remote fails from time to time
        mcmd["forceRemote"] = true;
-       mcmd["ignoreFail"] = true;
+       mcmd["smallFail"] = true;
      }
 
      if (backgroundPulse) {
@@ -1635,6 +1635,27 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    getLastEventsCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String leid = mcmd["did"];
+     slots {
+       Map glefails;
+     }
+     if (undef(glefails)) {
+       glefails = Map.new();
+     }
+     Int fc = glefails.get(leid);
+     if (undef(fc)) { fc = Int.new(); glefails.put(leid, fc); }
+     if (mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) {
+       fc++;
+       if (fc > 3) {
+         Int ns = Time:Interval.now().seconds + 60;
+         log.log("!!!! persistant gle fail, waiting a minute " + leid);
+         if (def(gletimes)) { gletimes.put(leid, ns); }
+       } elseIf (fc > 10000) {
+         fc.setValue(0);
+       }
+     } else {
+       fc.setValue(0);
+     }
+     //log.log("!!!! gle fc " + fc + " " + leid);
      if (TS.notEmpty(cres) && cres.has(";")) {
         if (cres.has(" ") && cres.find(" ") < cres.find(";")) {
           //log.log("dropping iv,reid from gle res");
@@ -3444,6 +3465,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            var harfails = app.kvdbs.get("HARFAILS"); //harfails - kdname to remote failing
            harfails.remove(mcmd["kdname"]);
          }
+         if (def(glefails) && TS.notEmpty(mcmd["did"]) && glefails.has(mcmd["did"])) {
+           glefails.get(mcmd["did"]).setValue(0);
+         }
        }
        if (mcmd.has("cb")) {
          Int pver = mcmd["pver"];
@@ -3517,8 +3541,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     String did = mcmd["did"];
     String kdaddr = mcmd["kdaddr"];
     String kdname = mcmd["kdname"];
-    if (def(mcmd["ignoreFail"]) && mcmd["ignoreFail"]) {
-      //log.log("ignoreFail set, ignoring fail");
+    if (def(mcmd["smallFail"]) && mcmd["smallFail"]) {
+      if (mcmd.has("cb")) {
+         mcmd["fromCmdsFail"] = true;
+         return(processMcmdRes(mcmd, request));
+       }
       return(null);
     }
     if (TS.notEmpty(did)) {

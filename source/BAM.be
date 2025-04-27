@@ -712,7 +712,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String rescres = payload;
           String resivcr = rescres.substring(0, rescres.find(" "));
           String resiv = resivcr.substring(0, resivcr.find(","));
-          log.log("resivcr |" + resivcr + "| resiv |" + resiv + "|");
+          //log.log("resivcr |" + resivcr + "| resiv |" + resiv + "|");
 
           if (def(currCmds) && TS.notEmpty(currCmds["iv"]) && TS.notEmpty(resiv) && resiv == currCmds["iv"]) {
             log.log("res good, setting to creso");
@@ -752,7 +752,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         log.log("relay cres " + cres);
         String resivcr = cres.substring(0, cres.find(" "));
         String resreid = resivcr.substring(resivcr.find(",") + 1, resivcr.length);
-        log.log("resivcr |" + resivcr + "| resreid |" + resreid + "|");
+        //log.log("resivcr |" + resivcr + "| resreid |" + resreid + "|");
         Mqtt mqtt = mqtts["relay"];
         mqtt.publish("casnic/res/" + resreid, cres);
       } else {
@@ -2631,13 +2631,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         for (Int i = 1;i < ctll.length;i++) {
           String itype = ctll.get(i);
           log.log("got ctled itype " + itype + " pos " + i);
-          if (itype == "gdim" || itype == "sw") {
+          String etype;
+          if (itype == "sw") { etype = "ool"; }
+          if (itype == "gdim") { etype = "dl"; }
+          if (TS.notEmpty(etype)) {
             Int ipos = i.copy();
             ipos--;
             if (act == "share") {
-              String cmds = "matrep pass add ool " + conf["ondid"] + " " + ipos + " " + conf["spass"] + " e";
+              String cmds = "matrep pass add " + etype + " " + conf["ondid"] + " " + ipos + " " + conf["spass"] + " e";
             } else {
-              cmds = "matrep pass rm ool " + conf["ondid"] + " " + ipos + " " + " e";
+              cmds = "matrep pass rm " + etype + " " + conf["ondid"] + " " + ipos + " " + " e";
             }
             Map mcmd = Maps.from("prio", 2, "cb", "matrepCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
             sendDeviceMcmd(mcmd);
@@ -3401,7 +3404,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             Int rf2 = resivcr.find(",");
             if (def(rf2)) {
               String resiv = resivcr.substring(0, rf2);
-              log.log("resivcr |" + resivcr + "| resiv |" + resiv + "|");
+              //log.log("resivcr |" + resivcr + "| resiv |" + resiv + "|");
             }
         }
         if (TS.notEmpty(currCmds["iv"]) && TS.notEmpty(resiv) && resiv == currCmds["iv"]) {

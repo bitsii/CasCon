@@ -1534,9 +1534,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     for (any kv in hadevs.getMap()) {
       String godid = kv.key;
       String spec = haspecs.get(godid);
-      if (TS.notEmpty(spec) && spec.has("t1,")) {
-        unless (TS.notEmpty(spec) && spec.has("nm,")) {
-          topt += godid;
+      if (TS.notEmpty(spec)) {
+        if (spec.has("t1,") || spec.has("t2,")) {
+          unless (TS.notEmpty(spec) && spec.has("nm,")) {
+            topt += godid;
+          }
         }
       }
     }

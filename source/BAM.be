@@ -2634,7 +2634,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String itype = ctll.get(i);
           log.log("got ctled itype " + itype + " pos " + i);
           String etype;
-          if (itype == "sw") { etype = "ool"; }
+          if (itype == "sw" || itype == "rgbcwsgd" || itype == "rgbcwgd") { etype = "ool"; }
           if (itype == "gdim") { etype = "dl"; }
           if (TS.notEmpty(etype)) {
             Int ipos = i.copy();

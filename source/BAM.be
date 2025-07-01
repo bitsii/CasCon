@@ -3951,7 +3951,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        return(CallBackUI.settleWifiResponse(vnl, ssid, sec));
      }
 
-     String cmds = "previsnets " + visnetsPos + " e";
+     if (starting) {
+       cmds = "previsnets S e";
+     } else {
+       String cmds = "previsnets " + visnetsPos + " e";
+     }
      Map mcmd = Maps.from("prio", 1, "mw", 1, "cb", "previsnetsCb", "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
      sendDeviceMcmd(mcmd);
      return(CallBackUI.getDevWifisResponse(count, tries, wait));

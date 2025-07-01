@@ -288,6 +288,17 @@ use class IUHub:Eui {
     wantSettingsFor = devId;
    }
 
+   pickedWifi(String wifieh) {
+     slots {
+       String lastPickedWifi;
+     }
+     if (TS.notEmpty(wifieh)) {
+       wifieh = Encode:Hex.decode(wifieh);
+     }
+     log.log("picked wifi " + wifieh);
+     lastPickedWifi = wifieh;
+   }
+
    checkNexts() {
     unless (loggedIn) { return(self); }
     slots {
@@ -312,15 +323,16 @@ use class IUHub:Eui {
        var wfd = HD.getEle("wifisholder");
        var wgb = HD.getEle("wifiGivenButton");
        if (wfd.exists && wgb.exists) {
-         if (def(visnets)  && visnets.length > 0 && TS.isEmpty(wfd.innerHTML)) {
+         if (def(visnets)  && visnets.length > 0) {
            var ehvs = Encode:Hex.new();
            String netch = "<fieldset><legend>Select a network:</legend>";
            for (var kvv in visnets) {
              String kvve = ehvs.encode(kvv);
-             netch += "<div><input type=\"radio\" id=\"pswi" += kvve += "\" name=\"drone\" value=\"huey\"/><label for=\"pswi" += kvve += "\">" += kvv += "</label></div>";
+             netch += "<div><input type=\"radio\" id=\"pswi" += kvve += "\" onclick=\"callUI('pickedWifi', this.value);return true;\" name=\"drone\" value=\"" += kvve += "\"/><label for=\"pswi" += kvve += "\">" += kvv += "</label></div>";
            }
            netch += "</fieldset>";
            wfd.innerHTML = netch;
+           visnets = null;
          } elseIf (def(visnets)  && visnets.isEmpty && TS.isEmpty(wfd.innerHTML)) {
            //inform("Device cannot find any suitable Wifi networks.  Make sure a 2.4Ghz Wifi Network access point is in range of the device");
            HD.getEle("noWifiTxt").display = "block";
@@ -536,13 +548,14 @@ use class IUHub:Eui {
      String chsec;
      chsec = HD.getElementById("pwsnetname").value;
      var ehvs = Encode:Hex.new();
-     for (var kvv in visnets) {
+     /*for (var kvv in visnets) {
         String kvve = ehvs.encode(kvv);
         //netch += "<div><input type=\"radio\" id=\"pswi" += kvve += "\" name=\"drone\" value=\"huey\"/><label for=\"pswi" += kvve += "\">" += kvv += "</label></div>";
         if (HD.getEle("pswi" + kvve).checked) {
           chssid = kvv;
         }
-     }
+     }*/
+     chssid = lastPickedWifi;
      if (TS.notEmpty(chssid)) {
        log.log("got chssid " + chssid);
      } else {
@@ -663,6 +676,11 @@ use class IUHub:Eui {
      log.log("got blob");
      HC.callApp(Lists.from("acceptShareRequest", cx));
      lastCx = "";
+   }
+
+   stopSetup() {
+     inDeviceSetup = false;
+     HD.getEle("doingSetupSpin").display = "none";
    }
 
    startDeviceSetup() {

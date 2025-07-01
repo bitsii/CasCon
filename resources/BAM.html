@@ -388,7 +388,10 @@
                 </f7-list>
                 </f7-block>
               <f7-row tag="p">
-            <f7-button id="wifiGivenButton" class="col" onclick="callUI('wifiGiven');return false;" outline>Connect device</f7-button>
+            <f7-button id="wifiGivenButton" class="col" onclick="callUI('wifiGiven');return false;" outline>Connect Device</f7-button>
+            </f7-row>
+            <f7-row tag="p">
+            <f7-button class="col" popup-close onclick="callUI('stopSetup');return true;" outline>Go back and try again</f7-button>
             </f7-row>
             <f7-row tag="p">
             <f7-button class="col" id="givupSetup" onclick="location.reload();return false;" href='/' outline>Cancel Setup</f7-button>
@@ -754,7 +757,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="121"
+            value="122"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

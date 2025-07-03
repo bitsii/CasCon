@@ -784,6 +784,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(mr);
     }
 
+    lvlToPct(Int ls) Int {
+      if (ls < 0 || ls > 255) { ls = 255; }
+      Float lsf = Float.intNew(ls);
+      Float fh = Float.intNew(255);
+      Float mp = lsf / fh;
+      Float mrm = Float.intNew(100);
+      Float mrf = mp * mrm;
+      Int mr = mrf.toInt();
+      return(mr);
+    }
+
     handleWeb(request) this {
       //log.log("request uri " + request.uri);
       //log.log("handle as jsonajax");
@@ -2888,7 +2899,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        } else {
          setcmd = " setrgb ";
        }
-       cmds = "dostatexd spass " + rpos.toString() + setcmd + frgb + " " + xd + " e";
+       cmds = "dostatexd spass " + rpos.toString() + setcmd + frgb + " " + xd + " " + lsToMired(Int.new(cw)) + " " + lvlToPct(Int.new(lv)) + " e";
      } else {
        String cmds = "dostate spass " + rpos.toString() + " setrgb " + rgb + " e";
      }
@@ -2997,7 +3008,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          xd = ocw + "," + lv;
        }
        log.log("fcw " + fcw);
-       String cmds = "dostatexd spass " + rpos.toString() + setcmd + fcw + " " + xd + " e";
+       String cmds = "dostatexd spass " + rpos.toString() + setcmd + fcw + " " + xd + " " + lsToMired(Int.new(rstate)) + " " + lvlToPct(Int.new(lv)) + " e";
      }
      //log.log("cmds " + cmds);
 
@@ -3134,7 +3145,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            }
            xd = orgb + "," + rstate + "," + ocw;
          }
-         cmds = "dostatexd spass " + rpos.toString() + " setrgbcw " + frgb + " " + xd + " e";
+         cmds = "dostatexd spass " + rpos.toString() + " setrgbcw " + frgb + " " + xd + " " + lsToMired(Int.new(ocw)) + " " + lvlToPct(Int.new(rstate)) + " e";
        } else {
         frgb = rgbForRgbLvl(orgb, gamds);
         String xd = orgb + "," + rstate;

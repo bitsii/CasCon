@@ -2651,6 +2651,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           String etype;
           if (itype == "sw" || itype == "rgbcwsgd" || itype == "rgbcwgd") { etype = "ool"; }
           if (itype == "gdim") { etype = "dl"; }
+          if (itype == "rgbcwsgd" || itype == "rgbcwgd") { etype = "ecl"; }
           if (TS.notEmpty(etype)) {
             Int ipos = i.copy();
             ipos--;

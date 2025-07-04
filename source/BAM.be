@@ -2642,6 +2642,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         var ctll = ctl.split(",");
         log.log("got ctl " + ctl);
         for (Int i = 1;i < ctll.length;i++) {
+          if (def(mcmd)) {
+            sendDeviceMcmd(mcmd);
+            mcmd = null;
+          }
           String itype = ctll.get(i);
           log.log("got ctled itype " + itype + " pos " + i);
           String etype;
@@ -2656,8 +2660,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               cmds = "matrep pass rm " + etype + " " + conf["ondid"] + " " + ipos + " " + " e";
             }
             Map mcmd = Maps.from("prio", 2, "cb", "matrepCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
-            sendDeviceMcmd(mcmd);
           }
+        }
+        if (def(mcmd)) {
+          mcmd["matrepLast"] = true;
+          sendDeviceMcmd(mcmd);
+          mcmd = null;
         }
       }
 
@@ -2667,8 +2675,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    matrepCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String did = mcmd["did"];
-     if (TS.notEmpty(cres)) {
-        log.log("got cres " + cres);
+     if (TS.notEmpty(cres) && cres.has("matrepok")) {
+        log.log("got good maprep cres " + cres);
+        if (def(mcmd["matrepLast"]) && mcmd["matrepLast"]) {
+          restartDevRequest(did, null);
+        }
       }
       if (def(request)) {
         return(CallBackUI.reloadResponse());
@@ -2685,7 +2696,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
-     Map mcmd = Maps.from("prio", 2, "cb", "restartDevCb", "did", did, "pwt", 1, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 3, "cb", "restartDevCb", "did", did, "pwt", 1, "cmds", cmds);
      sendDeviceMcmd(mcmd);
 
      return(null);

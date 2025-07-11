@@ -2911,7 +2911,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        } else {
          setcmd = " setrgb ";
        }
-       cmds = "dostatexd spass " + rpos.toString() + setcmd + frgb + " " + xd + " " + lsToMired(Int.new(cw)) + " " + lvlToPct(Int.new(lv)) + " e";
+       cmds = "dostatexd spass " + rpos.toString() + setcmd + frgb + " " + xd + " e";
      } else {
        String cmds = "dostate spass " + rpos.toString() + " setrgb " + rgb + " e";
      }
@@ -3020,7 +3020,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          xd = ocw + "," + lv;
        }
        log.log("fcw " + fcw);
-       String cmds = "dostatexd spass " + rpos.toString() + setcmd + fcw + " " + xd + " " + lsToMired(Int.new(rstate)) + " " + lvlToPct(Int.new(lv)) + " e";
+       String cmds = "dostatexd spass " + rpos.toString() + setcmd + fcw + " " + xd + " e";
      }
      //log.log("cmds " + cmds);
 
@@ -3157,7 +3157,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            }
            xd = orgb + "," + rstate + "," + ocw;
          }
-         cmds = "dostatexd spass " + rpos.toString() + " setrgbcw " + frgb + " " + xd + " " + lsToMired(Int.new(ocw)) + " " + lvlToPct(Int.new(rstate)) + " e";
+         cmds = "dostatexd spass " + rpos.toString() + " setrgbcw " + frgb + " " + xd + " e";
        } else {
         frgb = rgbForRgbLvl(orgb, gamds);
         String xd = orgb + "," + rstate;

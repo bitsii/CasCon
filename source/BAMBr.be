@@ -24,9 +24,6 @@ emit(js) {
   """
   if (typeof(window) !== 'undefined') {
     console.log("window is defined");
-  window.addEventListener('touchstart', function() {
-  callUI('gotAction');
-});
   }
 
   if (typeof(document) !== 'undefined') {
@@ -85,11 +82,6 @@ use class IUHub:Eui {
       }
    }
 
-   gotAction() {
-      log.log("gotAction");
-      lastAction = Time:Interval.now().seconds;
-    }
-
     docHidden() {
       log.log("docHidden");
       visible = false;
@@ -102,12 +94,6 @@ use class IUHub:Eui {
 
    manageStateUpdates() {
     slots {
-      Int lastAction;
-    }
-    if (undef(lastAction)) {
-      lastAction = Time:Interval.now().seconds;
-    }
-    slots {
       Bool visible;
     }
     Bool doPulse = true;
@@ -118,29 +104,6 @@ use class IUHub:Eui {
     if (def(inDeviceSetup) && inDeviceSetup) {
       doPulse = false;
     }
-    /*Bool isMob = false;
-    ifEmit(jvad) {
-      isMob = true;
-    }
-    ifEmit(apwk) {
-      isMob = true;
-    }
-    Int ns = Time:Interval.now().seconds;
-    Int lgap = ns - lastAction;
-    Int lgapFreq = 120;
-    Int lgapHead = 6;
-    if (lgap > lgapFreq) {
-      //log.log("lgap a while ago pulsing less");
-      if (isMob) {
-        //log.log("isMob");
-        if (lgap % lgapFreq < lgapFreq - lgapHead) {
-          //log.log("doPulse false in lastAction");
-          doPulse = false;
-        } else {
-          //log.log("doPulse true in lastAction");
-        }
-      }
-    }*/
      unless (loggedIn) { return(self); }
      HC.callApp(Lists.from("manageStateUpdatesRequest", doPulse));
    }
@@ -809,7 +772,6 @@ use class IUHub:Eui {
        any sw = HD.getEle("hat" + setLvlDid + "-" + setLvlPos);
        if (sw.exists) { sw.checked = true; }
        //HD.getEle("devErr").display = "none";
-       gotAction();
        HC.callApp(Lists.from("devActRequest", "setLvl", setLvlDid, setLvlPos, currLvl.toString()));
      }
    }
@@ -839,7 +801,6 @@ use class IUHub:Eui {
        currTemp = value;
        HD.getEle("hat" + setTempDid + "-" + setTempPos).checked = true;
        //HD.getEle("devErr").display = "none";
-       gotAction();
        HC.callApp(Lists.from("devActRequest", "setTemp", setTempDid, setTempPos, currTemp.toString()));
      }
    }
@@ -900,7 +861,6 @@ use class IUHub:Eui {
         log.log("colorChanged r,g,b " + rgb);
         //HD.getEle("devErr").display = "none";
         HD.getEle("hat" + setColorDid + "-" + setColorPos).checked = true;
-        gotAction();
         HC.callApp(Lists.from("devActRequest", "setRgb", setColorDid, setColorPos, rgb));
        } else {
         log.log("colorChanged first ignored " + rgb);
@@ -1049,7 +1009,7 @@ use class IUHub:Eui {
       String forsw = '''
         <div class="item-after">
              <label class="toggle">
-               <input type="checkbox" onclick="callUI('gotAction');callApp('devActRequest', 'setSw', 'IDOFDEVICE', 'POSOFDEVICE', toOnOff(document.getElementById('hatIDOFDEVICE-POSOFDEVICE').checked));return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
+               <input type="checkbox" onclick="callApp('devActRequest', 'setSw', 'IDOFDEVICE', 'POSOFDEVICE', toOnOff(document.getElementById('hatIDOFDEVICE-POSOFDEVICE').checked));return true;" id="hatIDOFDEVICE-POSOFDEVICE" DEVICESTATETOG/>
                <span class="toggle-icon"></span>
              </label>
            </div>

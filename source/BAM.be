@@ -2682,9 +2682,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           restartDevRequest(did, null);
         }
       }
-      if (def(request)) {
-        return(CallBackUI.reloadResponse());
-      }
+      //if (def(request)) {
+      //  return(CallBackUI.reloadResponse()); //ios won't process the restart request, it will restart in the restartdev callback anyway
+      //}
       return(null);
    }
 

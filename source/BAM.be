@@ -1104,7 +1104,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      confs = Json:Marshaller.marshall(conf);
      saveDeviceRequest(conf["id"], confs, request);
-     //rectlDeviceRequest(conf["id"], request);
+     //rectlDeviceRequest(conf["id"], null, request);
      ifEmit(wajv) {
       setupMqttDevices("haRelay");
       setupMqttDevices("relay");
@@ -1486,13 +1486,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(CallBackUI.getDevicesResponse(devices, ctls, specs, states, levels, rgbs, cws, oifs, nsecs));
    }
 
-   updateSpec(String did) {
+   updateSpec(String did, String controlHash) {
     log.log("in updateSpec " + did);
 
     String cmds = "doswspec spass e";
     //log.log("cmds " + cmds);
 
     Map mcmd = Maps.from("prio", 3, "cb", "updateSpecCb", "did", did, "pwt", 2, "cmds", cmds);
+    if (TS.notEmpty(controlHash)) {
+      mcmd.put("controlHash", controlHash);
+    }
 
     if (backgroundPulse) {
       mcmd["runSync"] = true;
@@ -1523,6 +1526,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           conf["type"] = dt;
           confs = Json:Marshaller.marshall(conf);
           hadevs.put(did, confs);
+          if (TS.notEmpty(mcmd["controlHash"])) {
+            log.log("got controlHash in updateSpecCb, saving");
+            var hasccfs = app.kvdbs.get("HACCFS"); //hasccfs - device id to control hash
+            hasccfs.put(did, mcmd["controlHash"]);
+            sccfs.put(did, mcmd["controlHash"]);
+          }
           if (def(request)) {
             return(CallBackUI.reloadResponse());
           }
@@ -1708,7 +1717,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               if (def(pendingStateUpdates)) {
                 pos = Int.new(de.get(1));
                 pos++;
-                psu = de.get(0) + "," + leid + "," + pos;
+                psu = de.get(0) + "," + leid + "," + pos + "," + de.get(2);
                 pendingStateUpdates += psu;
               }
             }
@@ -2359,6 +2368,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 } elseIf (ks[0] == "oui") {
                   updateOifState(ks[1], Int.new(ks[2]), ks[0], k);
                   //updateOuiState(ks[1], Int.new(ks[2]), ks[0]);
+                } elseIf (ks[0] == "sccf") {
+                  checkUpdateSccf(ks[1], ks[3]);
                 }
               } catch (any e) {
                 log.elog("Error updating device states", e);
@@ -2406,6 +2417,29 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
       }
+   }
+
+   checkUpdateSccf(String did, String controlHash) {
+     slots {
+       Map sccfs;
+     }
+     if (undef(sccfs)) {
+       sccfs = Map.new();
+     }
+     if (TS.notEmpty(did) && TS.notEmpty(controlHash)) {
+       String oldch = sccfs.get(did);
+       if (TS.isEmpty(oldch)) {
+         var hasccfs = app.kvdbs.get("HACCFS"); //hasccfs - device id to control hash
+         oldch = hasccfs.get(did);
+         if (TS.notEmpty(oldch)) {
+           sccfs.put(did, oldch);
+         }
+       }
+     }
+     if (TS.isEmpty(oldch) || oldch != controlHash) {
+       log.log("detected new controlHash, rectling");
+       rectlDeviceRequest(did, controlHash, null);
+     }
    }
 
    initializeDiscoveryListener() {
@@ -2715,7 +2749,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
-   rectlDeviceRequest(String did, request) Map {
+   rectlDeviceRequest(String did, String controlHash, request) Map {
      log.log("in rectlDeviceRequest " + did);
 
      //dostate eek setsw on e
@@ -2727,6 +2761,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //cmds += "\r\n";
 
      Map mcmd = Maps.from("prio", 2, "cb", "rectlDeviceCb", "did", did, "pwt", 2, "cmds", cmds);
+     if (TS.notEmpty(controlHash)) {
+       mcmd.put("controlHash", controlHash);
+     }
      sendDeviceMcmd(mcmd);
 
      return(null);
@@ -2751,7 +2788,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       //if (def(request)) {
       //  return(CallBackUI.reloadResponse());
       //}
-      updateSpec(did);
+      updateSpec(did, mcmd["controlHash"]);
       return(null);
    }
 

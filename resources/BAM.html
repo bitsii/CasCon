@@ -123,7 +123,7 @@
             
             <f7-button id="loginButton" icon-f7='lock' login-screen-open="#login-screen" style="display: none;"></f7-button>
             <f7-nav-right>
-              <f7-link onclick="callApp('loadWifiRequest');return true;" href='/settings/'>Settings</f7-link>
+              <f7-link onclick="callApp('loadWifiRequest');callApp('loadAutoVShareRequest');return true;" href='/settings/'>Settings</f7-link>
               <!--<f7-link icon-if-ios="f7:menu" icon-if-md="material:menu"
               panel-open="right"></f7-link>-->
             </f7-nav-right>
@@ -192,7 +192,7 @@
 
                   <f7-button id="openInform" onclick="return true;" href='/inform/' style="display: none;" outline>Really do inform</f7-button>
 
-                  <f7-button id="openSettings" onclick="callApp('loadWifiRequest');return true;" href='/settings/' style="display: none;" outline>Really do settings</f7-button>
+                  <f7-button id="openSettings" onclick="callApp('loadWifiRequest');callApp('loadAutoVShareRequest');return true;" href='/settings/' style="display: none;" outline>Really do settings</f7-button>
 
 
        
@@ -334,9 +334,8 @@
               </f7-nav-right>
             </f7-navbar>
             <!-- To share with a remote Relay device, click Share to Relay.-->
-            <f7-block><b>To share with another mobile phone or tablet</b> click Display Code, then point the camera application on the other device at the code, and accept the prompts to go to Web Address. <b>To share for voice control through your Casnic Voice Bridge</b> click Share to Bridge. For more information click <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#sharing-a-device');return false;" href='#'>here for Help.</f7-link> </f7-block>
+            <f7-block><b>To share with another mobile phone or tablet</b> click Display Code, then point the camera application on the other device at the code, and accept the prompts to go to Web Address. For more information click <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#sharing-a-device');return false;" href='#'>here for Help.</f7-link> </f7-block>
             <!--<f7-button class="col" onclick="callUI('showQrShare', false);return false;" outline>Display Restricted Code</f7-button>-->
-            <f7-button class="col" onclick="callUI('shareToMatr', true);return false;" popup-close outline>Share to Bridge</f7-button>
             <f7-button class="col" onclick="callUI('showQrShare', true);return false;" outline>Display Code</f7-button>
             <div id="qrsharediv" style="margin: 20px 0 0 20px;"></div>
             <div id="qrerr" style="margin: 20px 0 0 20px;display: none;">You must have a device configured in the application and selected in Settings before you can share</div>
@@ -563,7 +562,10 @@
                   <f7-button class="col" onclick="callApp('updateMqttRequest', document.getElementById('devId').value);return false;" outline>Update Mqtt</f7-button>
                 </f7-row>
                 <f7-row tag="p">
-                  <f7-button class="col" onclick="callApp('unshareFromMatrRequest', document.getElementById('devId').value);return false;" outline>Unshare from Bridge</f7-button>
+                  <f7-button class="col" onclick="callApp('shareToMatrRequest', document.getElementById('devId').value);return false;" outline>Share to Voice Bridge</f7-button>
+                </f7-row>
+                <f7-row tag="p">
+                  <f7-button class="col" onclick="callApp('unshareFromMatrRequest', document.getElementById('devId').value);return false;" outline>Unshare from Voice Bridge</f7-button>
                 </f7-row>
                 <f7-row tag="p">
                   <f7-button class="col" onclick="callApp('restartDevRequest', document.getElementById('devId').value);return false;" outline>Restart</f7-button>
@@ -681,7 +683,17 @@
               <f7-row tag="p">
                   <f7-button class="col" onclick="callApp('saveWifiRequest', document.getElementById('wifiSsid').value, document.getElementById('wifiSec').value, true);return false;" outline>Save Wifi</f7-button>
                 </f7-row>
+            <div id="divAutoVShare">
+            <div class="item-title" style="width:150px;">Auto Share devices to Voice Bridge</div>
+            <div class="item-after">
+            <label class="toggle">
+              <input type="checkbox" onclick="callApp('saveAutoVShareRequest', toOnOff(document.getElementById('autoVSSw').checked));return true;" id="autoVSSw"/>
+              <span class="toggle-icon"></span>
+            </label>
+            </div>
+            </div>
         </div>
+
         <div id="divMqttAdvanced" style="display: none;">
         <input type="hidden" id="mqttMode" value=""/>
         <div id="divMqttModeChoice" style="display: none;">

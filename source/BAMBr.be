@@ -487,6 +487,15 @@ use class IUHub:Eui {
        HD.getEle("mqAutoSw").checked = false;
      }
    }
+
+   vsAsResponse(String ashare) {
+     log.log("in vsAsResponse");
+     if (TS.notEmpty(ashare) && ashare == "on") {
+       HD.getEle("autoVSSw").checked = true;
+     } else {
+       HD.getEle("autoVSSw").checked = false;
+     }
+   }
    
    //devSendCmd devSeeRes
    sendDeviceCommand() {
@@ -585,16 +594,6 @@ use class IUHub:Eui {
         new QRCode("qrsharediv", bevl_qrsh.bems_toJsString());
         """
       }
-     } else {
-       HD.getEle("qrerr").display = "block";
-     }
-   }
-
-   shareToMatr(Bool admin) {
-     String devId = HD.getElementById("devId").value;
-     clearQrShare();
-     if (TS.notEmpty(devId)) {
-      HC.callApp(Lists.from("shareToMatrRequest", devId));
      } else {
        HD.getEle("qrerr").display = "block";
      }

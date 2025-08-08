@@ -1173,6 +1173,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      sendDeviceMcmd(mcmd);
 
+     matrep("unshare", did, request);
+
      return(null);
 
    }
@@ -1355,6 +1357,21 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
+   loadAutoVShareRequest(request) Map {
+     String ashare = app.configManager.get("vshare.autoShare");
+     if (TS.isEmpty(ashare)) {
+       ashare = "on";
+       app.configManager.put("vshare.autoShare", ashare);
+     }
+     return(CallBackUI.vsAsResponse(ashare));
+   }
+
+   saveAutoVShareRequest(String ashare, request) Map {
+     log.log("got saveAutoVShareRequest " + ashare);
+     app.configManager.put("vshare.autoShare", ashare);
+     return(null);
+   }
+
    saveWifiRequest(String ssid, String sec, Bool reloadAfter, request) Map {
 
      //Account account = request.context.get("account");
@@ -1529,6 +1546,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             var hasccfs = app.kvdbs.get("HACCFS"); //hasccfs - device id to control hash
             hasccfs.put(did, mcmd["controlHash"]);
             sccfs.put(did, mcmd["controlHash"]);
+            checkShareDevice(did);
           }
           if (def(request)) {
             return(CallBackUI.reloadResponse());
@@ -2614,12 +2632,28 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
+   checkShareDevice(String did) {
+     log.log("in checkShareDevice " + did);
+     String ashare = app.configManager.get("vshare.autoShare");
+     if (TS.isEmpty(ashare) || ashare == "on") {
+      var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
+      String vsc = havsh.get(did);
+      if (TS.isEmpty(vsc) || vsc == "isok") {
+        matrep("share", did, null);
+      }
+     }
+   }
+
    unshareFromMatrRequest(String sdid, request) Map {
+     var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
+     havsh.put(sdid, "notok");
      return(matrep("unshare", sdid, request));
    }
 
    shareToMatrRequest(String sdid, request) Map {
-       return(matrep("share", sdid, request));
+     var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
+     havsh.put(sdid, "isok");
+     return(matrep("share", sdid, request));
    }
 
    matrep(String act, String sdid, request) Map {
@@ -2761,6 +2795,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         String controlDef = cres;
       }
 
+      //if (def(request)) {
+      //  return(CallBackUI.reloadResponse());
+      //}
+      updateSpec(did, mcmd["controlHash"]);
       if (TS.notEmpty(controlDef)) {
         var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
         hactls.put(did, controlDef);
@@ -2769,10 +2807,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           setupMqttDevices("relay");
         }
       }
-      //if (def(request)) {
-      //  return(CallBackUI.reloadResponse());
-      //}
-      updateSpec(did, mcmd["controlHash"]);
       return(null);
    }
 

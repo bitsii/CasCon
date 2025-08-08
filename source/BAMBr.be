@@ -95,11 +95,19 @@ use class IUHub:Eui {
    manageStateUpdates() {
     slots {
       Bool visible;
+      Int sometimesPulse;
     }
     Bool doPulse = true;
     if (def(visible) && visible!) {
       //log.log("not visible");
-      doPulse = false;
+      if (undef(sometimesPulse)) { sometimesPulse = 0; }
+      sometimesPulse++;
+      if (sometimesPulse > 8) {
+        doPulse = true;
+        sometimesPulse = 0;
+      } else {
+        doPulse = false;
+      }
     }
     if (def(inDeviceSetup) && inDeviceSetup) {
       doPulse = false;

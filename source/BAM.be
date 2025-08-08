@@ -963,7 +963,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(kdaddr);
     }
 
-    considerTds(String kdname) Bool {
+    considerTds(String kdname) {
       if (TS.isEmpty(kdname)) { return(false); }
       var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
@@ -974,22 +974,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         String dkdname = "CasNic" + conf["ondid"];
         if (dkdname == kdname) {
           String spec = haspecs.get(did);
-          if (TS.notEmpty(spec) && spec.has("nm,")) {
-            log.log("FOUND NOMDNS, MUST DO TDS");
+          if (TS.isEmpty(spec) || spec.has("nm,") || spec.has("phx.")) {
+            log.log("WILL TRY TDS");
             if (def(pendingTds)) {
               pendingTds += did;
             }
-            return(true);
+            return(null);
           }
         }
       }
-      return(false);
+      return(null);
     }
 
     resolveAddr(String kdname) {
-      if (considerTds(kdname)) {
-        return(self);
-      }
+      considerTds(kdname);
       String kdaddr;
        var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
        ifEmit(wajv) {
@@ -1140,7 +1138,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     haowns.remove(uhex + "." + did);
     hadevs.remove(did);
-    pdevices = null;
+    pdevices = hadevs.getMap();
 
     String ctl = hactls.get(did);
     if (TS.notEmpty(ctl)) {
@@ -1266,8 +1264,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
 
      hadevs.put(did, confs);
+     pdevices = hadevs.getMap();
      haowns.put(uhex + "." + did, did);
-     pdevices = null;
      
      return(CallBackUI.reloadResponse());
    }
@@ -1512,7 +1510,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      var hadevs = app.kvdbs.get("HADEVS");
      if (TS.notEmpty(cres)) {
         log.log("got dospec " + cres);
-        pdevices = null;
         if (cres.begins("controldef")) {
           log.log("pre swspec");
           haspecs.put(did, "1,p2.gsh.4");
@@ -1526,6 +1523,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           conf["type"] = dt;
           confs = Json:Marshaller.marshall(conf);
           hadevs.put(did, confs);
+          pdevices = hadevs.getMap();
           if (TS.notEmpty(mcmd["controlHash"])) {
             log.log("got controlHash in updateSpecCb, saving");
             var hasccfs = app.kvdbs.get("HACCFS"); //hasccfs - device id to control hash
@@ -1657,25 +1655,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    getLastEventsCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String leid = mcmd["did"];
-     slots {
-       Map glefails;
-     }
-     if (undef(glefails)) {
-       glefails = Map.new();
-     }
-     Int fc = glefails.get(leid);
-     if (undef(fc)) { fc = Int.new(); glefails.put(leid, fc); }
      if (mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) {
-       fc++;
-       if (fc > 3) {
-         Int ns = Time:Interval.now().seconds + 60;
-         log.log("!!!! persistant gle fail, waiting a minute " + leid);
-         if (def(gletimes)) { gletimes.put(leid, ns); }
-       } elseIf (fc > 10000) {
-         fc.setValue(0);
-       }
-     } else {
-       fc.setValue(0);
+       Int ns = Time:Interval.now().seconds + 8;
+       if (def(gletimes)) { gletimes.put(leid, ns); }
      }
      //log.log("!!!! gle fc " + fc + " " + leid);
      if (TS.notEmpty(cres) && cres.has(";")) {
@@ -2287,7 +2269,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        Map currentEvents;
        Int pcount;
        Map pdevices; //hadevs cpy
-       Map pspecs; //haspecs cpy
        Map gletimes; //id to last getlastevents seconds
        Int lastRun;
      }
@@ -2322,8 +2303,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (undef(pdevices)) {
        var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
        pdevices = hadevs.getMap();
-       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-       pspecs = haspecs.getMap();
      }
 
      if (pcount % 3 == 0) {
@@ -2408,7 +2387,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
           Int nsdiff = ns - dc;
           //log.log("nsdiff " + nsdiff + " glesecs " + glesecs);
-          if (ns - dc > glesecs) {
+          if (nsdiff > glesecs) {
             //log.log("gonna gle");
             gletimes.put(pdc.key, ns);
             Map conf = Json:Unmarshaller.unmarshall(pdc.value);
@@ -3555,9 +3534,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            var harfails = app.kvdbs.get("HARFAILS"); //harfails - kdname to remote failing
            harfails.remove(mcmd["kdname"]);
          }
-         if (def(glefails) && TS.notEmpty(mcmd["did"]) && glefails.has(mcmd["did"])) {
-           glefails.get(mcmd["did"]).setValue(0);
-         }
        }
        if (mcmd.has("cb")) {
          Int pver = mcmd["pver"];
@@ -4326,6 +4302,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           conf["type"] = dt;
           confs = Json:Marshaller.marshall(conf);
           hadevs.put(disDevId, confs);
+          pdevices = hadevs.getMap();
           clearQueueKdaddr("192.168.4.1");
           Map mqr = loadMqtt("relay");
           //haRelay, elseIf, gh type

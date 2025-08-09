@@ -1181,25 +1181,25 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    resetDeviceCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
-     if (TS.isEmpty(cres)) {
-       log.log("reset got no cres");
-       throw(Alert.new("Device did not respond to reset request"));
-     } else {
-       if (cres.has("Device reset")) {
+     //if (TS.isEmpty(cres)) {
+     //  log.log("reset got no cres");
+     //  throw(Alert.new("Device did not respond to reset request"));
+     //} else {
+       //if (cres.has("Device reset")) {
          log.log("reset worked");
          if (mcmd.has("did")) {
          log.log("will delete device");
           return(deleteDeviceRequest(mcmd["did"], request));
          }
-       } else {
-        log.log("reset failed");
-        unless (mcmd.has("did")) {
-         if (cres.has("resetbypin not enabled")) {
-           throw(Alert.new("Device does not support unconfigured software reset, check device for physical reset option (possibly >30s long push of button, if present)"));
-         }
-        }
-       }
-     }
+       //} else {
+      //  log.log("reset failed");
+       // unless (mcmd.has("did")) {
+       //  if (cres.has("resetbypin not enabled")) {
+       //    throw(Alert.new("Device does not support unconfigured software reset, check device for physical reset option (possibly >30s long push of button, if present)"));
+      //   }
+      //  }
+      // }
+     //}
      unless (mcmd.has("did")) {
         return(CallBackUI.reloadResponse());
      }
@@ -1532,6 +1532,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           haspecs.put(did, "1,p2.gsh.4");
         } elseIf (cres.has("p2.")) {
           log.log("got swspec");
+          Bool hadit = haspecs.has(did);
           haspecs.put(did, cres);
           var sl = cres.split(".");
           String dt = sl[1];
@@ -1546,7 +1547,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             var hasccfs = app.kvdbs.get("HACCFS"); //hasccfs - device id to control hash
             hasccfs.put(did, mcmd["controlHash"]);
             sccfs.put(did, mcmd["controlHash"]);
-            checkShareDevice(did);
+            checkShareDevices(did, cres, hadit);
           }
           if (def(request)) {
             return(CallBackUI.reloadResponse());
@@ -1704,6 +1705,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   }
                 }
               }
+            } else {
+              currentEvents.remove(leid); //len changed, we have something new. next time will reload.
             }
           }
         } else {
@@ -2630,6 +2633,22 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         return(CallBackUI.reloadResponse());
       }
       return(null);
+   }
+
+   checkShareDevices(String did, String spec, Bool hadit) {
+     if (spec.has("a1,")) {
+       unless (hadit) {
+         var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+         for (any kv in hadevs.getMap()) {
+            String didk = kv.key;
+            unless (didk == did) {
+               checkShareDevice(didk);
+            }
+       }
+     } else {
+       checkShareDevice(did);
+     }
+    }
    }
 
    checkShareDevice(String did) {

@@ -1169,11 +1169,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //cmds += "\r\n";
 
+
+     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+     String spec = haspecs.get(did);
+
      Map mcmd = Maps.from("prio", 1, "cb", "resetDeviceCb", "did", did, "pwt", 1, "cmds", cmds);
 
      sendDeviceMcmd(mcmd);
 
-     matrep("unshare", did, request);
+     unless (spec.has("a1,")) {
+       matrep("unshare", did, request);
+     }
 
      return(null);
 
@@ -1532,7 +1538,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           haspecs.put(did, "1,p2.gsh.4");
         } elseIf (cres.has("p2.")) {
           log.log("got swspec");
-          Bool hadit = haspecs.has(did);
           haspecs.put(did, cres);
           var sl = cres.split(".");
           String dt = sl[1];
@@ -1547,7 +1552,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             var hasccfs = app.kvdbs.get("HACCFS"); //hasccfs - device id to control hash
             hasccfs.put(did, mcmd["controlHash"]);
             sccfs.put(did, mcmd["controlHash"]);
-            checkShareDevices(did, cres, hadit);
+            checkShareDevices(did, cres);
           }
           if (def(request)) {
             return(CallBackUI.reloadResponse());
@@ -2635,21 +2640,23 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
-   checkShareDevices(String did, String spec, Bool hadit) {
+   checkShareDevices(String did, String spec) {
+     log.log("in checkShareDevices");
      if (spec.has("a1,")) {
-       unless (hadit) {
-         var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-         for (any kv in hadevs.getMap()) {
-            String didk = kv.key;
-            unless (didk == did) {
-               checkShareDevice(didk);
-            }
-       }
+       log.log("it's a matr dev, sharing all to it");
+        var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+        for (any kv in hadevs.getMap()) {
+          String didk = kv.key;
+          unless (didk == did) {
+              checkShareDevice(didk);
+          }
+        }
      } else {
+       log.log("it's not a matr dev sharing to a matr dev");
        checkShareDevice(did);
      }
+     matrep("chrestart", did, null);
     }
-   }
 
    checkShareDevice(String did) {
      log.log("in checkShareDevice " + did);
@@ -2666,13 +2673,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    unshareFromMatrRequest(String sdid, request) Map {
      var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
      havsh.put(sdid, "notok");
-     return(matrep("unshare", sdid, request));
+     matrep("unshare", sdid, request);
+     matrep("chrestart", sdid, request);
+     return(null);
    }
 
    shareToMatrRequest(String sdid, request) Map {
      var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
      havsh.put(sdid, "isok");
-     return(matrep("share", sdid, request));
+     matrep("share", sdid, request);
+     matrep("chrestart", sdid, request);
+     return(null);
    }
 
    matrep(String act, String sdid, request) Map {
@@ -2699,6 +2710,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      if (TS.isEmpty(sconf)) {
        log.log("missing share conf");
+       return(null);
+     }
+     if (act == "chrestart") {
+       cmds = "matrep pass chrestart e";
+       Map mcmd = Maps.from("prio", 2, "cb", "matrepCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
+       sendDeviceMcmd(mcmd);
        return(null);
      }
 
@@ -2731,11 +2748,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             } else {
               cmds = "matrep pass rm " + etype + " " + conf["ondid"] + " " + ipos + " " + " e";
             }
-            Map mcmd = Maps.from("prio", 2, "cb", "matrepCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
+            mcmd = Maps.from("prio", 2, "cb", "matrepCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
           }
         }
         if (def(mcmd)) {
-          mcmd["matrepLast"] = true;
           sendDeviceMcmd(mcmd);
           mcmd = null;
         }
@@ -2749,9 +2765,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String did = mcmd["did"];
      if (TS.notEmpty(cres) && cres.has("matrepok")) {
         log.log("got good maprep cres " + cres);
-        if (def(mcmd["matrepLast"]) && mcmd["matrepLast"]) {
-          restartDevRequest(did, null);
-        }
       }
       //if (def(request)) {
       //  return(CallBackUI.reloadResponse()); //ios won't process the restart request, it will restart in the restartdev callback anyway

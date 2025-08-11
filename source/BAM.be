@@ -228,7 +228,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     @Override
     public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
-      System.out.println("Resolve failed" + errorCode);
+      System.out.println("Resolve failed " + errorCode);
       String sname = serviceInfo.getServiceName();
       resolving.remove(sname);
       nowResolving = null;
@@ -238,6 +238,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     @Override
     public void onServiceResolved(NsdServiceInfo serviceInfo) {
       System.out.println("Resolve Succeeded. " + serviceInfo);
+
+      try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
       int port = serviceInfo.getPort();
       InetAddress host = serviceInfo.getHost(); // getHost() will work now
@@ -1187,25 +1193,25 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    resetDeviceCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
-     //if (TS.isEmpty(cres)) {
-     //  log.log("reset got no cres");
-     //  throw(Alert.new("Device did not respond to reset request"));
-     //} else {
-       //if (cres.has("Device reset")) {
+     if (TS.isEmpty(cres)) {
+       log.log("reset got no cres");
+       throw(Alert.new("Device did not respond to reset request"));
+     } else {
+       if (cres.has("Device re")) {
          log.log("reset worked");
          if (mcmd.has("did")) {
          log.log("will delete device");
           return(deleteDeviceRequest(mcmd["did"], request));
          }
-       //} else {
-      //  log.log("reset failed");
-       // unless (mcmd.has("did")) {
-       //  if (cres.has("resetbypin not enabled")) {
-       //    throw(Alert.new("Device does not support unconfigured software reset, check device for physical reset option (possibly >30s long push of button, if present)"));
-      //   }
-      //  }
-      // }
-     //}
+       } else {
+        log.log("reset failed");
+        unless (mcmd.has("did")) {
+         if (cres.has("resetbypin not enabled")) {
+           throw(Alert.new("Device does not support unconfigured software reset, check device for physical reset option (possibly >30s long push of button, if present)"));
+         }
+        }
+       }
+     }
      unless (mcmd.has("did")) {
         return(CallBackUI.reloadResponse());
      }

@@ -551,16 +551,16 @@
                   <f7-button class="col" onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic');return false;" outline back>Help</f7-button>
                 </f7-row>
                 <f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('toggleDisplay', 'divDevDetails');callUI('toggleDisplay', 'divAdvanced');callUI('toggleAdvanced');return false;" outline>More</f7-button>
+                  <f7-button class="col" onclick="callUI('toggleDisplay', 'divDevDetails');callUI('toggleDisplay', 'divAdvanced');return false;//callUI('toggleAdvanced');" outline>More</f7-button>
                 </f7-row>
                 <div id="divDevDetails" style="display: none;">
                 <f7-list>
                 <f7-row tag="p">
                   <f7-button class="col" onclick="callApp('updateWifiRequest', document.getElementById('devId').value);return false;" outline>Update Wifi</f7-button>
                 </f7-row>
-                <f7-row tag="p">
+                <!--<f7-row tag="p">
                   <f7-button class="col" onclick="callApp('updateMqttRequest', document.getElementById('devId').value);return false;" outline>Update Mqtt</f7-button>
-                </f7-row>
+                </f7-row>-->
                 <f7-row tag="p">
                   <f7-button class="col" onclick="callApp('shareToMatrRequest', document.getElementById('devId').value);return false;" outline>Share to Voice Bridge</f7-button>
                 </f7-row>
@@ -769,7 +769,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="134"
+            value="135"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

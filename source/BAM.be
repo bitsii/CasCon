@@ -239,12 +239,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     public void onServiceResolved(NsdServiceInfo serviceInfo) {
       System.out.println("Resolve Succeeded. " + serviceInfo);
 
-      try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
       int port = serviceInfo.getPort();
       InetAddress host = serviceInfo.getHost(); // getHost() will work now
 
@@ -1079,7 +1073,30 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      log.log("in asr");
      clearCxRequest(request);
      String confs = Encode:Hex.decode(cx);
-     Map conf = Json:Unmarshaller.unmarshall(confs);
+
+     //String confs = onDevId + "," + Encode:Hex.encode(devName) + "," + devPass + "," + devSpass;
+     //Map conf = Map.new();
+     //conf["type"] = devType;
+     //conf["id"] = devId;
+     //conf["ondid"] = onDevId;
+     //conf["name"] = devName;
+     //if (admin && TS.notEmpty(devPass)) {
+     //  conf["pass"] = devPass;
+     //}
+     //conf["spass"] = devSpass;
+
+     var confsl = confs.split(",");
+     if (confsl.length < 4) {
+       log.log("got a bad share conf too small");
+       return(null);
+     }
+     Map conf = Map.new();
+     conf["ondid"] = confsl[0];
+     conf["name"] = Encode:Hex.decode(confsl[1]);
+     conf["pass"] = confsl[2];
+     conf["spass"] = confsl[3];
+
+     //Map conf = Json:Unmarshaller.unmarshall(confs);
 
      //dedupe reshares
      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
@@ -1088,13 +1105,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       String dconfs = kv.value;
       Map dconf = Json:Unmarshaller.unmarshall(dconfs);
       if (TS.notEmpty(dconf["ondid"]) && TS.notEmpty(conf["ondid"]) && conf["ondid"] == dconf["ondid"]) {
-        conf["id"] = dconf["id"];
+        //conf["id"] = dconf["id"];
+        return(CallBackUI.reloadResponse());//we already have it.
       }
      }
      if (TS.isEmpty(conf["id"])) {
        conf["id"] = System:Random.getString(11);
      }
-     String controlDef = conf["controlDef"];
+     /*String controlDef = conf["controlDef"];
      if (TS.notEmpty(controlDef)) {
        var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
        hactls.put(conf["id"], controlDef);
@@ -1105,14 +1123,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
        haspecs.put(conf["id"], spec);
        conf.remove("spec");
-     }
+     }*/
      confs = Json:Marshaller.marshall(conf);
      saveDeviceRequest(conf["id"], confs, request);
      //rectlDeviceRequest(conf["id"], null, request);
-     ifEmit(wajv) {
-      setupMqttDevices("haRelay");
-      setupMqttDevices("relay");
-     }
+     //ifEmit(wajv) {
+     // setupMqttDevices("haRelay");
+     // setupMqttDevices("relay");
+     //}
      return(CallBackUI.reloadResponse());
      //return(null);
    }

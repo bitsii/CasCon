@@ -600,8 +600,8 @@ use class IUHub:Eui {
    }
 
    genDeviceShare(Bool admin) {
-     String devType = HD.getElementById("devType").value;
-     String devId = HD.getElementById("devId").value;
+     //String devType = HD.getElementById("devType").value;
+     //String devId = HD.getElementById("devId").value;
      String onDevId = HD.getElementById("onDevId").value;
      String devName = HD.getElementById("devName").value;
      String devPass = HD.getElementById("devPass").value;
@@ -610,28 +610,29 @@ use class IUHub:Eui {
       HD.getElementById("shBlob").value = "";
       return(null);
      }
-     Map conf = Map.new();
-     conf["type"] = devType;
+     String confs = onDevId + "," + Encode:Hex.encode(devName) + "," + devPass + "," + devSpass;
+     //Map conf = Map.new();
+     //conf["type"] = devType;
      //conf["id"] = devId;
-     conf["ondid"] = onDevId;
-     conf["name"] = devName;
-     if (admin && TS.notEmpty(devPass)) {
-       conf["pass"] = devPass;
-     }
-     conf["spass"] = devSpass;
-     if (TS.notEmpty(devId) def(devCtls) && devCtls.has(devId)) {
-       String controlDef = devCtls.get(devId);
-       if (TS.notEmpty(controlDef)) {
-         conf["controlDef"] = controlDef;
-       }
-     }
-     if (TS.notEmpty(devId) def(specs) && specs.has(devId)) {
-       String spec = specs.get(devId);
-       if (TS.notEmpty(spec)) {
-         conf["spec"] = spec;
-       }
-     }
-     String confs = Json:Marshaller.marshall(conf);
+     //conf["ondid"] = onDevId;
+     //conf["name"] = devName;
+     //if (admin && TS.notEmpty(devPass)) {
+     //  conf["pass"] = devPass;
+     //}
+     //conf["spass"] = devSpass;
+     //if (TS.notEmpty(devId) def(devCtls) && devCtls.has(devId)) {
+     //  String controlDef = devCtls.get(devId);
+     //  if (TS.notEmpty(controlDef)) {
+     //    conf["controlDef"] = controlDef;
+     //  }
+     //}
+     //if (TS.notEmpty(devId) def(specs) && specs.has(devId)) {
+     //  String spec = specs.get(devId);
+     //  if (TS.notEmpty(spec)) {
+     //    conf["spec"] = spec;
+     //  }
+     //}
+     //String confs = Json:Marshaller.marshall(conf);
      log.log("sharing confs " + confs);
      //HC.callApp(Lists.from("saveDeviceRequest", devId, confs));
      String cx = Encode:Hex.encode(confs);

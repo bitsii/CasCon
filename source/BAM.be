@@ -1126,6 +1126,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }*/
      confs = Json:Marshaller.marshall(conf);
      saveDeviceRequest(conf["id"], confs, request);
+     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+     haspecs.put(conf["id"], "1.p4,p2.phx.4");
      //rectlDeviceRequest(conf["id"], null, request);
      //ifEmit(wajv) {
      // setupMqttDevices("haRelay");
@@ -1577,6 +1579,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             hasccfs.put(did, mcmd["controlHash"]);
             sccfs.put(did, mcmd["controlHash"]);
             checkShareDevices(did, cres);
+          }
+          if (cres.has("a1,")) {
+            return(CallBackUI.setElementsDisplaysResponse(Maps.from("doVB", "block")));
           }
           if (def(request)) {
             return(CallBackUI.reloadResponse());
@@ -4350,9 +4355,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           log.log("allset expected result");
           if (cres.has("p4")) {
             log.log("has p4");
-            var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-            haspecs.put(disDevId, "1.p4,p2.phx.4");
           }
+          var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+          haspecs.put(disDevId, "1.p4,p2.phx.4");
           clearQueueKdaddr("192.168.4.1");
           //alStep = "getcontroldef";
           alStep = "setwifi";

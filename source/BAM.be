@@ -1124,10 +1124,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        haspecs.put(conf["id"], spec);
        conf.remove("spec");
      }*/
-     confs = Json:Marshaller.marshall(conf);
-     saveDeviceRequest(conf["id"], confs, request);
      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
      haspecs.put(conf["id"], "1.p4,p2.phx.4");
+     confs = Json:Marshaller.marshall(conf);
+     saveDeviceRequest(conf["id"], confs, request);
      //rectlDeviceRequest(conf["id"], null, request);
      //ifEmit(wajv) {
      // setupMqttDevices("haRelay");
@@ -1582,6 +1582,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
           if (cres.has("a1,")) {
             return(CallBackUI.setElementsDisplaysResponse(Maps.from("doVB", "block")));
+            //return(CallBackUI.showVBReponse());
           }
           if (def(request)) {
             return(CallBackUI.reloadResponse());

@@ -1602,20 +1602,32 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
 
-    List topt = List.new();
-    for (any kv in hadevs.getMap()) {
-      String godid = kv.key;
-      String spec = haspecs.get(godid);
-      if (TS.notEmpty(spec)) {
-        if (spec.has("t1,") || spec.has("t2,")) {
-          unless (TS.notEmpty(spec) && spec.has("nm,")) {
-            topt += godid;
+    slots {
+      String lastGodid;
+      Int lastGodidc;
+    }
+
+    if (TS.isEmpty(lastGodid) || lastGodidc > 6) {
+      List topt = List.new();
+      for (any kv in hadevs.getMap()) {
+        String godid = kv.key;
+        String spec = haspecs.get(godid);
+        if (TS.notEmpty(spec)) {
+          if (spec.has("t1,") || spec.has("t2,") || spec.has("t3,")) {
+            unless (spec.has("nm,")) {
+              topt += godid;
+            }
           }
         }
       }
-    }
-    if (topt.length > 0) {
-      godid = topt.get(System:Random.getIntMax(topt.length));
+      if (topt.length > 0) {
+        godid = topt.get(System:Random.getIntMax(topt.length));
+        lastGodid = godid;
+        lastGodidc = 1;
+      }
+    } else {
+      godid = lastGodid;
+      lastGodidc++;
     }
 
     if (TS.isEmpty(godid)) {

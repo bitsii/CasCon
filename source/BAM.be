@@ -1203,7 +1203,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      sendDeviceMcmd(mcmd);
 
-     unless (spec.has("a1,")) {
+     unless (spec.has(",a1,")) {
        matrep("unshare", did, request);
      }
 
@@ -1580,7 +1580,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             sccfs.put(did, mcmd["controlHash"]);
             checkShareDevices(did, cres);
           }
-          if (cres.has("a1,")) {
+          if (cres.has(",a1,")) {
             return(CallBackUI.setElementsDisplaysResponse(Maps.from("doVB", "block")));
             //return(CallBackUI.showVBReponse());
           }
@@ -1613,7 +1613,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         String godid = kv.key;
         String spec = haspecs.get(godid);
         if (TS.notEmpty(spec)) {
-          if (spec.has("t1,") || spec.has("t2,") || spec.has("t3,")) {
+          if (spec.has(",t1,") || spec.has(",t2,") || spec.has(",t3,")) {
             unless (spec.has("nm,")) {
               topt += godid;
             }
@@ -2684,7 +2684,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    checkShareDevices(String did, String spec) {
      log.log("in checkShareDevices");
-     if (spec.has("a1,")) {
+     if (spec.has(",a1,")) {
        log.log("it's a matr dev, sharing all to it");
         var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
         for (any kv in hadevs.getMap()) {
@@ -2739,7 +2739,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       String did = kv.key;
       String dconfs = kv.value;
       String sws = haspecs.get(did);
-      if (TS.notEmpty(sws) && sws.has("a1,")) {
+      if (TS.notEmpty(sws) && sws.has(",a1,")) {
         gdid = did;
       }
       if (did == sdid) {
@@ -4375,8 +4375,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           //alStep = "getcontroldef";
           alStep = "setwifi";
        } elseIf (TS.notEmpty(cres) && cres.has("pass is incorrect")) {
+          deleteDeviceRequest(disDevId, request);
           throw(Alert.new("Device is already configured, reset before setting up again."));
        } elseIf (TS.notEmpty(cres) && cres.has("mins of power on")) {
+          deleteDeviceRequest(disDevId, request);
           throw(Alert.new("Error, must setup w/in 30 mins of power on. Unplug and replug in device and try again"));
        }
      /*} elseIf (alStep == "getcontroldef") {

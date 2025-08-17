@@ -1753,7 +1753,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 }
               }
             } else {
-              currentEvents.remove(leid); //len changed, we have something new. next time will reload.
+              log.log("len changed removing leid");
+              Bool cerm = true;
             }
           }
         } else {
@@ -1773,7 +1774,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             }
           }
         }
-        currentEvents.put(leid, cres);
+        if (def(cerm) && cerm) {
+          currentEvents.remove(leid);
+        } else {
+          currentEvents.put(leid, cres);
+        }
       } else {
         //log.log("getlastevents cres empty");
       }
@@ -2479,18 +2484,25 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        sccfs = Map.new();
      }
      if (TS.notEmpty(did) && TS.notEmpty(controlHash)) {
+       log.log("in checkUpdateSccf for " + did + " " + controlHash);
        String oldch = sccfs.get(did);
        if (TS.isEmpty(oldch)) {
+         log.log("no oldch for did inmem");
          var hasccfs = app.kvdbs.get("HACCFS"); //hasccfs - device id to control hash
          oldch = hasccfs.get(did);
          if (TS.notEmpty(oldch)) {
+           log.log("oldch for did in kvdb, updating mem");
            sccfs.put(did, oldch);
          }
        }
+     } else {
+       log.log("did or controlHash empty");
      }
      if (TS.isEmpty(oldch) || oldch != controlHash) {
        log.log("detected new controlHash, rectling");
        rectlDeviceRequest(did, controlHash, null);
+     } else {
+       log.log("no ch change");
      }
    }
 

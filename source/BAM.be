@@ -3833,12 +3833,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           if (mqttFullRemote) {
             doRemote = true;
           } else {
-            //unless (TS.notEmpty(mcmd["kdaddr"]) && locAddrs.has(mcmd["kdaddr"])) {
+            unless (TS.notEmpty(mcmd["kdaddr"]) && locAddrs.has(mcmd["kdaddr"])) {
               var harfails = app.kvdbs.get("HARFAILS"); //harfails - kdname to remote failing
               unless (TS.notEmpty(mcmd["kdname"]) && harfails.has(mcmd["kdname"])) {
                 doRemote = true;
               }
-            //}
+            }
           }
           if (mcmd.has("forceRemote") && mcmd["forceRemote"]) {
             //log.log("got forceRemote");

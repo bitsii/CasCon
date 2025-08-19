@@ -1721,7 +1721,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    getLastEventsCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String leid = mcmd["did"];
-     if (mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) {
+     if ((mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) || (mcmd.has("doRemote") && mcmd["doRemote"])) {
        Int ns = Time:Interval.now().seconds + 8;
        if (def(gletimes)) { gletimes.put(leid, ns); }
      }
@@ -2446,7 +2446,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       ns = Time:Interval.now().seconds;
       //Int glesecs = 4 + System:Random.getIntMax(4);
-      Int glesecs = 7 + System:Random.getIntMax(2);
+      Int glesecs = 9 + System:Random.getIntMax(3);
       if (def(pdevices) && def (gletimes)) {
         //log.log("in gletimes");
         for (var pdc in pdevices) {
@@ -2457,10 +2457,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             //gletimes.put(pdc.key, ns);
             dc = 0;
           } else {
-            //log.log("got dc");
+            //log.log("got dc " + dc);
           }
           Int nsdiff = ns - dc;
-          //log.log("nsdiff " + nsdiff + " glesecs " + glesecs);
+          //log.log("nsdiff " + nsdiff + " glesecs " + glesecs + " ns " + ns);
           if (nsdiff > glesecs) {
             //log.log("gonna gle");
             gletimes.put(pdc.key, ns);

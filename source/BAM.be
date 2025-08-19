@@ -2444,8 +2444,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
      }
 
-      Int glesecs = 4 + System:Random.getIntMax(4);
-      //Int glesecs = 6 + System:Random.getIntMax(6);
+      ns = Time:Interval.now().seconds;
+      //Int glesecs = 4 + System:Random.getIntMax(4);
+      Int glesecs = 7 + System:Random.getIntMax(2);
       if (def(pdevices) && def (gletimes)) {
         //log.log("in gletimes");
         for (var pdc in pdevices) {

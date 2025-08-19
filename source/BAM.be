@@ -3611,7 +3611,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   String finCmds = prot.secCmds(mcmd);
                   Mqtt mqtt = mqtts["remote"];
                   if (def(mqtt) && mqtt.isOpen) {
-                    if (TS.notEmpty(mcmd["spec"]) && mcmd["spec"].has("dm,")) {
+                    if (TS.notEmpty(mcmd["spec"]) && mcmd["spec"].has(",dm,")) {
                       log.log("doing direct smc");
                       mqtt.publish("casnic/cmd/" + mcmd["ondid"], finCmds);
                     } else {
@@ -4428,7 +4428,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           clearQueueKdaddr("192.168.4.1");
           Map mqr = loadMqtt("relay");
           //haRelay, elseIf, gh type
-          if (cres.has("dm,") || cres.has("gm,") && TS.notEmpty(mqr["mqttBroker"]) && TS.notEmpty(mqr["mqttUser"]) && TS.notEmpty(mqr["mqttPass"])) {
+          if (cres.has(",dm,") || cres.has(",gm,") && TS.notEmpty(mqr["mqttBroker"]) && TS.notEmpty(mqr["mqttUser"]) && TS.notEmpty(mqr["mqttPass"])) {
             alStep = "setsmcr";
           } else {
             alStep = "setwifi";

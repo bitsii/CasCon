@@ -2697,8 +2697,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    checkShareDevices(String did, String spec) {
      log.log("in checkShareDevices");
-     if (spec.has(",a1,")) {
-       log.log("it's a matr dev, sharing all to it");
+     if (spec.has(",a1,") || spec.has(",h1,")) {
+       log.log("it's a bridge, sharing all to it");
         var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
         for (any kv in hadevs.getMap()) {
           String didk = kv.key;
@@ -2707,7 +2707,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         }
      } else {
-       log.log("it's not a matr dev sharing to a matr dev");
+       log.log("it's not a bridge sharing to bridges");
        checkShareDevice(did);
      }
      matrep("chrestart", did, null);
@@ -2746,72 +2746,58 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      String sconf;
      String gdid;
+     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-     for (any kv in hadevs.getMap()) {
+     Map hads = hadevs.getMap();
+     sconf = hads.get(sdid);
+     Map conf = Json:Unmarshaller.unmarshall(sconf);
+     String ctl = hactls.get(sdid);
+     for (any kv in hads) {
       String did = kv.key;
       String dconfs = kv.value;
       String sws = haspecs.get(did);
-      if (TS.notEmpty(sws) && sws.has(",a1,")) {
+      if (TS.notEmpty(sws) && (sws.has(",a1,") || sws.has(",h1,"))) {
         gdid = did;
-      }
-      if (did == sdid) {
-        sconf = dconfs;
-      }
-     }
-     if (TS.isEmpty(gdid)) {
-       log.log("missing gateway did");
-       return(null);
-     }
-     if (TS.isEmpty(sconf)) {
-       log.log("missing share conf");
-       return(null);
-     }
-     if (act == "chrestart") {
-       cmds = "matrep pass chrestart e";
-       Map mcmd = Maps.from("prio", 2, "cb", "matrepCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
-       sendDeviceMcmd(mcmd);
-       return(null);
-     }
-
-     var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-
-     Map conf = Json:Unmarshaller.unmarshall(sconf);
-
-     //matrep pass add ool ondid 0 spass e
-
-      String ctl = hactls.get(sdid);
-      if (TS.notEmpty(ctl)) {
-        var ctll = ctl.split(",");
-        log.log("got ctl " + ctl);
-        for (Int i = 1;i < ctll.length;i++) {
-          if (def(mcmd)) {
-            sendDeviceMcmd(mcmd);
-            mcmd = null;
-          }
-          String itype = ctll.get(i);
-          log.log("got ctled itype " + itype + " pos " + i);
-          String etype;
-          if (itype == "sw" || itype == "rgbcwsgd" || itype == "rgbcwgd") { etype = "ool"; }
-          if (itype == "gdim") { etype = "dl"; }
-          if (itype == "rgbcwsgd" || itype == "rgbcwgd") { etype = "ecl"; }
-          if (TS.notEmpty(etype)) {
-            Int ipos = i.copy();
-            ipos--;
-            if (act == "share") {
-              String cmds = "matrep pass add " + etype + " " + conf["ondid"] + " " + ipos + " " + conf["spass"] + " e";
-            } else {
-              cmds = "matrep pass rm " + etype + " " + conf["ondid"] + " " + ipos + " " + " e";
-            }
-            mcmd = Maps.from("prio", 2, "cb", "matrepCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
-          }
-        }
-        if (def(mcmd)) {
+        if (act == "chrestart") {
+          cmds = "matrep pass chrestart e";
+          Map mcmd = Maps.from("prio", 2, "cb", "matrepCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
           sendDeviceMcmd(mcmd);
-          mcmd = null;
+        } else {
+          //matrep pass add ool ondid 0 spass e
+          if (TS.notEmpty(ctl)) {
+            var ctll = ctl.split(",");
+            log.log("got ctl " + ctl);
+            for (Int i = 1;i < ctll.length;i++) {
+              if (def(mcmd)) {
+                sendDeviceMcmd(mcmd);
+                mcmd = null;
+              }
+              String itype = ctll.get(i);
+              log.log("got ctled itype " + itype + " pos " + i);
+              String etype;
+              if (itype == "sw" || itype == "rgbcwsgd" || itype == "rgbcwgd") { etype = "ool"; }
+              if (itype == "gdim") { etype = "dl"; }
+              if (itype == "rgbcwsgd" || itype == "rgbcwgd") { etype = "ecl"; }
+              if (TS.notEmpty(etype)) {
+                Int ipos = i.copy();
+                ipos--;
+                if (act == "share") {
+                  String cmds = "matrep pass add " + etype + " " + conf["ondid"] + " " + ipos + " " + conf["spass"] + " e";
+                } else {
+                  cmds = "matrep pass rm " + etype + " " + conf["ondid"] + " " + ipos + " " + " e";
+                }
+                mcmd = Maps.from("prio", 2, "cb", "matrepCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
+              }
+            }
+            if (def(mcmd)) {
+              sendDeviceMcmd(mcmd);
+              mcmd = null;
+            }
+          }
         }
       }
-
+     }
      return(null);
    }
 

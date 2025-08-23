@@ -1204,7 +1204,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      sendDeviceMcmd(mcmd);
 
      unless (spec.has(",a1,")) {
-       matrep("unshare", did, request);
+       brd("unshare", did, request);
      }
 
      return(null);
@@ -2710,7 +2710,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        log.log("it's not a bridge sharing to bridges");
        checkShareDevice(did);
      }
-     matrep("chrestart", did, null);
+     brd("chrestart", did, null);
     }
 
    checkShareDevice(String did) {
@@ -2720,29 +2720,29 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
       String vsc = havsh.get(did);
       if (TS.isEmpty(vsc) || vsc == "isok") {
-        matrep("share", did, null);
+        brd("share", did, null);
       }
      }
    }
 
-   unshareFromMatrRequest(String sdid, request) Map {
+   unshareFromBridgeRequest(String sdid, request) Map {
      var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
      havsh.put(sdid, "notok");
-     matrep("unshare", sdid, request);
-     matrep("chrestart", sdid, request);
+     brd("unshare", sdid, request);
+     brd("chrestart", sdid, request);
      return(null);
    }
 
-   shareToMatrRequest(String sdid, request) Map {
+   shareToBridgeRequest(String sdid, request) Map {
      var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
      havsh.put(sdid, "isok");
-     matrep("share", sdid, request);
-     matrep("chrestart", sdid, request);
+     brd("share", sdid, request);
+     brd("chrestart", sdid, request);
      return(null);
    }
 
-   matrep(String act, String sdid, request) Map {
-     log.log("in matrep " + act + " " + sdid);
+   brd(String act, String sdid, request) Map {
+     log.log("in brd " + act + " " + sdid);
 
      String sconf;
      String gdid;
@@ -2760,11 +2760,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (TS.notEmpty(sws) && (sws.has(",a1,") || sws.has(",h1,"))) {
         gdid = did;
         if (act == "chrestart") {
-          cmds = "matrep pass chrestart e";
-          Map mcmd = Maps.from("prio", 2, "cb", "matrepCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
+          cmds = "brd pass chrestart e";
+          Map mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
           sendDeviceMcmd(mcmd);
         } else {
-          //matrep pass add ool ondid 0 spass e
+          //brd pass add ool ondid 0 spass e
           if (TS.notEmpty(ctl)) {
             var ctll = ctl.split(",");
             log.log("got ctl " + ctl);
@@ -2783,11 +2783,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 Int ipos = i.copy();
                 ipos--;
                 if (act == "share") {
-                  String cmds = "matrep pass add " + etype + " " + conf["ondid"] + " " + ipos + " " + conf["spass"] + " e";
+                  String cmds = "brd pass add " + etype + " " + conf["ondid"] + " " + ipos + " " + conf["spass"] + " e";
                 } else {
-                  cmds = "matrep pass rm " + etype + " " + conf["ondid"] + " " + ipos + " " + " e";
+                  cmds = "brd pass rm " + etype + " " + conf["ondid"] + " " + ipos + " " + " e";
                 }
-                mcmd = Maps.from("prio", 2, "cb", "matrepCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
+                mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
               }
             }
             if (def(mcmd)) {
@@ -2801,10 +2801,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(null);
    }
 
-   matrepCb(Map mcmd, request) Map {
+   brdCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String did = mcmd["did"];
-     if (TS.notEmpty(cres) && cres.has("matrepok")) {
+     if (TS.notEmpty(cres) && cres.has("brdok")) {
         log.log("got good maprep cres " + cres);
       }
       //if (def(request)) {

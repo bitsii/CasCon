@@ -1112,20 +1112,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.isEmpty(conf["id"])) {
        conf["id"] = System:Random.getString(11);
      }
-     /*String controlDef = conf["controlDef"];
-     if (TS.notEmpty(controlDef)) {
-       var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-       hactls.put(conf["id"], controlDef);
-       conf.remove("controlDef");
-     }
-     String spec = conf["spec"];
-     if (TS.notEmpty(spec)) {
-       var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-       haspecs.put(conf["id"], spec);
-       conf.remove("spec");
-     }*/
      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-     haspecs.put(conf["id"], "1.p4,p2.phx.4");
+     haspecs.put(conf["id"], "1,q,p6,p2.gsh.4");
      confs = Json:Marshaller.marshall(conf);
      saveDeviceRequest(conf["id"], confs, request);
      //rectlDeviceRequest(conf["id"], null, request);
@@ -1604,18 +1592,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     List topt = List.new();
     for (any kv in hadevs.getMap()) {
-      String godid = kv.key;
-      String spec = haspecs.get(godid);
+      String odid = kv.key;
+      String spec = haspecs.get(odid);
       if (TS.notEmpty(spec)) {
         if (spec.has(",t3,")) {
           unless (spec.has("nm,")) {
-            topt += godid;
+            topt += odid;
           }
         }
       }
     }
     if (topt.length > 0) {
-      godid = topt.get(System:Random.getIntMax(topt.length));
+      String godid = topt.get(System:Random.getIntMax(topt.length));
     }
 
     if (TS.isEmpty(godid)) {
@@ -4315,7 +4303,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             log.log("has p4");
           }
           var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-          haspecs.put(disDevId, "1.p4,p2.phx.4");
+          haspecs.put(disDevId, "1,q,p6,p2.gsh.4");
           clearQueueKdaddr("192.168.4.1");
           //alStep = "getcontroldef";
           alStep = "setwifi";
@@ -4326,51 +4314,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           deleteDeviceRequest(disDevId, request);
           throw(Alert.new("Error, must setup w/in 30 mins of power on. Unplug and replug in device and try again"));
        }
-     /*} elseIf (alStep == "getcontroldef") {
-       if (TS.notEmpty(cres) && cres.has("controldef")) {
-         log.log("got controldef " + cres);
-         String controlDef = cres;
-         var hactls = app.kvdbs.get("HACTLS"); //hadevs - device id to ctldef
-         hactls.put(disDevId, controlDef);
-         clearQueueKdaddr("192.168.4.1");
-         haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-         String cchkspk = haspecs.get(disDevId);
-         if (TS.notEmpty(cchkspk) && cchkspk == "1.p4,p2.phx.4") {
-           alStep = "doswspec";
-         } else {
-           if (TS.isEmpty(cchkspk)) {
-             haspecs.put(disDevId, "1,q,p6,p2.gsh.4");
-           }
-           alStep = "setwifi";
-         }
-       }
-     } elseIf (alStep == "doswspec") {
-       if (TS.notEmpty(cres) && cres.has("p2.")) {
-          haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-          var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
-          log.log("got swspec");
-          haspecs.put(disDevId, cres);
-          var sl = cres.split(".");
-          String dt = sl[1];
-          String confs = hadevs.get(disDevId);
-          Map conf = Json:Unmarshaller.unmarshall(confs);
-          conf["type"] = dt;
-          confs = Json:Marshaller.marshall(conf);
-          hadevs.put(disDevId, confs);
-          pdevices = hadevs.getMap();
-          clearQueueKdaddr("192.168.4.1");
-          Map mqr = loadMqtt("relay");
-          //haRelay, elseIf, gh type
-          if (cres.has(",dm,") || cres.has(",gm,") && TS.notEmpty(mqr["mqttBroker"]) && TS.notEmpty(mqr["mqttUser"]) && TS.notEmpty(mqr["mqttPass"])) {
-            alStep = "setsmcr";
-          } else {
-            alStep = "setwifi";
-          }
-        }
-     } elseIf (alStep == "setsmcr") {
-       if (TS.notEmpty(cres) && cres.has("smcok")) {
-         alStep = "setwifi";
-       }*/
      } elseIf (alStep == "setwifi") {
        if (TS.notEmpty(cres) && cres.has("Wifi Setup Written")) {
          log.log("wifi setup worked");

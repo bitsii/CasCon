@@ -1561,7 +1561,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         log.log("got dospec " + cres);
         if (cres.begins("controldef")) {
           log.log("pre swspec");
-          haspecs.put(did, "1,p2.gsh.4");
+          haspecs.put(did, "1,q,p6,p2.gsh.4");
         } elseIf (cres.has("p2.")) {
           log.log("got swspec");
           haspecs.put(did, cres);
@@ -1589,7 +1589,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
         } else {
           log.log("swspec got nonsense, doing default");
-          haspecs.put(did, "1,p2.gsh.4");
+          haspecs.put(did, "1,q,p6,p2.gsh.4");
         }
       }
       return(null);
@@ -1602,32 +1602,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
 
-    slots {
-      String lastGodid;
-      Int lastGodidc;
-    }
-
-    if (TS.isEmpty(lastGodid) || lastGodidc > 6) {
-      List topt = List.new();
-      for (any kv in hadevs.getMap()) {
-        String godid = kv.key;
-        String spec = haspecs.get(godid);
-        if (TS.notEmpty(spec)) {
-          if (spec.has(",t1,") || spec.has(",t2,") || spec.has(",t3,")) {
-            unless (spec.has("nm,")) {
-              topt += godid;
-            }
+    List topt = List.new();
+    for (any kv in hadevs.getMap()) {
+      String godid = kv.key;
+      String spec = haspecs.get(godid);
+      if (TS.notEmpty(spec)) {
+        if (spec.has(",t3,")) {
+          unless (spec.has("nm,")) {
+            topt += godid;
           }
         }
       }
-      if (topt.length > 0) {
-        godid = topt.get(System:Random.getIntMax(topt.length));
-        lastGodid = godid;
-        lastGodidc = 1;
-      }
-    } else {
-      godid = lastGodid;
-      lastGodidc++;
+    }
+    if (topt.length > 0) {
+      godid = topt.get(System:Random.getIntMax(topt.length));
     }
 
     if (TS.isEmpty(godid)) {
@@ -1800,19 +1788,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //tcpjv edition
 
      //cmds += "\r\n";
-     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-     String sws = haspecs.get(did);
-     if (TS.notEmpty(sws) && sws.has("q,")) {
-       String iv = System:Random.getString(16);
-       //cmds = "dostate q " + dpd + " getsw e";
-       cmds = "dostate q " + dpd + " getsw " + iv + "," + reId + " e";
-       //log.log("cmds " + cmds);
-       mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
-     } else {
-       String cmds = "dostate spass " + dpd + " getsw e";
-       //log.log("cmds " + cmds);
-       Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
-     }
+
+     String iv = System:Random.getString(16);
+     //cmds = "dostate q " + dpd + " getsw e";
+     String cmds = "dostate q " + dpd + " getsw " + iv + "," + reId + " e";
+     //log.log("cmds " + cmds);
+     Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
      mcmd["repsu"] = repsu;
      if (backgroundPulse) {
        mcmd["runSync"] = true;
@@ -1891,28 +1872,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       //dostate eek setsw on e
       Int dpd = dp - 1;
 
-      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-      String sws = haspecs.get(did);
-      if (TS.notEmpty(sws) && sws.has("q,")) {
-        String iv = System:Random.getString(16);
-        if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
-          //cmds = "getstatexd q " + dpd + " e";
-          cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
-        } else {
-          //cmds = "dostate q " + dpd + " getrgb e";
-          cmds = "dostate q " + dpd + " getrgb " + iv + "," + reId + " e";
-        }
-        //log.log("cmds " + cmds);
-        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
+      String iv = System:Random.getString(16);
+      if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
+        //cmds = "getstatexd q " + dpd + " e";
+        String cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
       } else {
-        if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
-          cmds = "getstatexd spass " + dpd + " e";
-        } else {
-        String cmds = "dostate spass " + dpd + " getrgb e";
-        }
-        //log.log("cmds " + cmds);
-        Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
+        //cmds = "dostate q " + dpd + " getrgb e";
+        cmds = "dostate q " + dpd + " getrgb " + iv + "," + reId + " e";
       }
+      //log.log("cmds " + cmds);
+      Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       mcmd["repsu"] = repsu;
       if (backgroundPulse) {
         mcmd["runSync"] = true;
@@ -2006,19 +1975,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       //dostate eek setsw on e
       Int dpd = dp - 1;
 
-      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-      String sws = haspecs.get(did);
-      if (TS.notEmpty(sws) && sws.has("q,")) {
-        String iv = System:Random.getString(16);
-        //String cmds = "getstatexd q " + dpd + " e";
-        String cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
-        //log.log("cmds " + cmds);
-        Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
-      } else {
-        cmds = "getstatexd spass " + dpd + " e";
-        //log.log("cmds " + cmds);
-        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
-      }
+      String iv = System:Random.getString(16);
+      //String cmds = "getstatexd q " + dpd + " e";
+      String cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
+      //log.log("cmds " + cmds);
+      Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       mcmd["repsu"] = repsu;
       if (backgroundPulse) {
         mcmd["runSync"] = true;
@@ -2097,28 +2058,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       //dostate eek setsw on e
       Int dpd = dp - 1;
 
-      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-      String sws = haspecs.get(did);
-      if (TS.notEmpty(sws) && sws.has("q,")) {
-        String iv = System:Random.getString(16);
-        if (itype == "gdim") {
-          //cmds = "getstatexd q " + dpd + " e";
-          cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
-        } else {
-          //cmds = "dostate q " + dpd + " getlvl e";
-          cmds = "dostate q " + dpd + " getlvl " + iv + "," + reId + " e";
-        }
-        //log.log("cmds " + cmds);
-        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
+      String iv = System:Random.getString(16);
+      if (itype == "gdim") {
+        //cmds = "getstatexd q " + dpd + " e";
+        String cmds = "getstatexd q " + dpd + " " + iv + "," + reId + " e";
       } else {
-        if (itype == "gdim") {
-          cmds = "getstatexd spass " + dpd + " e";
-        } else {
-          String cmds = "dostate spass " + dpd + " getlvl e";
-        }
-        //log.log("cmds " + cmds);
-        Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
+        //cmds = "dostate q " + dpd + " getlvl e";
+        cmds = "dostate q " + dpd + " getlvl " + iv + "," + reId + " e";
       }
+      //log.log("cmds " + cmds);
+      Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       mcmd["repsu"] = repsu;
       if (backgroundPulse) {
         mcmd["runSync"] = true;
@@ -2189,19 +2138,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       //dostate eek setsw on e
       Int dpd = dp - 1;
 
-      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-      String sws = haspecs.get(did);
-      if (TS.notEmpty(sws) && sws.has("q,")) {
-        String iv = System:Random.getString(16);
-        //cmds = "dostate q " + dpd + " getoif e";
-        cmds = "dostate q " + dpd + " getoif " + iv + "," + reId + " e";
-        //log.log("cmds " + cmds);
-        mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
-      } else {
-        String cmds = "dostate spass " + dpd + " getoif e";
-        //log.log("cmds " + cmds);
-        Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 2, "itype", itype, "cname", cname, "cmds", cmds);
-      }
+      String iv = System:Random.getString(16);
+      //cmds = "dostate q " + dpd + " getoif e";
+      String cmds = "dostate q " + dpd + " getoif " + iv + "," + reId + " e";
+      //log.log("cmds " + cmds);
+      Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       mcmd["repsu"] = repsu;
       if (backgroundPulse) {
         mcmd["runSync"] = true;
@@ -3549,7 +3490,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
 
      if (def(currCmds) && def(currCmds["cres"])) {
+       //log.log("CRES " + currCmds["cres"]);
        if (def(currCmds["pwt"]) && currCmds["pwt"] > 0) {
+        //log.log("pwt " + currCmds["pwt"]);
         String rescres = currCmds["cres"];
         Int rf1 = rescres.find(" ");
         if (def(rf1)) {
@@ -3558,6 +3501,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             if (def(rf2)) {
               String resiv = resivcr.substring(0, rf2);
               //log.log("resivcr |" + resivcr + "| resiv |" + resiv + "|");
+              //if (TS.notEmpty(currCmds["iv"])) { log.log("currCmdsIv " + currCmds["iv"]); }
             }
         }
         if (TS.notEmpty(currCmds["iv"]) && TS.notEmpty(resiv) && resiv == currCmds["iv"]) {
@@ -3771,26 +3715,28 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           mcmd["ondid"] = conf["ondid"];
           var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
           String sws = haspecs.get(did);
-          if (TS.notEmpty(sws)) {
-            mcmd["spec"] = sws;
-            if (sws.has(".") && sws.has(",")) {
-              sws = sws.substring(0, sws.find("."));
-              var swl = sws.split(",");
-              for (var swe in swl) {
-                //log.log("swe " + swe);
-                if (swe.begins("p")) {
-                  Int sp = Int.new(swe.substring(1, swe.length));
-                  //log.log("sp " + sp);
-                  if (undef(spm) || spm < sp) {
-                    Int spm = sp;
-                  }
+          if (TS.isEmpty(sws)) {
+            sws = "1,q,p6,p2.gsh.4";
+          }
+          //log.log("sws " + sws);
+          mcmd["spec"] = sws;
+          if (sws.has(".") && sws.has(",")) {
+            sws = sws.substring(0, sws.find("."));
+            var swl = sws.split(",");
+            for (var swe in swl) {
+              //log.log("swe " + swe);
+              if (swe.begins("p")) {
+                Int sp = Int.new(swe.substring(1, swe.length));
+                //log.log("sp " + sp);
+                if (undef(spm) || spm < sp) {
+                  Int spm = sp;
                 }
               }
             }
-            if (def(spm)) {
-              //log.log("spm " + spm);
-              mcmd["pver"] = spm;
-            }
+          }
+          if (def(spm)) {
+            //log.log("spm " + spm);
+            mcmd["pver"] = spm;
           }
           Int pwt = mcmd["pwt"];
           if (def(pwt)) {
@@ -4393,7 +4339,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            alStep = "doswspec";
          } else {
            if (TS.isEmpty(cchkspk)) {
-             haspecs.put(disDevId, "1,p2.gsh.4");
+             haspecs.put(disDevId, "1,q,p6,p2.gsh.4");
            }
            alStep = "setwifi";
          }

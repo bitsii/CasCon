@@ -85,6 +85,7 @@ class CasNic:CasProt {
 
        cmds = secCmds(mcmd);
 
+       //log.log("cmds " + cmds).print();
        cmds += "\r\n";
 
        ifEmit(apwk) {

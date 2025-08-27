@@ -974,7 +974,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         String dkdname = "CasNic" + conf["ondid"];
         if (dkdname == kdname) {
           String spec = haspecs.get(did);
-          if (TS.isEmpty(spec) || spec.has("nm,") || spec.has("phx.")) {
+          if (TS.isEmpty(spec) || spec.has(",nm,") || spec.has(".gsh.")) {
             log.log("WILL TRY TDS");
             if (def(pendingTds)) {
               pendingTds += did;

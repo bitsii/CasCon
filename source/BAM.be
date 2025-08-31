@@ -1697,7 +1697,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    getLastEventsCb(Map mcmd, request) Map {
      String cres = mcmd["cres"];
      String leid = mcmd["did"];
-     if ((mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) || (mcmd.has("doRemote") && mcmd["doRemote"])) {
+     if (mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) {
        Int ns = Time:Interval.now().seconds + 8;
        if (def(gletimes)) { gletimes.put(leid, ns); }
      }
@@ -2375,7 +2375,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       ns = Time:Interval.now().seconds;
       //Int glesecs = 4 + System:Random.getIntMax(4);
-      Int glesecs = 9 + System:Random.getIntMax(3);
+      Int glesecs = 7 + System:Random.getIntMax(2);
+      //Int glesecs = 9 + System:Random.getIntMax(3);
       if (def(pdevices) && def (gletimes)) {
         //log.log("in gletimes");
         for (var pdc in pdevices) {
@@ -4450,14 +4451,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    ftypeForType(String type) String {
      if (TS.notEmpty(type)) {
       if (type.begins("r")) {
-        if (type == "rNodeMCU") {
-          ftype = "NodeMCU";
-        } elseIf (type == "rAthPlugV2") {
+        if (type == "rAthPlugV2") {
           ftype = "Athom Plug V2";
         } elseIf (type == "rAthBlb7w") {
-          ftype = "Athom 7w Bulb";
+          ftype = "Athom Color Bulb 7w";
         } elseIf (type == "rAthBlb15w") {
-          ftype = "Athom 15w Bulb";
+          ftype = "Athom Color Bulb 15w";
+        } elseIf (type.begins("rMatr")) {
+          ftype = "Voice Bridge";
+        } elseIf (type.begins("rGateTas")) {
+          ftype = "Tasmota Bridge";
+        } elseIf (type.begins("rGateMq")) {
+          ftype = "Remote Bridge";
+        } elseIf (type.begins("rGateHass")) {
+          ftype = "Homeassistant Bridge";
         }
       }
      }

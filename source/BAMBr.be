@@ -766,7 +766,8 @@ use class IUHub:Eui {
      HD.getEle("disDevPin").value = pino;
      HD.getEle("disDevSsid").value = ssid;
      if (TS.notEmpty(typeFriendly)) {
-      String disDevName = typeFriendly + " " + System:Random.getIntMax(99).toString();
+      //String disDevName = typeFriendly + " " + System:Random.getIntMax(99).toString();
+      String disDevName = typeFriendly;
       HD.getEle("disDevName").value = disDevName;
      }
    }

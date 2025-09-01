@@ -2625,10 +2625,25 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
+   reshareDevicesRequest(request) {
+     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+     Map hasp = haspecs.getMap();
+     for (any kv in hasp) {
+      String sws = kv.value;
+      if (TS.notEmpty(sws) && (sws.has(",a1,") || sws.has(",h1,"))) {
+        checkShareDevices(kv.key, sws);
+        break;
+      }
+     }
+     //return(CallBackUI.reloadResponse());
+   }
+
    checkShareDevices(String did, String spec) {
      log.log("in checkShareDevices");
+     Bool wasBridge = false;
      if (spec.has(",a1,") || spec.has(",h1,")) {
-       log.log("it's a bridge, sharing all to it");
+        log.log("it's a bridge, sharing all to it");
+        wasBridge = true;
         var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
         for (any kv in hadevs.getMap()) {
           String didk = kv.key;
@@ -2639,6 +2654,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      } else {
        log.log("it's not a bridge sharing to bridges");
        checkShareDevice(did);
+     }
+     //do the redact here if it was all
+     if (wasBridge) {
+       brd("rmold", did, null);
      }
      brd("chrestart", did, null);
     }
@@ -2692,6 +2711,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (act == "chrestart") {
           cmds = "brd pass chrestart e";
           Map mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
+          sendDeviceMcmd(mcmd);
+        } elseIf(act == "rmold") {
+          cmds = "brd pass rmold e";
+          mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
           sendDeviceMcmd(mcmd);
         } else {
           //brd pass add ool ondid 0 spass e

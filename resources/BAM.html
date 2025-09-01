@@ -692,7 +692,7 @@
                   <f7-button class="col" onclick="callApp('saveWifiRequest', document.getElementById('wifiSsid').value, document.getElementById('wifiSec').value, true);return false;" outline>Save Wifi</f7-button>
                 </f7-row>
             <div id="divAutoVShare">
-            <div class="item-title" style="width:150px;">Auto Share devices to Bridge</div>
+            <div class="item-title" style="width:150px;">Auto Share devices to Bridges</div>
             <div class="item-after">
             <label class="toggle">
               <input type="checkbox" onclick="callApp('saveAutoVShareRequest', toOnOff(document.getElementById('autoVSSw').checked));return true;" id="autoVSSw"/>
@@ -700,6 +700,9 @@
             </label>
             </div>
             </div>
+            <f7-row tag="p">
+                  <f7-button class="col" onclick="callApp('reshareDevicesRequest');return false;" outline>Resync Bridges Device List</f7-button>
+                </f7-row>
         </div>
 
         <div id="divMqttAdvanced" style="display: none;">
@@ -777,7 +780,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="147"
+            value="148"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

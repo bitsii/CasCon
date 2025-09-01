@@ -438,6 +438,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        //checkStartMqtt("relay");
        //checkStartMqtt("haRelay");
       }
+      slots {
+       Bool haveGm;
+      }
+      Bool hgm = false;
+      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+      for (any kv in haspecs.getMap()) {
+        if (TS.notEmpty(kv.value) && kv.value.has(",gm,")) {
+          hgm = true;
+        }
+      }
+      haveGm = hgm;
     }
 
     checkStartMqtt(String mqttMode) {
@@ -3781,13 +3792,25 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             unless (TS.notEmpty(mcmd["kdaddr"]) && locAddrs.has(mcmd["kdaddr"])) {
               var harfails = app.kvdbs.get("HARFAILS"); //harfails - kdname to remote failing
               unless (TS.notEmpty(mcmd["kdname"]) && harfails.has(mcmd["kdname"])) {
-                doRemote = true;
+                unless (TS.isEmpty(did) || TS.isEmpty(sws) || sws.has(".gsh.")) {
+                  if (TS.notEmpty(sws) && sws.has(",dm,")) {
+                    doRemote = true;
+                  }
+                  if (def(haveGm) && haveGm) {
+                    doRemote = true;
+                  }
+                }
               }
             }
           }
           if (mcmd.has("forceRemote") && mcmd["forceRemote"]) {
             //log.log("got forceRemote");
-            doRemote = true;
+            if (TS.notEmpty(sws) && sws.has(",dm,")) {
+              doRemote = true;
+            }
+            if (def(haveGm) && haveGm) {
+              doRemote = true;
+            }
           }
         }
         if (mcmd.has("forceLocal") && mcmd["forceLocal"]) {

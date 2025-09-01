@@ -1191,7 +1191,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      sendDeviceMcmd(mcmd);
 
-     unless (spec.has(",a1,")) {
+     unless (spec.has(",a1,") || spec.has(",h1,")) {
        brd("unshare", did, request);
      }
 

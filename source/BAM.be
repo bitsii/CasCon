@@ -2646,7 +2646,34 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         break;
       }
      }
-     //return(CallBackUI.reloadResponse());
+     return(CallBackUI.closeSettingsResponse());
+   }
+
+   disTasRequest(request) {
+     log.log("in disTasRequest");
+     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+     Map hasp = haspecs.getMap();
+     for (any kv in hasp) {
+      String sws = kv.value;
+      if (TS.notEmpty(sws) && sws.has(",gt1,")) {
+        String cmds = "tacmd pass startdis e";
+        Map mcmd = Maps.from("prio", 2, "cb", "disTasCb", "did", kv.key, "pwt", 1, "cmds", cmds);
+        sendDeviceMcmd(mcmd);
+      }
+     }
+     return(null);
+   }
+
+   disTasCb(Map mcmd, request) {
+     String cres = mcmd["cres"];
+     String did = mcmd["did"];
+     if (TS.notEmpty(cres)) {
+        log.log("disTasCb got cres " + cres);
+        if (def(request)) {
+          return(CallBackUI.closeSettingsResponse());
+        }
+      }
+      return(null);
    }
 
    checkShareDevices(String did, String spec) {
@@ -2690,7 +2717,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      havsh.put(sdid, "notok");
      brd("unshare", sdid, request);
      brd("chrestart", sdid, request);
-     return(null);
+     return(CallBackUI.closeSettingsResponse());
    }
 
    shareToBridgeRequest(String sdid, request) Map {
@@ -2698,7 +2725,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      havsh.put(sdid, "isok");
      brd("share", sdid, request);
      brd("chrestart", sdid, request);
-     return(null);
+     return(CallBackUI.closeSettingsResponse());
    }
 
    brd(String act, String sdid, request) Map {

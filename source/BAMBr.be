@@ -446,6 +446,14 @@ use class IUHub:Eui {
 
    }
 
+   closeSettingsResponse() {
+     log.log("in closeSettings Response");
+     var cs = HD.getEle("closeSettings").click();
+     if (cs.exists) {
+       cs.click();
+     }
+   }
+
    setMqttMode() {
      String mqttMode = "";
      if (HD.getEle("mqmremote").checked) {

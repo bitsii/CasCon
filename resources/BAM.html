@@ -561,32 +561,20 @@
                 <div id="divDevDetails" style="display: none;">
                 <f7-list>
                 <f7-row tag="p">
-                  <f7-button class="col" onclick="callApp('updateWifiRequest', document.getElementById('devId').value);return false;" outline>Update Wifi</f7-button>
-                </f7-row>
-                <f7-row tag="p">
-                  <f7-button class="col" onclick="callApp('updateMqttRequest', document.getElementById('devId').value);return false;" outline>Update Mqtt</f7-button>
-                </f7-row>
-                <f7-row tag="p">
-                  <f7-button class="col" onclick="callApp('shareToBridgeRequest', document.getElementById('devId').value);return false;" outline>Share to Bridge</f7-button>
-                </f7-row>
-                <f7-row tag="p">
-                  <f7-button class="col" onclick="callApp('unshareFromBridgeRequest', document.getElementById('devId').value);return false;" outline>Unshare from Bridge</f7-button>
-                </f7-row>
-                <f7-row tag="p">
-                  <f7-button class="col" onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Pairing-Voice-Bridge');return false;" outline>Show Voice Bridge Pairing Instructions</f7-button>
-                </f7-row>
-                <f7-row tag="p">
-                  <f7-button class="col" onclick="callApp('restartDevRequest', document.getElementById('devId').value);return false;" outline>Restart</f7-button>
-                </f7-row>
-                 <f7-row tag="p">
-                  <f7-button class="col" popup-open="#verreset" outline>Reset</f7-button>
-                </f7-row>
-                <f7-row tag="p">
                   <f7-button class="col" popup-open="#verdelete" outline>Delete</f7-button>
                 </f7-row>
                 <f7-row tag="p">
-          <f7-button class="col" onclick="callApp('rectlDeviceRequest', document.getElementById('devId').value, '');return false;" outline>Reload Controls</f7-button>
-        </f7-row>
+                  <f7-button class="col" popup-open="#verreset" outline>Reset</f7-button>
+                </f7-row>
+                <f7-row tag="p">
+                  <f7-button class="col" onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Pairing-Voice-Bridge');return false;" outline>Voice Pairing Instructions</f7-button>
+                </f7-row>
+                <f7-row tag="p">
+                <f7-button class="col" onclick="callApp('disTasRequest');return false;" outline>Rediscover Tasmota Devices</f7-button>
+              </f7-row>
+              <f7-row tag="p">
+                <f7-button id="closeSettings" class="col" @click="$f7router.back()" style="display: none;">Close Settings</f7-button>
+              </f7-row>
                 <f7-list> <f7-list-item>Sharing Blob</f7-list-item>
             <f7-list-input
               input-id="shBlob"
@@ -664,7 +652,7 @@
                 ></f7-list-input>-->
                 </f7-list>
                <f7-row tag="p">
-                <f7-button id="nextDevButton" class="col" onclick="callUI('showDeviceConfig');return false;" outline>Next</f7-button>
+                <f7-button id="nextDevButton" class="col" onclick="callUI('showDeviceConfig');return false;" style="display: none;">Next</f7-button>
                 </f7-row>
                 </f7-block>
                 </div>
@@ -691,17 +679,8 @@
               <f7-row tag="p">
                   <f7-button class="col" onclick="callApp('saveWifiRequest', document.getElementById('wifiSsid').value, document.getElementById('wifiSec').value, true);return false;" outline>Save Wifi</f7-button>
                 </f7-row>
-            <div id="divAutoVShare">
-            <div class="item-title" style="width:150px;">Auto Share devices to Bridges</div>
-            <div class="item-after">
-            <label class="toggle">
-              <input type="checkbox" onclick="callApp('saveAutoVShareRequest', toOnOff(document.getElementById('autoVSSw').checked));return true;" id="autoVSSw"/>
-              <span class="toggle-icon"></span>
-            </label>
-            </div>
-            </div>
-            <f7-row tag="p">
-                  <f7-button class="col" onclick="callApp('reshareDevicesRequest');return false;" outline>Resync Bridges Device List</f7-button>
+                <f7-row tag="p">
+                  <f7-button class="col" onclick="callApp('updateWifiRequest', document.getElementById('devId').value);return false;" outline>Update Wifi</f7-button>
                 </f7-row>
         </div>
 
@@ -743,6 +722,9 @@
       <f7-row tag="p">
           <f7-button class="col" onclick="callApp('saveMqttRequest', document.getElementById('mqttMode').value, document.getElementById('mqttBroker').value, document.getElementById('mqttUser').value, document.getElementById('mqttPass').value);return false;" outline>Save MQTT</f7-button>
         </f7-row>
+        <f7-row tag="p">
+          <f7-button class="col" onclick="callApp('updateMqttRequest', document.getElementById('devId').value);return false;" outline>Update Mqtt</f7-button>
+        </f7-row>
 
         <div id="divMqFull" style="display: none;">
         <div class="item-title" style="width:150px;">Fulltime Mqtt</div>
@@ -773,6 +755,30 @@
         </label>
         </div>
         </div>
+        <div id="divAutoVShare">
+            <div class="item-title" style="width:150px;">Auto Share to Bridges</div>
+            <div class="item-after">
+            <label class="toggle">
+              <input type="checkbox" onclick="callApp('saveAutoVShareRequest', toOnOff(document.getElementById('autoVSSw').checked));return true;" id="autoVSSw"/>
+              <span class="toggle-icon"></span>
+            </label>
+            </div>
+            </div>
+            <f7-row tag="p">
+              <f7-button class="col" onclick="callApp('rectlDeviceRequest', document.getElementById('devId').value, '');return false;" outline>Reload Controls</f7-button>
+            </f7-row>
+            <f7-row tag="p">
+            <f7-button class="col" onclick="callApp('restartDevRequest', document.getElementById('devId').value);return false;" outline>Restart</f7-button>
+          </f7-row>
+          <f7-row tag="p">
+            <f7-button class="col" onclick="callApp('shareToBridgeRequest', document.getElementById('devId').value);return false;" outline>Share to Bridge</f7-button>
+          </f7-row>
+          <f7-row tag="p">
+            <f7-button class="col" onclick="callApp('unshareFromBridgeRequest', document.getElementById('devId').value);return false;" outline>Unshare from Bridge</f7-button>
+          </f7-row>
+            <f7-row tag="p">
+              <f7-button class="col" onclick="callApp('reshareDevicesRequest');return false;" outline>Resync Bridges</f7-button>
+            </f7-row>
         </div>
         <f7-list>
           <f7-list-item>
@@ -780,7 +786,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="150"
+            value="151"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

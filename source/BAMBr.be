@@ -618,7 +618,8 @@ use class IUHub:Eui {
       HD.getElementById("shBlob").value = "";
       return(null);
      }
-     String confs = onDevId + "," + Encode:Hex.encode(devName) + "," + devPass + "," + devSpass;
+     devName = devName.swap(",", "");
+     String confs = onDevId + "," + devName + "," + devPass + "," + devSpass;
      //Map conf = Map.new();
      //conf["type"] = devType;
      //conf["id"] = devId;

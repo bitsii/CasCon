@@ -1103,7 +1103,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      Map conf = Map.new();
      conf["ondid"] = confsl[0];
-     conf["name"] = Encode:Hex.decode(confsl[1]);
+     conf["name"] = confsl[1];
      conf["pass"] = confsl[2];
      conf["spass"] = confsl[3];
 

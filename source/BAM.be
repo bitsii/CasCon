@@ -1150,6 +1150,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     var hargb = app.kvdbs.get("HARGB"); //hargb - device id to rgb
     var haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device aids
     var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
+    var haposdm = app.kvdbs.get("HAPOSDM"); //position names dev id to json of names and ohter stuff
     
     String confs = hadevs.get(did);
     if (TS.notEmpty(confs)) {
@@ -1161,6 +1162,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
     }
 
+    //haposdm.remove(did);
     haowns.remove(uhex + "." + did);
     hadevs.remove(did);
     pdevices = hadevs.getMap();
@@ -1278,6 +1280,19 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        cres = "GOT NO RES";
      }
      return(CallBackUI.seeDeviceCommandResponse(cres));
+   }
+
+   saveDeviceForPosRequest(String did, String forPos, String devName, String confs, request) Map {
+     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+     String sws = haspecs.get(did);
+     if (TS.notEmpty(forPos) && TS.notEmpty(devName)) {
+      if (TS.notEmpty(sws) && sws.has(",gt1,")) {
+        log.log("doing forPos " + forPos + " " + devName);
+        var haposdm = app.kvdbs.get("HAPOSDM"); //position names dev id to json of names and ohter stuff
+        haposdm.put(did + "-" + forPos, devName);
+      }
+     }
+     return(saveDeviceRequest(did, confs, request));
    }
    
    saveDeviceRequest(String did, String confs, request) Map {
@@ -1529,7 +1544,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      } else {
        nsecs = 0;
      }
-     return(CallBackUI.getDevicesResponse(devices, ctls, specs, states, levels, rgbs, cws, oifs, nsecs));
+     var haposdm = app.kvdbs.get("HAPOSDM"); //position names dev id to json of names and ohter stuff
+     Map haposn = haposdm.getMap();
+     return(CallBackUI.getDevicesResponse(devices, ctls, specs, states, levels, rgbs, cws, oifs, haposn, nsecs));
    }
 
    updateSpec(String did, String controlHash) {

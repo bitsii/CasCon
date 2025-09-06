@@ -255,8 +255,9 @@ use class IUHub:Eui {
       }*/
    }
 
-   wantSettings(String devId) {
+   wantSettings(String devId, String pos) {
     wantSettingsFor = devId;
+    wantSettingsForPos = pos;
    }
 
    pickedWifi(String wifieh) {
@@ -275,6 +276,7 @@ use class IUHub:Eui {
     slots {
       Int discoCounts;
       String wantSettingsFor;
+      String wantSettingsForPos;
     }
 
     var imd = HD.getEle("informMessageDiv");
@@ -575,6 +577,7 @@ use class IUHub:Eui {
      String devName = HD.getElementById("devName").value;
      String devPass = HD.getElementById("devPass").value;
      String devSpass = HD.getElementById("devSpass").value;
+     String forPos = HD.getElementById("forPos").value;
      Map conf = Map.new();
      conf["type"] = devType;
      conf["id"] = devId;
@@ -583,7 +586,11 @@ use class IUHub:Eui {
      conf["pass"] = devPass;
      conf["spass"] = devSpass;
      String confs = Json:Marshaller.marshall(conf);
-     HC.callApp(Lists.from("saveDeviceRequest", devId, confs));
+     if (TS.notEmpty(forPos) && forPos != "POSOFDEVICE" && TS.notEmpty(devName)) {
+       HC.callApp(Lists.from("saveDeviceForPosRequest", devId, forPos, devName, confs));
+     } else {
+      HC.callApp(Lists.from("saveDeviceRequest", devId, confs));
+     }
    }
 
    clearQrShare() {
@@ -742,11 +749,26 @@ use class IUHub:Eui {
    showDeviceConfigResponse(String confs, String ip) {
      wantSettingsFor = null;
      Map conf = Json:Unmarshaller.unmarshall(confs);
+     if (TS.notEmpty(wantSettingsForPos)) {
+       log.log("seetings for pos " + wantSettingsForPos);
+       HD.getEle("forPos").value = wantSettingsForPos;
+       dname = haposn.get(conf["id"] + "-" + wantSettingsForPos);
+       if (TS.isEmpty(dname)) {
+          dname = conf["name"];
+       }
+       wantSettingsForPos = null;
+     } else {
+       log.log("no settings for pos");
+       HD.getEle("forPos").value = "";
+       String dname = conf["name"];
+     }
      HD.getEle("devType").value = conf["type"];
      HD.getEle("devTypeFriendly").value = conf["typeFriendly"];
      HD.getEle("devId").value = conf["id"];
      HD.getEle("onDevId").value = conf["ondid"];
-     HD.getEle("devName").value = conf["name"];
+
+     HD.getEle("devName").value = dname;
+
      if (TS.notEmpty(conf["pass"])) {
        HD.getEle("devPass").value = conf["pass"];
      }
@@ -963,7 +985,7 @@ use class IUHub:Eui {
      }
    }
    
-   getDevicesResponse(Map devices, Map ctls, Map _specs, Map states, Map _levels, Map _rgbs, Map _cws, Map _oifs, Int nsecs) {
+   getDevicesResponse(Map devices, Map ctls, Map _specs, Map states, Map _levels, Map _rgbs, Map _cws, Map _oifs, Map _haposn, Int nsecs) {
      log.log("in getDevicesResponse");
      slots {
        Map devCtls = ctls;
@@ -972,6 +994,7 @@ use class IUHub:Eui {
        Map rgbs = _rgbs;
        Map cws = _cws;
        Map oifs = _oifs;
+       Map haposn = _haposn;
      }
      if (nsecs > 0) {
        nextInform = Interval.new(nsecs, 0);
@@ -983,7 +1006,7 @@ use class IUHub:Eui {
        String li = '''
        <li class="item-content">
          <div class="item-inner">
-           <div class="item-title" style="width:150px;"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE');return true;">NAMEOFDEVICE</a></div>
+           <div class="item-title" style="width:150px;"><a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE', 'POSOFDEVICE');return true;">NAMEOFDEVICE</a></div>
            FORCOL
            FORCW
            FORDIM
@@ -1053,7 +1076,15 @@ use class IUHub:Eui {
             log.log("got dev " + ds.key + " " + ds.value);
             Map conf = Json:Unmarshaller.unmarshall(ds.value);
             if (itype == "pwm" || itype == "dim" || itype == "gdim" || itype == "sw" || itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd" || itype == "empty" || itype == "oui") {
-              String lin = li.swap("NAMEOFDEVICE", conf["name"]);
+              String jp = haposn.get(conf["id"] + "-" + i.toString());
+              if (TS.notEmpty(jp)) {
+                log.log("logging haposnget");
+                log.log("got posni name");
+                lin = li.swap("NAMEOFDEVICE", jp);
+              } else {
+                log.log("jp nodef");
+                String lin = li.swap("NAMEOFDEVICE", conf["name"]);
+              }
               if (itype == "empty" || itype == "pwm" || itype == "oui") {
                 lin = lin.swap("FORSW", "");
               } else {

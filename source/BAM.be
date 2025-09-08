@@ -194,8 +194,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     """
     public NsdManager.DiscoveryListener discoveryListener;
     public static NsdManager nsdManager;
-    //public WifiManager wifi;
-    //WifiManager.MulticastLock multicastLock;
+    public WifiManager wifi;
+    WifiManager.MulticastLock multicastLock;
     public boolean gotOnDevNetwork = false;
     ConnectivityManager lastConnectivityManager;
     ConnectivityManager.NetworkCallback lastNetworkCallback;
@@ -204,11 +204,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     public static class InitializeResolveListener implements NsdManager.ResolveListener {
 
     public static java.util.Hashtable<String, String> knownDevices = new java.util.Hashtable<String, String>();
+    public static java.util.Hashtable<String, String> wantedDevices = new java.util.Hashtable<String, String>();
     public static java.util.Hashtable<String, NsdServiceInfo> resolving = new java.util.Hashtable<String, NsdServiceInfo>();
-    public static volatile NsdServiceInfo nowResolving = null;
 
     public static void maybeResolve() {
-       if (nowResolving == null && !resolving.isEmpty()) {
+       if (!resolving.isEmpty()) {
         try {
           java.util.Collection<NsdServiceInfo> rv = resolving.values();
           int rnd = new java.util.Random().nextInt(rv.size());
@@ -217,7 +217,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           for (int i = 0;i <= rnd;i++) {
             rs = rvi.next();
           }
-          nowResolving = rs;
           nsdManager.resolveService(rs, new InitializeResolveListener());
         } catch (ClassCastException cce) {
           System.out.println("class cast exception in resolving");
@@ -231,7 +230,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       System.out.println("Resolve failed " + errorCode);
       String sname = serviceInfo.getServiceName();
       resolving.remove(sname);
-      nowResolving = null;
       maybeResolve();
     }
 
@@ -254,7 +252,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       knownDevices.put(sname, hip);
       resolving.remove(sname);
-      nowResolving = null;
+      wantedDevices.remove(sname);
       maybeResolve();
     }
   };
@@ -269,7 +267,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           any app;
           Map cmdQueues = Map.new();
           CasProt prot = CasProt.new();
-          OLocker discoverNow = OLocker.new(true);
+          OLocker inDiscovery = OLocker.new(false);
           Bool backgroundPulseOnIdle = false;
           Bool backgroundPulse = backgroundPulseOnIdle;
           CLocker mqtts = CLocker.new(Map.new());
@@ -1016,15 +1014,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             }
           }
           ifEmit(jvad) {
-            discoverNow.o = true;
           emit(jv) {
             """
             //new $class/Text:String$(fnames[i].getBytes("UTF-8"))
-            String kdaddr = InitializeResolveListener.knownDevices.get(beva_kdname.bems_toJvString());
+            String jkdn = beva_kdname.bems_toJvString();
+            String kdaddr = InitializeResolveListener.knownDevices.get(jkdn);
             if (kdaddr != null) {
               bevl_kdaddr =  new $class/Text:String$(kdaddr.getBytes("UTF-8"));
+            } else {
+              InitializeResolveListener.wantedDevices.put(jkdn, jkdn);
             }
             """
+          }
+          if (TS.isEmpty(kdaddr)) {
+            System:Thread.new(System:Invocation.new(self, "runDiscoveryInnerJvad", List.new())).start();
           }
           }
 
@@ -2469,9 +2472,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      ifEmit(jvad) {
      emit(jv) {
        """
-         //wifi = (WifiManager) be.BEC_3_2_4_10_UIJvAdWebBrowser.MainActivity.appContext.getSystemService(Context.WIFI_SERVICE);
-         //multicastLock = wifi.createMulticastLock("multicastLock");
-         //multicastLock.setReferenceCounted(true);
+         wifi = (WifiManager) be.BEC_3_2_4_10_UIJvAdWebBrowser.MainActivity.appContext.getSystemService(Context.WIFI_SERVICE);
+         multicastLock = wifi.createMulticastLock("CasnicDiscover");
+         multicastLock.setReferenceCounted(true);
 
         // Instantiate a new DiscoveryListener
         discoveryListener = new NsdManager.DiscoveryListener() {
@@ -2480,7 +2483,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           @Override
           public void onDiscoveryStarted(String regType) {
               System.out.println("Service discovery started");
-              InitializeResolveListener.nowResolving = null;
               InitializeResolveListener.resolving.clear();
               InitializeResolveListener.maybeResolve();
           }
@@ -2492,10 +2494,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               String sname = service.getServiceName();
               if (sname != null && sname.startsWith("CasNic")) {
                 System.out.println("onServiceFound " + sname);
-                //if (!InitializeResolveListener.knownDevices.containsKey(sname)) {
+                if (InitializeResolveListener.wantedDevices.containsKey(sname)) {
                   InitializeResolveListener.resolving.put(sname, service);
                   InitializeResolveListener.maybeResolve();
-                //}
+                }
               }
             }
 
@@ -2526,36 +2528,28 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       """
       }
      }
-      pollDiscovery();
    }
 
-   pollDiscovery() {
-      System:Thread.new(System:Invocation.new(self, "pollDiscoveryInner", List.new())).start();
-   }
-
-   pollDiscoveryInner() {
-    ifEmit(jvad) {
-      pollDiscoveryInnerJvad();
-    }
-   }
-
-   pollDiscoveryInnerJvad() {
-     while(true) {
-      //log.log("start runDiscoveryInner");
-      if (discoverNow.o) {
-        log.log("starting discovery");
-        startDiscovery();
-        log.log("started discovery");
-        Time:Sleep.sleepSeconds(10);
-        log.log("discovery sleep done");
-        stopDiscovery();
-        log.log("stopped discovery");
-        Time:Sleep.sleepSeconds(10);
-        discoverNow.o = false;
-      } else {
-        Time:Sleep.sleepSeconds(10);
+   runDiscoveryInnerJvad() {
+      log.log("maybe runDiscoveryInnerJvad");
+      unless (inDiscovery.o) {
+        log.log("try runDiscoveryInnerJvad");
+        try {
+          log.log("starting discovery");
+          inDiscovery.o = true;
+          startDiscovery();
+          log.log("started discovery");
+          Time:Sleep.sleepSeconds(10);
+          log.log("discovery sleep done");
+          stopDiscovery();
+          log.log("stopped discovery");
+          Time:Sleep.sleepSeconds(5);
+          inDiscovery.o = false;
+        } catch (any e) {
+          inDiscovery.o = false;
+          log.log("except in runDiscoveryInnerJvad");
+        }
       }
-     }
    }
 
    startDiscovery() {
@@ -2563,11 +2557,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      emit(jv) {
        """
        try {
-        //multicastLock.acquire();
+        multicastLock.acquire();
         nsdManager = (NsdManager) be.BEC_3_2_4_10_UIJvAdWebBrowser.MainActivity.appContext.getSystemService(Context.NSD_SERVICE);
         nsdManager.discoverServices(
         "_casnic._tcp.", NsdManager.PROTOCOL_DNS_SD, discoveryListener);
-       //multicastLock.release();
        } catch (Exception e) { System.out.println("error in startdiscovery"); }
        """
      }
@@ -2579,11 +2572,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      emit(jv) {
        """
        try {
-       //multicastLock.acquire();
+       multicastLock.release();
        if (nsdManager != null) {
          nsdManager.stopServiceDiscovery(discoveryListener);
        }
-       //multicastLock.release();
        } catch (Exception e) { }
        """
      }

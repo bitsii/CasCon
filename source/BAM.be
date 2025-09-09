@@ -2777,18 +2777,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
    }
 
-   unshareFromBridgeRequest(String sdid, request) Map {
+   unshareFromBridgeRequest(String sdid, String forPos, request) Map {
      var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
      havsh.put(sdid, "notok");
-     brd("unshare", sdid, null, request);
+     brd("unshare", sdid, forPos, request);
      brd("chrestart", sdid, null, request);
      return(CallBackUI.closeSettingsResponse());
    }
 
-   shareToBridgeRequest(String sdid, request) Map {
+   shareToBridgeRequest(String sdid, String forPos, request) Map {
      var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
      havsh.put(sdid, "isok");
-     brd("share", sdid, null, request);
+     brd("share", sdid, forPos, request);
      brd("chrestart", sdid, null, request);
      return(CallBackUI.closeSettingsResponse());
    }
@@ -2838,13 +2838,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               if (TS.notEmpty(etype)) {
                 Int ipos = i.copy();
                 //forPos equivalence check is before subtraction
-                ipos--;
-                if (act == "share") {
-                  String cmds = "brd pass add " + etype + " " + conf["ondid"] + " " + ipos + " " + conf["spass"] + " e";
-                } else {
-                  cmds = "brd pass rm " + etype + " " + conf["ondid"] + " " + ipos + " " + " e";
+                if (TS.isEmpty(forPos) || forPos == i.toString()) {
+                  ipos--;
+                  if (act == "share") {
+                    String cmds = "brd pass add " + etype + " " + conf["ondid"] + " " + ipos + " " + conf["spass"] + " e";
+                  } else {
+                    cmds = "brd pass rm " + etype + " " + conf["ondid"] + " " + ipos + " " + " e";
+                  }
+                  mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
                 }
-                mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
               }
             }
             if (def(mcmd)) {

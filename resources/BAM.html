@@ -135,6 +135,10 @@
 
           </f7-toolbar>
           <div id="hadsList"></div>
+          <f7-row tag="p">
+            <f7-button onclick="callUI('toggleDisplay', 'ihhid');return false;" id="hlhshow" icon-f7='eye_fill' style="display: none;"></f7-button>
+          </f7-row>
+          <div id="hadsListHid"></div>
           <!--<f7-link onclick="return true;" href='Pup.html' external>Pup</f7-link>-->
 
   <div class="list no-hairlines-md" style="display: none;">
@@ -529,6 +533,9 @@
     <f7-page>
       <f7-navbar title="Settings" back-link="Back"></f7-navbar>
       <f7-block>
+                <f7-row tag="p">
+                <f7-button id="nextDevButton" class="col" onclick="callUI('showDeviceConfig');return false;" style="display: none;">Next</f7-button>
+                </f7-row>
                 <f7-list>
                 <f7-list-item>Device Configuration</f7-list-item>
                 <input type="hidden" id="devType" value=""/>
@@ -566,6 +573,15 @@
                 <f7-row tag="p">
                   <f7-button class="col" popup-open="#verreset" outline>Reset</f7-button>
                 </f7-row>
+                <div id="divHideDis">
+                <div class="item-title" style="width:150px;">Hide Device</div>
+                <div class="item-after">
+                <label class="toggle">
+                  <input type="checkbox" onclick="callUI('saveHide', toOnOff(document.getElementById('hideSw').checked), document.getElementById('devId').value, document.getElementById('forPos').value);return true;" id="hideSw"/>
+                  <span class="toggle-icon"></span>
+                </label>
+                </div>
+                </div>
                 <f7-row tag="p">
                   <f7-button class="col" onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Pairing-Voice-Bridge');return false;" outline>Voice Pairing Instructions</f7-button>
                 </f7-row>
@@ -652,9 +668,6 @@
                   placeholder=""
                 ></f7-list-input>-->
                 </f7-list>
-               <f7-row tag="p">
-                <f7-button id="nextDevButton" class="col" onclick="callUI('showDeviceConfig');return false;" style="display: none;">Next</f7-button>
-                </f7-row>
                 </f7-block>
                 </div>
         <div id="divAdvanced" style="display: none;">
@@ -787,7 +800,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="155"
+            value="156"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

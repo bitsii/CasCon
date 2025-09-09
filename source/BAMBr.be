@@ -450,10 +450,11 @@ use class IUHub:Eui {
 
    closeSettingsResponse() {
      log.log("in closeSettings Response");
-     var cs = HD.getEle("closeSettings").click();
+     var cs = HD.getEle("closeSettings");
      if (cs.exists) {
        cs.click();
      }
+     HC.callApp(Lists.from("getDevicesRequest"));
    }
 
    setMqttMode() {
@@ -745,6 +746,38 @@ use class IUHub:Eui {
        HC.callAppLater(Lists.from("allsetRequest", count, disDevName, disDevType, disDevPin, disDevSsid, disDevId, disDevPass, disDevSpass, disDevDid, devSsid, devSec), wait);
      }
    }
+
+   saveHide(String hide, String devId, String forPos) {
+     log.log("in saveHide");
+     if (TS.notEmpty(hide)) {
+      log.log("hide def " + hide);
+     } else {
+      hide = "off";
+     }
+     String hakey;
+     if (TS.notEmpty(devId)) {
+       log.log("devId " + devId);
+       hakey = devId;
+     } else {
+       log.log("devId undef");
+       devId = "";
+     }
+     if (TS.notEmpty(forPos)) {
+       log.log("forPos " + forPos);
+       if (TS.notEmpty(hakey)) {
+        hakey = hakey + "-" + forPos;
+       }
+     } else {
+       log.log("forPos undef");
+       forPos = "";
+     }
+     if (TS.notEmpty(devId)) {
+       hahi.put(hakey, hide);
+       HC.callApp(Lists.from("saveHideRequest", hide, devId, forPos));
+     } else {
+       log.log("no devid no save");
+     }
+   }
    
    showDeviceConfigResponse(String confs, String ip) {
      wantSettingsFor = null;
@@ -752,7 +785,8 @@ use class IUHub:Eui {
      if (TS.notEmpty(wantSettingsForPos)) {
        log.log("seetings for pos " + wantSettingsForPos);
        HD.getEle("forPos").value = wantSettingsForPos;
-       dname = haposn.get(conf["id"] + "-" + wantSettingsForPos);
+       String posKey = conf["id"] + "-" + wantSettingsForPos;
+       dname = haposn.get(posKey);
        if (TS.isEmpty(dname)) {
           dname = conf["name"];
        }
@@ -761,6 +795,13 @@ use class IUHub:Eui {
        log.log("no settings for pos");
        HD.getEle("forPos").value = "";
        String dname = conf["name"];
+       posKey = conf["id"];
+     }
+     String hv = hahi.get(posKey);
+     if (TS.notEmpty(hv) && hv == "on") {
+       HD.getEle("hideSw").checked = true;
+     } else {
+       HD.getEle("hideSw").checked = false;
      }
      HD.getEle("devType").value = conf["type"];
      HD.getEle("devTypeFriendly").value = conf["typeFriendly"];
@@ -985,7 +1026,7 @@ use class IUHub:Eui {
      }
    }
    
-   getDevicesResponse(Map devices, Map ctls, Map _specs, Map states, Map _levels, Map _rgbs, Map _cws, Map _oifs, Map _haposn, Int nsecs) {
+   getDevicesResponse(Map devices, Map ctls, Map _specs, Map states, Map _levels, Map _rgbs, Map _cws, Map _oifs, Map _haposn, Map _hahi, Int nsecs) {
      log.log("in getDevicesResponse");
      slots {
        Map devCtls = ctls;
@@ -995,6 +1036,7 @@ use class IUHub:Eui {
        Map cws = _cws;
        Map oifs = _oifs;
        Map haposn = _haposn;
+       Map hahi = _hahi;
      }
      if (nsecs > 0) {
        nextInform = Interval.new(nsecs, 0);
@@ -1060,6 +1102,12 @@ use class IUHub:Eui {
            <div class="list">
         <ul>
         ''';
+
+        String ihhid = '''
+           <div id="ihhid" class="list" style="display: none;">
+        <ul>
+        ''';
+        Bool hadHid = false;
 
        for (any ds in devices) {
 
@@ -1133,7 +1181,25 @@ use class IUHub:Eui {
               } else {
                 lin = lin.swap("DEVICESTATETOG", "");
               }
-              ih += lin;
+              String hidp = hahi.get(conf["id"] + "-" + i.toString());
+              String hid = hahi.get(conf["id"]);
+              if (TS.notEmpty(hidp)) {
+                if (hidp == "on") {
+                  ihhid += lin;
+                  hadHid = true;
+                } else {
+                  ih += lin;
+                }
+              } elseIf (TS.notEmpty(hid)) {
+                if (hid == "on") {
+                  ihhid += lin;
+                  hadHid = true;
+                } else {
+                  ih += lin;
+                }
+              } else {
+               ih += lin;
+              }
             }
          }
        }
@@ -1144,8 +1210,19 @@ use class IUHub:Eui {
          </ul>
        </div>
        ''';
+
+       ihhid += '''
+         </ul>
+       </div>
+       ''';
        try {
          HD.getElementById("hadsList").innerHTML = ih;
+         HD.getElementById("hadsListHid").innerHTML = ihhid;
+         if (hadHid) {
+          HD.getElementById("hlhshow").display = "block";
+         } else {
+          HD.getElementById("hlhshow").display = "none";
+         }
          //HD.getEle("devErr").display = "none";
        } catch (any e) {
          log.log("got except writing  hadsList");

@@ -1154,6 +1154,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     var haowns = app.kvdbs.get("HAOWNS"); //haowns - prefix account hex to map of owned device aids
     var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
     var haposdm = app.kvdbs.get("HAPOSDM"); //position names dev id to json of names and ohter stuff
+    var hahid = app.kvdbs.get("HAHID");
+    var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
     
     String confs = hadevs.get(did);
     if (TS.notEmpty(confs)) {
@@ -1165,7 +1167,45 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
     }
 
-    //haposdm.remove(did);
+    Set todel = Set.new();
+    Map tocheck = haposdm.getMap();
+    if (def(tocheck)) {
+      for (any kvd in tocheck) {
+        if (kvd.key.begins(did)) {
+          todel += kvd.key;
+        }
+      }
+    }
+    for (any d in todel) {
+      haposdm.remove(d);
+    }
+
+    todel = Set.new();
+    tocheck = hahid.getMap();
+    if (def(tocheck)) {
+      for (kvd in tocheck) {
+        if (kvd.key.begins(did)) {
+          todel += kvd.key;
+        }
+      }
+    }
+    for (d in todel) {
+      hahid.remove(d);
+    }
+
+    todel = Set.new();
+    tocheck = havsh.getMap();
+    if (def(tocheck)) {
+      for (kvd in tocheck) {
+        if (kvd.key.begins(did)) {
+          todel += kvd.key;
+        }
+      }
+    }
+    for (d in todel) {
+      havsh.remove(d);
+    }
+
     haowns.remove(uhex + "." + did);
     hadevs.remove(did);
     pdevices = hadevs.getMap();
@@ -1208,7 +1248,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      sendDeviceMcmd(mcmd);
 
      unless (spec.has(",a1,") || spec.has(",h1,")) {
-       brd("unshare", did, request);
+       brd("unshare", did, null, request);
      }
 
      return(null);
@@ -1285,15 +1325,29 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(CallBackUI.seeDeviceCommandResponse(cres));
    }
 
+   saveHideRequest(String hide, String did, String forPos, request) Map {
+     log.log("saveHideRequest");
+     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+     var hahid = app.kvdbs.get("HAHID");
+     //String sws = haspecs.get(did);
+     if (TS.notEmpty(forPos)) {
+       hahid.put(did + "-" + forPos, hide);
+     } else {
+       hahid.put(did, hide);
+     }
+     //return(CallBackUI.reloadResponse());
+     return(CallBackUI.closeSettingsResponse());
+   }
+
    saveDeviceForPosRequest(String did, String forPos, String devName, String confs, request) Map {
      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
-     String sws = haspecs.get(did);
+     //String sws = haspecs.get(did);
      if (TS.notEmpty(forPos) && TS.notEmpty(devName)) {
-      if (TS.notEmpty(sws) && sws.has(",gt1,")) {
+      //if (TS.notEmpty(sws) && sws.has(",gt1,")) {
         log.log("doing forPos " + forPos + " " + devName);
         var haposdm = app.kvdbs.get("HAPOSDM"); //position names dev id to json of names and ohter stuff
         haposdm.put(did + "-" + forPos, devName);
-      }
+      //}
      }
      return(saveDeviceRequest(did, confs, request));
    }
@@ -1549,7 +1603,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      var haposdm = app.kvdbs.get("HAPOSDM"); //position names dev id to json of names and ohter stuff
      Map haposn = haposdm.getMap();
-     return(CallBackUI.getDevicesResponse(devices, ctls, specs, states, levels, rgbs, cws, oifs, haposn, nsecs));
+     var hahid = app.kvdbs.get("HAHID");
+     Map hahi = hahid.getMap();
+     return(CallBackUI.getDevicesResponse(devices, ctls, specs, states, levels, rgbs, cws, oifs, haposn, hahi, nsecs));
    }
 
    updateSpec(String did, String controlHash) {
@@ -2704,9 +2760,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      //do the redact here if it was all
      if (wasBridge) {
-       brd("rmold", did, null);
+       brd("rmold", did, null, null);
      }
-     brd("chrestart", did, null);
+     brd("chrestart", did, null, null);
     }
 
    checkShareDevice(String did) {
@@ -2716,7 +2772,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
       String vsc = havsh.get(did);
       if (TS.isEmpty(vsc) || vsc == "isok") {
-        brd("share", did, null);
+        brd("share", did, null, null);
       }
      }
    }
@@ -2724,20 +2780,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    unshareFromBridgeRequest(String sdid, request) Map {
      var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
      havsh.put(sdid, "notok");
-     brd("unshare", sdid, request);
-     brd("chrestart", sdid, request);
+     brd("unshare", sdid, null, request);
+     brd("chrestart", sdid, null, request);
      return(CallBackUI.closeSettingsResponse());
    }
 
    shareToBridgeRequest(String sdid, request) Map {
      var havsh = app.kvdbs.get("HAVSH"); //havsh - device id to voice autoshare
      havsh.put(sdid, "isok");
-     brd("share", sdid, request);
-     brd("chrestart", sdid, request);
+     brd("share", sdid, null, request);
+     brd("chrestart", sdid, null, request);
      return(CallBackUI.closeSettingsResponse());
    }
 
-   brd(String act, String sdid, request) Map {
+   brd(String act, String sdid, String forPos, request) Map {
      log.log("in brd " + act + " " + sdid);
 
      String sconf;
@@ -2781,6 +2837,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               if (itype == "rgbcwsgd" || itype == "rgbcwgd") { etype = "ecl"; }
               if (TS.notEmpty(etype)) {
                 Int ipos = i.copy();
+                //forPos equivalence check is before subtraction
                 ipos--;
                 if (act == "share") {
                   String cmds = "brd pass add " + etype + " " + conf["ondid"] + " " + ipos + " " + conf["spass"] + " e";

@@ -2849,7 +2849,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               String etype;
               if (itype == "sw" || itype == "rgbcwsgd" || itype == "rgbcwgd") { etype = "ool"; }
               if (itype == "gdim") { etype = "dl"; }
-              if (itype == "rgbcwsgd" || itype == "rgbcwgd") { etype = "ecl"; }
+              if (itype == "rgbcwsgd") { etype = "ecl"; }
+              if (itype == "rgbcwgd") { etype = "eclns"; }
               if (TS.notEmpty(etype)) {
                 Int ipos = i.copy();
                 //forPos equivalence check is before subtraction

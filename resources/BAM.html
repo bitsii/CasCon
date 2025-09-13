@@ -585,13 +585,6 @@
                 <f7-row tag="p">
                   <f7-button class="col" onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Pairing-Voice-Bridge');return false;" outline>Voice Pairing Instructions</f7-button>
                 </f7-row>
-                <f7-row tag="p">
-                <f7-button class="col" onclick="callApp('disTasRequest');return false;" outline>Rediscover Tasmota Devices</f7-button>
-              </f7-row>
-              <f7-row tag="p">
-                <f7-button class="col" onclick="callApp('clearTasRequest');return false;" outline>Clear Tasmota Devices</f7-button>
-              </f7-row>
-              <f7-row tag="p">
                 <f7-button id="closeSettings" class="col" @click="$f7router.back()" style="display: none;">Close Settings</f7-button>
               </f7-row>
                 <f7-list> <f7-list-item>Sharing Blob</f7-list-item>
@@ -796,6 +789,13 @@
             <f7-row tag="p">
               <f7-button class="col" onclick="callApp('reshareDevicesRequest');return false;" outline>Resync Bridges</f7-button>
             </f7-row>
+          <f7-row tag="p">
+            <f7-button class="col" onclick="callApp('disTasRequest');return false;" outline>Rediscover Tasmota Devices</f7-button>
+          </f7-row>
+          <f7-row tag="p">
+            <f7-button class="col" onclick="callApp('clearTasRequest');return false;" outline>Clear Tasmota Devices</f7-button>
+          </f7-row>
+          <f7-row tag="p">
         </div>
         <f7-list>
           <f7-list-item>
@@ -803,7 +803,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="157"
+            value="158"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

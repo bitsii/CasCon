@@ -197,7 +197,7 @@
           <!--<label for="colorpicker">Light Color:</label>
    <input type="color" id="colorpicker" value="#ffffff" oninput="callUI('checkColor', 'IDOFDEVICE', 'POSOFDEVICE');return true;"></input>-->
 
-                  <f7-button id="openDiscover" onclick="callApp('findNewDevicesRequest');return true;" href='/discover/' style="display: none;" outline>Really do discover</f7-button>
+                  <f7-button id="openDiscover" onclick="callUI('stopSetup');return true;" href='/discover/' style="display: none;" outline>Really do discover</f7-button>
 
                   <f7-button id="openInform" onclick="return true;" href='/inform/' style="display: none;" outline>Really do inform</f7-button>
 
@@ -803,7 +803,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="158"
+            value="159"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

@@ -289,7 +289,9 @@ use class IUHub:Eui {
      var sde = HD.getEle("showDeviceButton");
      var ddtf = HD.getEle("disDevTypeFriendly");
      unless (sde.exists && ddtf.exists) {
-       inDeviceSetup = false;
+       if (def(inDeviceSetup) && inDeviceSetup) {
+         stopSetup();
+       }
      }
      if (def(inDeviceSetup) && inDeviceSetup) {
        log.log("in devsetup");
@@ -318,14 +320,17 @@ use class IUHub:Eui {
          HD.getElementById("disBackButton").click();
        } else {
         if (TS.isEmpty(ddtf.value)) {
-          if (undef(discoCounts) || discoCounts > 3000) {
+          if (undef(discoCounts) || discoCounts > 30000) {
             discoCounts = 0;
           } else {
             discoCounts++;
           }
         if (discoCounts % 7 == 0) {
             log.log("in checkNexts hitting findNewDevices");
-            HC.callApp(List.addValue("findNewDevicesRequest"));
+            Bool wasfnd = restartFnd;
+            restartFnd = false;
+            if (undef(wasfnd)) { wasfnd = true; }
+            HC.callApp(Lists.from("findNewDevicesRequest", wasfnd));
           } else {
             log.log("checkNexts gonna click discovery");
             sde.click();
@@ -667,7 +672,9 @@ use class IUHub:Eui {
    }
 
    stopSetup() {
+     log.log("stop setup");
      inDeviceSetup = false;
+     restartFnd = true;
      HD.getEle("doingSetupSpin").display = "none";
    }
 
@@ -682,9 +689,12 @@ use class IUHub:Eui {
        String disDevId;
        String disDevDid;
        Bool inDeviceSetup;
+       Bool restartWifiList;
+       Bool restartFnd;
      }
      if (def(inDeviceSetup) && inDeviceSetup) { return(self); }
      inDeviceSetup = true;
+     restartWifiList = true;
 
      disDevName = HD.getElementById("disDevName").value;
      disDevType = HD.getElementById("disDevType").value;
@@ -716,6 +726,7 @@ use class IUHub:Eui {
    }
 
    getOnWifiResponse(Int count, Int tries, Int wait) {
+     unless (inDeviceSetup) { return(null); }
      if (count < tries) {
        count++;
        HC.callAppLater(Lists.from("getOnWifiRequest", count, disDevPin, disDevSsid), wait);
@@ -726,9 +737,15 @@ use class IUHub:Eui {
    }
 
    getDevWifisResponse(Int count, Int tries, Int wait) {
+     unless (inDeviceSetup) { return(null); }
      if (count < tries) {
        count++;
-       HC.callAppLater(Lists.from("getDevWifisRequest", count, false, false), wait);
+       Bool mkstart = false;
+       if (def(restartWifiList) && restartWifiList) {
+         mkstart = true;
+         restartWifiList = false;
+       }
+       HC.callAppLater(Lists.from("getDevWifisRequest", count, mkstart, false), wait);
      } else {
        count.setValue(0);
        HC.callAppLater(Lists.from("allsetRequest", count, disDevName, disDevType, disDevPin, disDevSsid, disDevId, "", "", "", "", ""), 1000);
@@ -736,6 +753,7 @@ use class IUHub:Eui {
    }
 
    allsetResponse(Int count, Int tries, Int wait, _disDevPass, _disDevSpass, _disDevDid, devSsid, devSec, _disDevId, _devName) {
+     unless (inDeviceSetup) { return(null); }
      if (count < tries) {
        count++;
        disDevPass = _disDevPass;

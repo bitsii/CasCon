@@ -756,7 +756,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         log.log("no kdaddr for " + kdn);
         return(self);
       }
-      String cres = prot.sendJvadCmds(kdaddr, cmds + "\r\n");
+      String cres = prot.sendJvadCmds(kdaddr, cmds + "\r\n", 4000);
       if (TS.notEmpty(cres)) {
         log.log("relay cres " + cres);
         String resivcr = cres.substring(0, cres.find(" "));
@@ -3570,7 +3570,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         aptrs = ns;
         currCmds["aptrs"] = aptrs;
       }
-      if (ns - aptrs > 4) { //howmany secs to wait, was counting 1/4 seconds and 16 so 4, starting there
+      Int runSecs = currCmds["runSecs"];
+      if (undef(runSecs)) { runSecs = 4; }
+      if (ns - aptrs > runSecs) { //howmany secs to wait, was counting 1/4 seconds and 16 so 4, starting there
         //timed out
         mcmd = currCmds;
         log.log("failing in aptrs " + aptrs + " " + ns);
@@ -4105,11 +4107,132 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
    }
 
-   findNewDevicesRequest(request) Map {
+   findNewDevicesDf(request) {
+     slots {
+       Set dfnets; //set no marshall
+       Int dfnetsPos;
+       String dfdid;
+       Bool foundDf;
+       Bool failedDfCb;
+       Bool dfWorks;
+     }
+     if (TS.isEmpty(dfdid)) {
+      dfnets = Set.new();
+      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+
+      List topt = List.new();
+      for (any kv in haspecs.getMap()) {
+        String odid = kv.key;
+        String spec = kv.value;
+        if (TS.notEmpty(spec)) {
+          if (spec.has(",df,")) {
+            topt += odid;
+          }
+        }
+      }
+      if (topt.length > 0) {
+        String godid = topt.get(System:Random.getIntMax(topt.length));
+      }
+
+      if (TS.isEmpty(godid)) {
+        log.log("found no dev to try findNewDevicesDf for");
+        foundDf = false;
+        return(null);
+      }
+      foundDf = true;
+      dfdid = godid;
+     }
+
+    if (undef(dfnetsPos)) {
+       String cmds = "dfvisnets pass S e";
+       dfnetsPos = 0;
+     } else {
+       cmds = "dfvisnets pass " + dfnetsPos + " e";
+     }
+     Map mcmd = Maps.from("runSecs", 10, "prio", 1, "mw", 1, "forceLocal", true, "cb", "dfCb", "did", dfdid, "pwt", 1, "cmds", cmds);
+     sendDeviceMcmd(mcmd);
+     return(null);
+   }
+
+   dfCb(Map mcmd, request) {
+     String cres = mcmd["cres"];
+     if (TS.notEmpty(cres)) {
+       log.log("dfCb cres " + cres);
+     }
+     if (TS.notEmpty(cres) && cres.has("ssids")) {
+        if (cres.has(":")) {
+           List ssp = cres.split(":");
+           for (Int i = 1;i < ssp.length;i++) {
+             String vna = Encode:Hex.decode(ssp[i]);
+             log.log("got vna " + vna);
+             dfnets.put(vna);
+             lastSsids.addValue(dfnets);
+             dfWorks = true;
+             dfnetsPos++;
+           }
+        } else {
+          //done
+          log.log("got no : ssids, dfCb is done");
+          lastSsids.addValue(dfnets);
+          dfnetsPos = null;
+        }
+      } else {
+        //failed
+        unless(failedDfCb) {
+          if (lastSsids.isEmpty) {
+            log.log("failed and lasssids empty setting to fail");
+            failedDfCb = true;
+          } else {
+            log.log("failed in dfcb but lastssids not empty");
+          }
+        }
+        log.log("got a fail in dfCb");
+      }
+      return(null);
+   }
+
+   findNewDevicesRequest(Bool startingDiscover, request) Map {
        log.log("in find new devices");
-       List ssids = List.new();
+       if (startingDiscover) {
+         log.log("in startingDiscover");
+         dfdid = null;
+         foundDf = false;
+         failedDfCb = false;
+         dfWorks = null;
+         lastSsids = Set.new();
+         dfnetsPos = null;
+         findNewDevicesDf(request);
+         return(null);
+       }
+        slots {
+          Set lastSsids;
+        }
+        Bool giveDfTry = true;
+        unless (foundDf) {
+          log.log("found df false");
+          giveDfTry = false;
+        }
+        if (failedDfCb) {
+          log.log("failed dfcb");
+          giveDfTry = false;
+        }
+        if (giveDfTry) {
+          log.log("giveDfTry");
+          findNewDevicesDf(request);
+        } else {
+          log.log("no giveDfTry");
+          ifEmit(platDroid) {
+            findNewDevicesAndroid(request);
+          }
+        }
+        //return(displayNextDeviceRequest("", request));
+        return(null);
+   }
+
+   findNewDevicesAndroid(request) {
+     ifEmit(platDroid) {
+       Set ssids = Set.new();
        String ssid;
-       ifEmit(platDroid) {
         emit(jv) {
         """
         casnic.control.MainActivity ma = (casnic.control.MainActivity) be.BEC_3_2_4_10_UIJvAdWebBrowser.MainActivity.mainActivity;
@@ -4130,13 +4253,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         ma.startScan();
         """
         }
+        lastSsids = ssids;
         }
         log.log("find new devices startscan done");
-        slots {
-          List lastSsids = ssids;
-        }
-        //return(displayNextDeviceRequest("", request));
-        return(null);
    }
 
    getDevWifisRequest(Int count, Bool starting, Bool forcing, request) Map {
@@ -4163,6 +4282,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String sec = hawifi.get(uhex + ".sec.0");
      if (undef(ssid)) { ssid = ""; }
      if (undef(sec)) { sec = ""; }
+
+     if (TS.notEmpty(dfdid) && def(dfWorks) && dfWorks) {
+       log.log("doing df skipping getDevWifis");
+       count.setValue(tries);
+       return(CallBackUI.getDevWifisResponse(count, tries, wait));
+     }
 
      if (TS.notEmpty(ssid) && TS.notEmpty(sec) && (visnets.has(ssid) || forcing)) {
        log.log("have wifi setup and found my ssid, moving to allset");
@@ -4231,6 +4356,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    getOnWifiRequest(Int count, String devPin, String devSsid, request) Map {
      Int tries = 200;
      Int wait = 1000;
+     if (TS.notEmpty(dfdid) && def(dfWorks) && dfWorks) {
+       log.log("doing df skipping getOnWifi");
+       return(CallBackUI.getOnWifiResponse(tries, tries, wait));
+     }
      ifNotEmit(jvad) {
        if (true) {
         return(CallBackUI.getOnWifiResponse(tries, tries, wait));
@@ -4242,7 +4371,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
      //log.log("in getOnWifiRequest " + devPin + " " + devSsid);
 
-     lastSsids = List.new();
+     lastSsids = Set.new();
       ifEmit(platDroid) {
       emit(jv) {
         """
@@ -4354,6 +4483,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(ret);
    }
 
+   outsetCb(Map mcmd, request) {
+     log.log("in outsetCb");
+     String cres = mcmd["cres"];
+     if (TS.notEmpty(cres)) {
+       log.log("dfCb cres " + cres);
+     }
+     return(null);
+   }
+
    allsetRequest(Int count, String devName, String devType, String devPin, String disDevSsid, String disDevId, String devPass, String devSpass, String devDid, String devSsid, String devSec, request) {
       Int tries = 200;
       Int wait = 1000;
@@ -4394,9 +4532,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (count > 1) {
         log.log("sending allset cmd");
         if (alStep == "allset") {
-          cmds = "allset " + devPin + " " + devPass + " " + devSpass + " " + devDid + " e";
-          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
-
           Map conf = Map.new();
           conf["type"] = devType;
           conf["id"] = disDevId;
@@ -4406,7 +4541,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           conf["spass"] = devSpass;
           String confs = Json:Marshaller.marshall(conf);
           saveDeviceRequest(conf["id"], confs, request);
-          sendDeviceMcmd(mcmd);
+
+          if (TS.notEmpty(dfdid) && def(dfWorks) && dfWorks) {
+            log.log("df is working should now do outset");
+            cmds = "outset pass " + disDevSsid + " " + devPin + " " + devPass + " " + devSpass + " " + devDid + " e";
+            mcmd = Maps.from("prio", 1, "mw", 1, "forceLocal", true, "cb", "outsetCb", "did", dfdid, "pwt", 1, "cmds", cmds);
+            sendDeviceMcmd(mcmd);
+          } else {
+            log.log("not doing df doing allset");
+            cmds = "allset " + devPin + " " + devPass + " " + devSpass + " " + devDid + " e";
+            mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
+            sendDeviceMcmd(mcmd);
+          }
         /*} elseIf (alStep == "getcontroldef") {
           cmds = "getcontroldef " + devSpass + " e";
           mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
@@ -4431,7 +4577,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         } elseIf (alStep == "restart") {
           cmds = "restart " + devPass + " e";
           mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
-          lastSsids = List.new();
+          lastSsids = Set.new();
           ifEmit(platDroid) {
           emit(jv) {
             """
@@ -4520,16 +4666,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    displayNextDeviceRequest(String ssidn, request) Map {
-     ifEmit(apwk) {
-       if (true) { return(displayNextDeviceCmdRequest(ssidn, request)); }
+     if (def(lastSsids) && lastSsids.notEmpty) {
+       return(displayNextDeviceSsidRequest(ssidn, request));
      }
-     ifEmit(jvad) {
-       if (true) { return(displayNextDeviceSsidRequest(ssidn, request)); }
-     }
-     ifEmit(wajv) {
-       if (true) { return(displayNextDeviceCmdRequest(ssidn, request)); }
-     }
-     return(null);
+     return(displayNextDeviceCmdRequest(ssidn, request));
    }
 
    displayNextDeviceCmdRequest(String ssidn, request) Map {
@@ -4569,7 +4709,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    }
 
    displayNextDeviceSsidRequest(String ssidn, request) Map {
-     List ssids = lastSsids;
+     List ssids = List.new().addAll(lastSsids);
      Bool retNext = false;
      if (undef(ssids)) {
        log.log("ssids undefined");

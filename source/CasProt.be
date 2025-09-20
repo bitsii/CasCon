@@ -97,22 +97,28 @@ class CasNic:CasProt {
         """
         }
       }
-      if (def(mcmd["runSync"]) && mcmd["runSync"]) {
-        sendRecvJvadMcmd(kdaddr, cmds, mcmd);
+      if (def(mcmd["runSecs"])) {
+        Int rs = mcmd["runSecs"];
       } else {
-        System:Thread.new(System:Invocation.new(self, "sendRecvJvadMcmd", Lists.from(kdaddr, cmds, mcmd))).start();
+        rs = 4;
+      }
+      rs = rs * 1000;
+      if (def(mcmd["runSync"]) && mcmd["runSync"]) {
+        sendRecvJvadMcmd(kdaddr, cmds, mcmd, rs);
+      } else {
+        System:Thread.new(System:Invocation.new(self, "sendRecvJvadMcmd", Lists.from(kdaddr, cmds, mcmd, rs))).start();
       }
       return(null);
    }
 
-   sendRecvJvadMcmd(String kdaddr, String cmds, Map mcmd) {
-      String cres = sendJvadCmds(kdaddr, cmds);
+   sendRecvJvadMcmd(String kdaddr, String cmds, Map mcmd, Int rs) {
+      String cres = sendJvadCmds(kdaddr, cmds, rs);
       if (TS.notEmpty(cres)) {
           mcmd["creso"].o = cres;
       }
    }
 
-   sendJvadCmds(String kdaddr, String cmds) String {
+   sendJvadCmds(String kdaddr, String cmds, Int rs) String {
       emit(jv) {
        """
 
@@ -120,8 +126,8 @@ class CasNic:CasProt {
 
           Socket ysocket = new Socket();
           ysocket.setKeepAlive(true);
-          ysocket.setSoTimeout(4000);
-          ysocket.connect(new java.net.InetSocketAddress(beva_kdaddr.bems_toJvString(), 6420), 4000);
+          ysocket.setSoTimeout(beva_rs.bevi_int);
+          ysocket.connect(new java.net.InetSocketAddress(beva_kdaddr.bems_toJvString(), 6420), beva_rs.bevi_int);
 
           //System.out.println("Client Connected");
 

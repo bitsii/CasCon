@@ -4483,13 +4483,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(ret);
    }
 
-   outsetCb(Map mcmd, request) {
+   outsetCb(Map mcmd, request) Map {
      log.log("in outsetCb");
      String cres = mcmd["cres"];
      if (TS.notEmpty(cres)) {
        log.log("dfCb cres " + cres);
      }
-     return(null);
+     return(CallBackUI.reloadResponse());
    }
 
    allsetRequest(Int count, String devName, String devType, String devPin, String disDevSsid, String disDevId, String devPass, String devSpass, String devDid, String devSsid, String devSec, request) {
@@ -4544,7 +4544,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
           if (TS.notEmpty(dfdid) && def(dfWorks) && dfWorks) {
             log.log("df is working should now do outset");
-            cmds = "outset pass " + disDevSsid + " " + devPin + " " + devPass + " " + devSpass + " " + devDid + " e";
+            cmds = "dfis pass outset " + disDevSsid + " " + devPin + " " + devPass + " " + devSpass + " " + devDid + " e";
             mcmd = Maps.from("prio", 1, "mw", 1, "forceLocal", true, "cb", "outsetCb", "did", dfdid, "pwt", 1, "cmds", cmds);
             sendDeviceMcmd(mcmd);
           } else {

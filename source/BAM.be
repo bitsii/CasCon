@@ -4201,11 +4201,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          dfWorks = null;
          lastSsids = Set.new();
          dfnetsPos = null;
+         inOutset = false;
          findNewDevicesDf(request);
          return(null);
        }
         slots {
           Set lastSsids;
+          Bool inOutset;
         }
         Bool giveDfTry = true;
         unless (foundDf) {
@@ -4487,9 +4489,24 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      log.log("in outsetCb");
      String cres = mcmd["cres"];
      if (TS.notEmpty(cres)) {
-       log.log("dfCb cres " + cres);
+       log.log("outsetCb cres " + cres);
      }
-     return(CallBackUI.reloadResponse());
+     if (TS.notEmpty(cres) && cres.has("success")) {
+       log.log("got success in outsetCb");
+       return(CallBackUI.reloadResponse());
+     }
+     if (TS.notEmpty(cres) && cres.has("failed")) {
+       log.log("got failed in outsetCb");
+       if (TS.notEmpty(cres) && cres.has("pass is incorrect")) {
+          deleteDeviceRequest(mcmd["outdid"], request);
+          throw(Alert.new("Device is already configured, reset before setting up again."));
+       } elseIf (TS.notEmpty(cres) && cres.has("mins of power on")) {
+          deleteDeviceRequest(mcmd["outdid"], request);
+          throw(Alert.new("Error, must setup w/in 30 mins of power on. Unplug and replug in device and try again"));
+       }
+       return(CallBackUI.reloadResponse());
+     }
+     return(null);
    }
 
    allsetRequest(Int count, String devName, String devType, String devPin, String disDevSsid, String disDevId, String devPass, String devSpass, String devDid, String devSsid, String devSec, request) {
@@ -4543,10 +4560,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           saveDeviceRequest(conf["id"], confs, request);
 
           if (TS.notEmpty(dfdid) && def(dfWorks) && dfWorks) {
-            log.log("df is working should now do outset");
-            cmds = "dfis pass outset " + disDevSsid + " " + devPin + " " + devPass + " " + devSpass + " " + devDid + " e";
-            mcmd = Maps.from("prio", 1, "mw", 1, "forceLocal", true, "cb", "outsetCb", "did", dfdid, "pwt", 1, "cmds", cmds);
-            sendDeviceMcmd(mcmd);
+            if (def(inOutset) && inOutset) {
+              log.log("in outset getting status");
+              cmds = "dfis pass status e";
+              mcmd = Maps.from("prio", 1, "mw", 1, "forceLocal", true, "cb", "outsetCb", "outdid", disDevId, "did", dfdid, "pwt", 1, "cmds", cmds);
+              sendDeviceMcmd(mcmd);
+            } else {
+              inOutset = true;
+              log.log("df is working should now do outset");
+              cmds = "dfis pass outset " + disDevSsid + " " + devPin + " " + devPass + " " + devSpass + " " + devDid + " e";
+              mcmd = Maps.from("prio", 1, "mw", 1, "forceLocal", true, "cb", "outsetCb", "outdid", disDevId, "did", dfdid, "pwt", 1, "cmds", cmds);
+              sendDeviceMcmd(mcmd);
+            }
           } else {
             log.log("not doing df doing allset");
             cmds = "allset " + devPin + " " + devPass + " " + devSpass + " " + devDid + " e";

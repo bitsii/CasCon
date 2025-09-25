@@ -4493,15 +4493,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      if (TS.notEmpty(cres) && cres.has("success")) {
        log.log("got success in outsetCb");
+       if (def(setupConf)) {
+         String setupConfs = Json:Marshaller.marshall(setupConf);
+         saveDeviceRequest(setupConf["id"], setupConfs, request);
+         setupConf = null;
+       }
        return(CallBackUI.reloadResponse());
      }
      if (TS.notEmpty(cres) && cres.has("failed")) {
        log.log("got failed in outsetCb");
        if (TS.notEmpty(cres) && cres.has("pass is incorrect")) {
-          deleteDeviceRequest(mcmd["outdid"], request);
+          //deleteDeviceRequest(mcmd["outdid"], request);
           throw(Alert.new("Device is already configured, reset before setting up again."));
        } elseIf (TS.notEmpty(cres) && cres.has("mins of power on")) {
-          deleteDeviceRequest(mcmd["outdid"], request);
+          //deleteDeviceRequest(mcmd["outdid"], request);
           throw(Alert.new("Error, must setup w/in 30 mins of power on. Unplug and replug in device and try again"));
        }
        return(CallBackUI.reloadResponse());
@@ -4515,6 +4520,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       count++;
       slots {
         String alStep;
+        Map setupConf;
       }
 
       //Account account = request.context.get("account");
@@ -4556,8 +4562,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           conf["name"] = devName;
           conf["pass"] = devPass;
           conf["spass"] = devSpass;
-          String confs = Json:Marshaller.marshall(conf);
-          saveDeviceRequest(conf["id"], confs, request);
+          setupConf = conf;
+          //String confs = Json:Marshaller.marshall(conf);
+          //saveDeviceRequest(conf["id"], confs, request);
 
           if (TS.notEmpty(dfdid) && def(dfWorks) && dfWorks) {
             if (def(inOutset) && inOutset) {
@@ -4628,6 +4635,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (alStep == "allset") {
        if (TS.notEmpty(cres) && cres.has("allset done")) {
           log.log("allset expected result");
+          if (def(setupConf)) {
+            String setupConfs = Json:Marshaller.marshall(setupConf);
+            saveDeviceRequest(setupConf["id"], setupConfs, request);
+            setupConf = null;
+          }
           if (cres.has("p4")) {
             log.log("has p4");
           }
@@ -4637,10 +4649,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           //alStep = "getcontroldef";
           alStep = "setwifi";
        } elseIf (TS.notEmpty(cres) && cres.has("pass is incorrect")) {
-          deleteDeviceRequest(disDevId, request);
+          //deleteDeviceRequest(disDevId, request);
           throw(Alert.new("Device is already configured, reset before setting up again."));
        } elseIf (TS.notEmpty(cres) && cres.has("mins of power on")) {
-          deleteDeviceRequest(disDevId, request);
+          //deleteDeviceRequest(disDevId, request);
           throw(Alert.new("Error, must setup w/in 30 mins of power on. Unplug and replug in device and try again"));
        }
      } elseIf (alStep == "setwifi") {

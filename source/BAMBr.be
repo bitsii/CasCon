@@ -335,30 +335,43 @@ use class IUHub:Eui {
             log.log("checkNexts gonna click discovery");
             sde.click();
           }
+          if (undef(hasDf)) { hasDf = false; }
+          if (hasDf) {
+            HD.getEle("discoScan").display = "block";
+          }
+          HD.getEle("foundBasic").display = "none";
+          HD.getEle("foundPCon").display = "none";
           ifEmit(apwk) {
-            HD.getEle("foundApwk").display = "none";
-            HD.getEle("discoApwk").display = "block";
+            unless (hasDf) {
+              HD.getEle("discoApwk").display = "block";
+            }
           }
           ifEmit(jvad) {
-            HD.getEle("foundJvad").display = "none";
-            HD.getEle("discoJvad").display = "block";
+            unless (hasDf) {
+              HD.getEle("discoScan").display = "block";
+            }
           }
           ifEmit(wajv) {
-            HD.getEle("foundWajv").display = "none";
-            HD.getEle("discoWajv").display = "block";
+            unless (hasDf) {
+              HD.getEle("discoWajv").display = "block";
+            }
           }
         } else {
+          HD.getEle("discoApwk").display = "none";
+          HD.getEle("discoScan").display = "none";
+          HD.getEle("discoWajv").display = "none";
           ifEmit(apwk) {
-            HD.getEle("discoApwk").display = "none";
-            HD.getEle("foundApwk").display = "block";
+            HD.getEle("foundBasic").display = "block";
           }
           ifEmit(jvad) {
-            HD.getEle("discoJvad").display = "none";
-            HD.getEle("foundJvad").display = "block";
+            if (hasDf) {
+              HD.getEle("foundBasic").display = "block";
+            } else {
+              HD.getEle("foundPCon").display = "block";
+            }
           }
           ifEmit(wajv) {
-            HD.getEle("discoWajv").display = "none";
-            HD.getEle("foundWajv").display = "block";
+            HD.getEle("foundBasic").display = "block";
           }
         }
        }
@@ -715,10 +728,10 @@ use class IUHub:Eui {
 
      HD.getEle("discoApwk").display = "none";
      HD.getEle("discoWajv").display = "none";
-     HD.getEle("discoJvad").display = "none";
-     HD.getEle("foundApwk").display = "none";
-     HD.getEle("foundWajv").display = "none";
-     HD.getEle("foundJvad").display = "none";
+     HD.getEle("discoScan").display = "none";
+     HD.getEle("foundBasic").display = "none";
+     HD.getEle("foundBasic").display = "none";
+     HD.getEle("foundPCon").display = "none";
      HD.getEle("doingSetup").display = "block";
      HD.getEle("doingSetupSpin").display = "block";
 
@@ -1055,6 +1068,15 @@ use class IUHub:Eui {
        Map oifs = _oifs;
        Map haposn = _haposn;
        Map hahi = _hahi;
+       Bool hasDf = false;
+     }
+     if (def(specs)) {
+       for (any kv in specs) {
+         if (TS.notEmpty(kv.value) && kv.value.has(",df,")) {
+           hasDf = true;
+           break;
+         }
+       }
      }
      if (nsecs > 0) {
        nextInform = Interval.new(nsecs, 0);

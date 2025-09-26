@@ -320,7 +320,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
 
       initializeDiscoveryListener();
-      checkStartMqtt();
+      //checkStartMqtt();
+      ckm = Time:Interval.now().seconds;
 
 
     }
@@ -2360,6 +2361,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        Map pdevices; //hadevs cpy
        Map gletimes; //id to last getlastevents seconds
        Int lastRun;
+       Int ckm;
      }
 
      Int ns = Time:Interval.now().seconds;
@@ -2369,7 +2371,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      if (ns - lastRun > 40) {
        //log.log("lastRun a while ago doing");
-       lastRun = ns;
+       ckm = ns;
+     }
+     if (def(ckm) && ns - ckm > 2) {
+       ckm = null;
        checkStartMqtt();
      }
 

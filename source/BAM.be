@@ -2350,6 +2350,26 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
     }
 
+    updDevCb(Map mcmd, request) Map {
+      log.log("in updDevCb");
+      return(null);
+    }
+
+    checkDeviceUpdates() {
+      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+      for (any kv in haspecs.getMap()) {
+        String sp = kv.value;
+        String did = kv.key;
+        if (TS.notEmpty(sp)) {
+          if (sp.ends(".rAthPlugV2.101")) {
+            String cmds = "sysupdate pass http://storage.googleapis.com/casnicdl.casnic.net/pfathp2.ino.generic.102.bin.gz 120000 e";
+            Map mcmd = Maps.from("prio", 3, "cb", "updDevCb", "did", did, "pwt", 1, "cmds", cmds);
+            sendDeviceMcmd(mcmd);
+          }
+        }
+      }
+    }
+
    pulseDevices() {
      //called every 250msish
      slots {
@@ -2466,6 +2486,23 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
 
       ns = Time:Interval.now().seconds;
+
+      String updt = app.configManager.get("updevstime");
+      if (TS.notEmpty(updt) && updt.isInteger) {
+        Int updti = Int.new(updt);
+        if (ns > updti) {
+          log.log("time to check device updates");
+          updti = ns + 23200;
+          //updti = ns + 20;
+          app.configManager.put("updevstime", updti.toString());
+          checkDeviceUpdates();
+        }
+      } else {
+        updti = ns + 23200;
+        //updti = ns + 20;
+        app.configManager.put("updevstime", updti.toString());
+      }
+
       //Int glesecs = 4 + System:Random.getIntMax(4);
       Int glesecs = 7 + System:Random.getIntMax(2);
       //Int glesecs = 9 + System:Random.getIntMax(3);

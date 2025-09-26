@@ -4799,6 +4799,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           ftype = "Remote Bridge";
         } elseIf (type.begins("rGateHass")) {
           ftype = "Homeassistant Bridge";
+        } elseIf (type.begins("rGateDf")) {
+          ftype = "Foundation Bridge";
         }
       }
      }

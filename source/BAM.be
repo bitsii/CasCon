@@ -4834,15 +4834,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         } elseIf (type == "rAthBlb15w") {
           ftype = "Athom Color Bulb 15w";
         } elseIf (type.begins("rMatr")) {
-          ftype = "Voice Bridge";
+          ftype = "Voice Hub";
         } elseIf (type.begins("rGateTas")) {
-          ftype = "Tasmota Bridge";
+          ftype = "Tasmota Hub";
         } elseIf (type.begins("rGateMq")) {
-          ftype = "Remote Bridge";
+          ftype = "Remote Hub";
         } elseIf (type.begins("rGateHass")) {
-          ftype = "Homeassistant Bridge";
+          ftype = "Homeassistant Hub";
         } elseIf (type.begins("rGateDf")) {
-          ftype = "Foundation Bridge";
+          ftype = "Foundation Hub";
         }
       }
      }

@@ -89,7 +89,12 @@ class CasNic:CasProt {
        cmds += "\r\n";
 
        ifEmit(apwk) {
-        String jspw = "sendAdCmds:" + kdaddr + ":" + cmds;
+        if (mcmd.has("bleSetup") && mcmd["bleSetup"]) {
+          log.log("doing blewrite");
+          jspw = "bleWrite:" + cmds;
+        } else {
+          String jspw = "sendAdCmds:" + kdaddr + ":" + cmds;
+        }
         emit(js) {
         """
         var jsres = prompt(bevl_jspw.bems_toJsString());

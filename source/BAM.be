@@ -3630,29 +3630,40 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         ifEmit(apwk) {
           unless (def(currCmds["doRemote"]) && currCmds["doRemote"]) {
           if (undef(currCmds["cres"])) {
-          String jspw = "getLastCres:";
-          emit(js) {
-          """
-          var jsres = prompt(bevl_jspw.bems_toJsString());
-          bevl_jspw = new be_$class/Text:String$().bems_new(jsres);
-          """
-          }
-          if (def(jspw)) {
-            Int jic = Int.new();
-            Bool gotone = false;
-            for (Int ji = 0;ji < jspw.length;ji++) {
-              jspw.getCode(ji, jic);
-              if (jic == 0 || jic == 13 || jic == 10) {
-                //log.log("found first end at " + ji);
-                gotone = true;
-                break;
-              }
+          if (currCmds.has("bleSetup") && currCmds["bleSetup"]) {
+            log.log("doing bleread");
+            jspw = "bleRead:";
+            emit(js) {
+            """
+            var jsres = prompt(bevl_jspw.bems_toJsString());
+            bevl_jspw = new be_$class/Text:String$().bems_new(jsres);
+            """
             }
-            if (gotone) {
-              if (ji == 0) {
-              jspw = "";
-              } else {
-              jspw = jspw.substring(0, ji);
+          } else {
+            String jspw = "getLastCres:";
+            emit(js) {
+            """
+            var jsres = prompt(bevl_jspw.bems_toJsString());
+            bevl_jspw = new be_$class/Text:String$().bems_new(jsres);
+            """
+            }
+            if (def(jspw)) {
+              Int jic = Int.new();
+              Bool gotone = false;
+              for (Int ji = 0;ji < jspw.length;ji++) {
+                jspw.getCode(ji, jic);
+                if (jic == 0 || jic == 13 || jic == 10) {
+                  //log.log("found first end at " + ji);
+                  gotone = true;
+                  break;
+                }
+              }
+              if (gotone) {
+                if (ji == 0) {
+                jspw = "";
+                } else {
+                jspw = jspw.substring(0, ji);
+                }
               }
             }
           }
@@ -4241,6 +4252,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          foundDf = false;
          failedDfCb = false;
          dfWorks = null;
+         bleSetup = false;
          lastSsids = Set.new();
          dfnetsPos = null;
          inOutset = false;
@@ -4268,9 +4280,43 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           ifEmit(platDroid) {
             findNewDevicesAndroid(request);
           }
+          ifEmit(apwk) {
+            findNewDevicesIos(request);
+          }
         }
         //return(displayNextDeviceRequest("", request));
         return(null);
+   }
+
+   findNewDevicesIos(request) {
+     ifEmit(apwk) {
+       slots {
+         Set lastBles;
+       }
+       Set ssids = Set.new();
+       String ssid;
+        ifEmit(apwk) {
+            String jspw = "getBles:";
+            emit(js) {
+            """
+            var jsres = prompt(bevl_jspw.bems_toJsString());
+            bevl_jspw = new be_$class/Text:String$().bems_new(jsres);
+            """
+            }
+            if (TS.notEmpty(jspw)) {
+              log.log("got bles " + jspw);
+              var blel = jspw.split(",");
+              for (String ble in blel) {
+                ssids += ble;
+              }
+            } else {
+              log.log("got no bles");
+            }
+          }
+        lastSsids.addValue(ssids);
+        lastBles = ssids;
+        }
+        log.log("find new devices startscan done");
    }
 
    findNewDevicesAndroid(request) {
@@ -4365,7 +4411,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      } else {
        String cmds = "previsnets " + visnetsPos + " e";
      }
-     Map mcmd = Maps.from("prio", 1, "mw", 1, "cb", "previsnetsCb", "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
+     Map mcmd = Maps.from("prio", 1, "mw", 1, "cb", "previsnetsCb", "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "bleSetup", bleSetup, "cmds", cmds);
      sendDeviceMcmd(mcmd);
      return(CallBackUI.getDevWifisResponse(count, tries, wait));
    }
@@ -4400,9 +4446,28 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    getOnWifiRequest(Int count, String devPin, String devSsid, request) Map {
      Int tries = 200;
      Int wait = 1000;
+     slots {
+       Bool bleSetup = false;
+     }
      if (TS.notEmpty(dfdid) && def(dfWorks) && dfWorks) {
        log.log("doing df skipping getOnWifi");
        return(CallBackUI.getOnWifiResponse(tries, tries, wait));
+     }
+     ifEmit(apwk) {
+       if(def(lastBles) && lastBles.has(devSsid)) {
+         log.log("doing bleSetup skipping getOnWifi, connect here tho");
+         bleSetup = true;
+         String jspw = "bleConn:" + devSsid;
+          emit(js) {
+          """
+          var jsres = prompt(bevl_jspw.bems_toJsString());
+          bevl_jspw = new be_$class/Text:String$().bems_new(jsres);
+          """
+          }
+         return(CallBackUI.getOnWifiResponse(tries, tries, wait));
+       } else {
+         log.log("in apwk but lastbles no have " + devSsid);
+       }
      }
      ifNotEmit(jvad) {
        if (true) {
@@ -4624,7 +4689,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           } else {
             log.log("not doing df doing allset");
             cmds = "allset " + devPin + " " + devPass + " " + devSpass + " " + devDid + " e";
-            mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
+            mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "bleSetup", bleSetup, "cmds", cmds);
             sendDeviceMcmd(mcmd);
           }
         /*} elseIf (alStep == "getcontroldef") {
@@ -4646,11 +4711,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           sendDeviceMcmd(mcmd);*/
         } elseIf (alStep == "setwifi") {
           cmds = "setwifi " + devPass + " hex " + devSsid + " " + devSec + " e";
-          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
+          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "bleSetup", bleSetup, "cmds", cmds);
           sendDeviceMcmd(mcmd);
         } elseIf (alStep == "restart") {
           cmds = "restart " + devPass + " e";
-          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
+          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "bleSetup", bleSetup, "cmds", cmds);
           lastSsids = Set.new();
           ifEmit(platDroid) {
           emit(jv) {

@@ -1,11 +1,5 @@
 /*
- * Copyright (c) 2015-2023, the Brace App Authors.
- *
- * SPDX-License-Identifier: BSD-2-Clause
- *
- * Licensed under the BSD 2-Clause License (the "License").
- * See the LICENSE file in the project root for more information.
- *
+ * Copyright (c) 2021-2023, Craig Welch.  All Rights Reserved.
  */
 
 import UIKit
@@ -14,6 +8,7 @@ import JavaScriptCore
 import Foundation
 import Network
 import CryptoKit
+import CoreBluetooth
 
 extension Digest {
     var bytes: [UInt8] { Array(makeIterator()) }
@@ -131,12 +126,25 @@ class AdCommander {
         
 }
 
-class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
+class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     var adcmdr: AdCommander?
 
     //var lastCtr: Int = 0
     //var currCtr: Int = 0
+
+    var centralManager: CBCentralManager!
+    var discoveredPeripherals: [CBPeripheral] = []
+
+    let serviceUUID = CBUUID(string: "6cbe56f2-1858-4ca7-87b3-618ae26a12d6")
+    let readCharacteristicUUID = CBUUID(string: "6cbe56f2-3858-4ca7-87b3-618ae26a12d6")
+    let writeCharacteristicUUID = CBUUID(string: "6cbe56f2-2858-4ca7-87b3-618ae26a12d6")
+
+    var connectedPeripheral: CBPeripheral?
+    var readCharacteristic: CBCharacteristic?
+    var writeCharacteristic: CBCharacteristic?
+    var isScanning = false
+    var lastReadValue: String?  // Member variable to hold the last read value
 
     func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
 
@@ -175,6 +183,14 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKSc
                 return(deleteFile(path: String(argsl[1])))
             } else if (call == "getAddr") {
                 return(getAddr(kdname: String(argsl[1])))
+            } else if (call == "getBles") {
+                return(getBles())
+            } else if (call == "bleConn") {
+                return(connectToDevice(named: String(argsl[1])))
+            } else if (call == "bleWrite") {
+                return(writeToCharacteristic(value: String(argsl[1])))
+            } else if (call == "bleRead") {
+                return(readFromCharacteristic())
             } else if (call == "sendAdCmds") {
                 return(sendAdCmds(adcmds: String(argsl[1])))
             } else if (call == "getLastCres") {
@@ -543,6 +559,8 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKSc
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        centralManager = CBCentralManager(delegate: self, queue: nil)
+
         qReInitWebView()
 
         // Every 3 seconds, check if the webview is dead. If it is, reload it.
@@ -610,6 +628,128 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKSc
     //    webView.reload()
     //}
 
+        // Function to start scanning
+    func startScanning() {
+        guard !isScanning else { return }
+        guard centralManager.state == .poweredOn else {
+            print("Bluetooth is not powered on. Cannot start scanning.")
+            return
+        }
+
+        isScanning = true
+        discoveredPeripherals.removeAll()  // Clear previous discoveries
+        centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil)
+        print("Started scanning for devices.")
+    }
+
+    // Function to stop scanning
+    func stopScanning() {
+        guard isScanning else { return }
+        isScanning = false
+        centralManager.stopScan()
+        print("Stopped scanning for devices.")
+    }
+
+    func getBles() -> String {
+        // Start scanning if not already scanning
+        if !isScanning {
+            startScanning()
+        }
+
+        // Create a comma-separated list of names for discovered peripherals
+        let deviceNames = discoveredPeripherals.compactMap { $0.name }.joined(separator: ", ")
+
+        return deviceNames
+    }
+
+    func connectToDevice(named name: String) -> String {
+        for peripheral in discoveredPeripherals {
+            if peripheral.name == name {
+                connectedPeripheral = peripheral
+                stopScanning()  // Stop scanning when connecting
+                centralManager.connect(peripheral, options: nil)
+                break
+            }
+        }
+        return "connecting"
+    }
+
+    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        // No start/stop scanning here; just check Bluetooth state
+        if central.state == .poweredOn {
+            print("Bluetooth is powered on.")
+        } else {
+            print("Bluetooth is not available. State: \(central.state)")
+            stopScanning()  // Optional: stop scanning if not powered on
+        }
+    }
+
+    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+        if !discoveredPeripherals.contains(peripheral) {
+            discoveredPeripherals.append(peripheral)
+            print("Found device: \(peripheral.name ?? "Unknown")")
+        }
+    }
+
+    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        peripheral.delegate = self
+        peripheral.discoverServices([serviceUUID])
+    }
+
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+        for service in peripheral.services ?? [] {
+            peripheral.discoverCharacteristics([readCharacteristicUUID, writeCharacteristicUUID], for: service)
+        }
+    }
+
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+        for characteristic in service.characteristics ?? [] {
+            if characteristic.uuid == readCharacteristicUUID {
+                readCharacteristic = characteristic
+            } else if characteristic.uuid == writeCharacteristicUUID {
+                writeCharacteristic = characteristic
+            }
+        }
+    }
+
+    func readFromCharacteristic() -> String {
+        // Capture the current value of lastReadValue at the start
+        let capturedValue = lastReadValue ?? ""
+
+        // Request a new read if conditions are met
+        guard let peripheral = connectedPeripheral, let characteristic = readCharacteristic else {
+            // Return the captured value if the characteristic is not available
+            return capturedValue
+        }
+
+        lastReadValue = nil  // Set to nil before making the read request
+        peripheral.readValue(for: characteristic)  // Request read
+        print("Requested a read from characteristic.")
+
+        // Return the captured value, which will be either the last read value or an empty string
+        return capturedValue
+    }
+
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        if characteristic.uuid == readCharacteristicUUID, let data = characteristic.value {
+            lastReadValue = String(data: data, encoding: .utf8)  // Store latest value
+            print("Read value: \(lastReadValue ?? "Error reading value")")
+        }
+    }
+
+    func writeToCharacteristic(value: String) -> String {
+        // Handle the case when there is no connected peripheral or write characteristic
+        guard let peripheral = connectedPeripheral, let characteristic = writeCharacteristic else {
+            print("Cannot write: Peripheral or characteristic not available.")
+            return ""  // Always return an empty string
+        }
+
+        let dataToSend = value.data(using: .utf8)  // Convert string to Data
+        peripheral.writeValue(dataToSend!, for: characteristic, type: .withResponse)  // Write data without throwing exceptions
+        print("Requested write to characteristic with value: \(value)")
+
+        return ""  // Always return an empty string
+    }
 
 }
 

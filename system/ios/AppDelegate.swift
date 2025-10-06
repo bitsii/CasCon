@@ -1,16 +1,11 @@
 /*
- * Copyright (c) 2015-2023, the Brace App Authors.
- *
- * SPDX-License-Identifier: BSD-2-Clause
- *
- * Licensed under the BSD 2-Clause License (the "License").
- * See the LICENSE file in the project root for more information.
- *
+ * Copyright (c) 2021-2023, Craig Welch.  All Rights Reserved.
  */
 
 import UIKit
 
 @UIApplicationMain
+
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?

@@ -1552,6 +1552,10 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        String did = kv.value;
        String confs = hadevs.get(did);
        devices.put(did, confs);
+       String spec = haspecs.get(did);
+       if (TS.notEmpty(spec)) {
+         specs.put(did, spec);
+       }
        String ctl = hactls.get(did);
        if (TS.notEmpty(ctl)) {
          ctls.put(did, ctl);
@@ -1591,10 +1595,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             oifs.put(did + "-" + i, oif);
           }
         }
-       }
-       String spec = haspecs.get(did);
-       if (TS.notEmpty(spec)) {
-         specs.put(did, spec);
+       } else {
+         if (TS.isEmpty(spec) || spec.has(".gsh.")) {
+           //still in setup
+           log.log("putting a sup ctl");
+           ctls.put(did, "controldef,sup");
+         }
        }
      }
      if (def(nextInform)) {

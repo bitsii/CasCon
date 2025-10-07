@@ -1099,6 +1099,12 @@ use class IUHub:Eui {
        </li>
        ''';
 
+       String forico = '''
+           <div class="item-after">
+           <a href="/settings/" onclick="callUI('wantSettings','IDOFDEVICE', 'POSOFDEVICE');return true;" class="col button"><i class="icon f7-icons">ICO</i></a>
+           </div>
+       ''';
+
        String forcol = '''
            <div class="item-after">
            <a href="#" onclick="callUI('setForColor', 'IDOFDEVICE', 'POSOFDEVICE');return false;" class="col button"><i class="icon f7-icons">color_filter</i></a>
@@ -1148,12 +1154,39 @@ use class IUHub:Eui {
         <ul>
         ''';
         Bool hadHid = false;
+        //sup timer
+        //fnd business collection layers
+        //tas chevron_up_round
+        //matr expand chat_bubble mic
+        //hass home
+        //rem world map
+        //empty gear settings
+        Map icos = Maps.from("sup", "timer", "fnd", "layers", "tas", "chevron_up_round", "matr", "chat_bubble", "hass", "home", "rem", "world", "empty", "settings");
 
        for (any ds in devices) {
-
          String ctl = ctls.get(ds.key);
          if (TS.isEmpty(ctl) || ctl == "controldef,") {
            ctl = "controldef,empty"
+           String spec = specs.get(ds.key);
+           if (TS.notEmpty(spec)) {
+            log.log("spec in empty ct " + spec);
+            if (spec.has(".rGateDf")) {
+              //fnd
+              ctl = "controldef,fnd";
+            } elseIf (spec.has(".rGateTas")) {
+              //tas
+              ctl = "controldef,tas";
+            } elseIf (spec.has(".rMatr")) {
+              //matr
+              ctl = "controldef,matr";
+            } elseIf (spec.has(".rGateHass")) {
+              //hass
+              ctl = "controldef,hass";
+            } elseIf (spec.has(".rGateMq")) {
+              //rem
+              ctl = "controldef,rem";
+            }
+           }
          }
          if (TS.notEmpty(ctl)) {
          var ctll = ctl.split(",");
@@ -1163,7 +1196,7 @@ use class IUHub:Eui {
            log.log("got itype " + itype);
             log.log("got dev " + ds.key + " " + ds.value);
             Map conf = Json:Unmarshaller.unmarshall(ds.value);
-            if (itype == "pwm" || itype == "dim" || itype == "gdim" || itype == "sw" || itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd" || itype == "empty" || itype == "oui") {
+            if (itype == "pwm" || itype == "dim" || itype == "gdim" || itype == "sw" || itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd" || itype == "oui" || icos.has(itype)) {
               String jp = haposn.get(conf["id"] + "-" + i.toString());
               if (TS.notEmpty(jp)) {
                 log.log("logging haposnget");
@@ -1173,8 +1206,11 @@ use class IUHub:Eui {
                 log.log("jp nodef");
                 String lin = li.swap("NAMEOFDEVICE", conf["name"]);
               }
-              if (itype == "empty" || itype == "pwm" || itype == "oui") {
+              if (itype == "pwm" || itype == "oui") {
                 lin = lin.swap("FORSW", "");
+              } elseIf (icos.has(itype)) {
+                String cico = forico.swap("ICO", icos[itype]);
+                lin = lin.swap("FORSW", cico);
               } else {
                 lin = lin.swap("FORSW", forsw);
               }

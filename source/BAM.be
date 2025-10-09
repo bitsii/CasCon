@@ -1660,6 +1660,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             var hasccfs = app.kvdbs.get("HACCFS"); //hasccfs - device id to control hash
             hasccfs.put(did, mcmd["controlHash"]);
             sccfs.put(did, mcmd["controlHash"]);
+            if (cres.has(",gm,") || cres.has(",dm,")) {
+              log.log("sending mq to device");
+              updateMqttRequest(did, request);
+              //return(null);
+            }
+            if (cres.has(",gt1,")) {
+              log.log("starting tas discovery");
+              disTasRequest(request);
+              //return(null);
+            }
             checkShareDevices(did, cres);
           }
           if (cres.has(",a1,")) {
@@ -1667,7 +1677,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             //return(CallBackUI.showVBReponse());
           }
           if (def(request)) {
-            return(CallBackUI.reloadResponse());
+            //return(CallBackUI.reloadResponse());
           }
         } else {
           log.log("swspec got nonsense, doing default");
@@ -2724,15 +2734,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      log.log("in updateMqttRequest " + did);
 
       Map mqr = loadMqtt("relay");
-      //TS.notEmpty(mqr["mqttBroker"]) && TS.notEmpty(mqr["mqttUser"]) && TS.notEmpty(mqr["mqttPass"])
       String bkr = mqr["mqttBroker"];
       bkr = bkr.swap("//", "");
       bkr = bkr.swap(" ", "");
-      String cmds = "setsmc pass nohex " + bkr + " " + mqr["mqttUser"] + " " + mqr["mqttPass"] + " e";
+      if (TS.isEmpty(bkr) || TS.isEmpty(mqr["mqttUser"]) || TS.isEmpty(mqr["mqttPass"])) {
+        cmds = "setsmc pass e";
+      } else {
+        String cmds = "setsmc pass nohex " + bkr + " " + mqr["mqttUser"] + " " + mqr["mqttPass"] + " e";
+      }
 
-
-     Map mcmd = Maps.from("prio", 2, "cb", "updateMqttCb", "did", did, "pwt", 1, "cmds", cmds);
-     sendDeviceMcmd(mcmd);
+      Map mcmd = Maps.from("prio", 2, "cb", "updateMqttCb", "did", did, "pwt", 1, "cmds", cmds);
+      sendDeviceMcmd(mcmd);
 
      return(null);
    }
@@ -3962,8 +3974,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             doRemote = true;
           } else {
             unless (TS.notEmpty(mcmd["kdaddr"]) && locAddrs.has(mcmd["kdaddr"])) {
-              var harfails = app.kvdbs.get("HARFAILS"); //harfails - kdname to remote failing
-              unless (TS.notEmpty(mcmd["kdname"]) && harfails.has(mcmd["kdname"])) {
+              //var harfails = app.kvdbs.get("HARFAILS"); //harfails - kdname to remote failing
+              //unless (TS.notEmpty(mcmd["kdname"]) && harfails.has(mcmd["kdname"])) {
                 unless (TS.isEmpty(did) || TS.isEmpty(sws) || sws.has(".gsh.")) {
                   if (TS.notEmpty(sws) && sws.has(",dm,")) {
                     doRemote = true;
@@ -3972,7 +3984,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                     doRemote = true;
                   }
                 }
-              }
+              //}
             }
           }
           if (mcmd.has("forceRemote") && mcmd["forceRemote"]) {

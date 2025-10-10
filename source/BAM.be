@@ -1675,9 +1675,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           if (cres.has(",a1,")) {
             return(CallBackUI.setElementsDisplaysResponse(Maps.from("doVB", "block")));
             //return(CallBackUI.showVBReponse());
-          }
-          if (def(request)) {
+          } elseIf (def(request)) {
             //return(CallBackUI.reloadResponse());
+            return(getDevicesRequest(request));
           }
         } else {
           log.log("swspec got nonsense, doing default");

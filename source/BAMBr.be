@@ -1306,6 +1306,11 @@ use class IUHub:Eui {
        }
      }
    }
+
+   showVbResponse() {
+     HD.getElementById("doVB").display = "block";
+     HC.callApp(Lists.from("getDevicesRequest"));
+   }
    
    openToUrl(String url) {
      ifEmit(bnbr) {

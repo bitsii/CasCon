@@ -1673,8 +1673,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             checkShareDevices(did, cres);
           }
           if (cres.has(",a1,")) {
-            return(CallBackUI.setElementsDisplaysResponse(Maps.from("doVB", "block")));
-            //return(CallBackUI.showVBReponse());
+            //return(CallBackUI.setElementsDisplaysResponse(Maps.from("doVB", "block")));
+            return(CallBackUI.showVbResponse());
           } elseIf (def(request)) {
             //return(CallBackUI.reloadResponse());
             return(getDevicesRequest(request));

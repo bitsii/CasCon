@@ -1660,7 +1660,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             var hasccfs = app.kvdbs.get("HACCFS"); //hasccfs - device id to control hash
             hasccfs.put(did, mcmd["controlHash"]);
             sccfs.put(did, mcmd["controlHash"]);
-            if (cres.has(",gm,") || cres.has(",dm,")) {
+            if (cres.has(",gm,") || cres.has(",dm,") || cres.has(",h1,")) {
               log.log("sending mq to device");
               updateMqttRequest(did, request);
               //return(null);

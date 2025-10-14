@@ -434,8 +434,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       String mqdis = app.configManager.get("mqtt.disabled");
       if (TS.isEmpty(mqdis) || mqdis != "on") {
        checkStartMqtt("remote");
-       //checkStartMqtt("relay");
-       //checkStartMqtt("haRelay");
+       checkStartMqtt("relay");
+       checkStartMqtt("haRelay");
       }
       slots {
        Bool haveGm;
@@ -451,7 +451,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     checkStartMqtt(String mqttMode) {
-
+       if (mqttMode == "remote") { //this is all we support in the app now, rest are for sending to devices
        Mqtt mqtt = mqtts[mqttMode];
         if (undef(mqtt) || mqtt.isOpen!) {
           String mqttBroker = app.configManager.get("mqtt." + mqttMode + ".broker");
@@ -492,7 +492,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         } else {
           mqtt.publish("casnic/ktlo/" + reId, "yo");
         }
-
+       }
     }
 
     initializeMqtt(String mqttMode, String mqttBroker, String mqttUser, String mqttPass) {
@@ -4923,7 +4923,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         } elseIf (type.begins("rGateMq")) {
           ftype = "Remote Hub";
         } elseIf (type.begins("rGateHass")) {
-          ftype = "Homeassistant Hub";
+          ftype = "Integration Hub";
         } elseIf (type.begins("rGateDf")) {
           ftype = "Foundation Hub";
         }

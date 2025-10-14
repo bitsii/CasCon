@@ -1660,7 +1660,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             var hasccfs = app.kvdbs.get("HACCFS"); //hasccfs - device id to control hash
             hasccfs.put(did, mcmd["controlHash"]);
             sccfs.put(did, mcmd["controlHash"]);
-            if (cres.has(",gm,") || cres.has(",dm,") || cres.has(",h1,")) {
+            if (cres.has(",gm,") || cres.has(",dm,") || cres.has(",h1,") || cres.has(",gt1,")) {
               log.log("sending mq to device");
               updateMqttRequest(did, request);
               //return(null);
@@ -2738,7 +2738,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(spec)) {
         if (spec.has(",gm,") || spec.has(",dm,")) {
           String mqt = "relay";
-        } elseIf (spec.has(",h1,")) {
+        } elseIf (spec.has(",h1,") || spec.has(",gt1,")) {
           mqt = "haRelay";
         }
      }

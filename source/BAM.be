@@ -2733,7 +2733,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    updateMqttRequest(String did, request) Map {
      log.log("in updateMqttRequest " + did);
 
-      Map mqr = loadMqtt("relay");
+     var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+     String spec = haspecs.get(did);
+     if (TS.notEmpty(spec)) {
+        if (spec.has(",gm,") || spec.has(",dm,")) {
+          String mqt = "relay";
+        } elseIf (spec.has(",h1,")) {
+          mqt = "haRelay";
+        }
+     }
+
+     if (TS.notEmpty(mqt)) {
+      Map mqr = loadMqtt(mqt);
       String bkr = mqr["mqttBroker"];
       bkr = bkr.swap("//", "");
       bkr = bkr.swap(" ", "");
@@ -2745,6 +2756,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       Map mcmd = Maps.from("prio", 2, "cb", "updateMqttCb", "did", did, "pwt", 1, "cmds", cmds);
       sendDeviceMcmd(mcmd);
+     }
 
      return(null);
    }
@@ -4710,23 +4722,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "bleSetup", bleSetup, "cmds", cmds);
             sendDeviceMcmd(mcmd);
           }
-        /*} elseIf (alStep == "getcontroldef") {
-          cmds = "getcontroldef " + devSpass + " e";
-          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
-          sendDeviceMcmd(mcmd);
-        } elseIf (alStep == "doswspec") {
-          cmds = "doswspec " + devSpass + " e";
-          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
-          sendDeviceMcmd(mcmd);
-        } elseIf (alStep == "setsmcr") {
-          Map mqr = loadMqtt("relay");
-          //TS.notEmpty(mqr["mqttBroker"]) && TS.notEmpty(mqr["mqttUser"]) && TS.notEmpty(mqr["mqttPass"])
-          String bkr = mqr["mqttBroker"];
-          bkr = bkr.swap("//", "");
-          bkr = bkr.swap(" ", "");
-          cmds = "setsmc " + devPass + " nohex " + bkr + " " + mqr["mqttUser"] + " " + mqr["mqttPass"] + " e";
-          mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "cmds", cmds);
-          sendDeviceMcmd(mcmd);*/
         } elseIf (alStep == "setwifi") {
           cmds = "setwifi " + devPass + " hex " + devSsid + " " + devSec + " e";
           mcmd = Maps.from("prio", 1, "mw", 1, "cb", "allsetCb", "disDevId", disDevId, "kdaddr", "192.168.4.1", "pwt", 0, "forceLocal", true, "bleSetup", bleSetup, "cmds", cmds);

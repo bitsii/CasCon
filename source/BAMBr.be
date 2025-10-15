@@ -343,7 +343,13 @@ use class IUHub:Eui {
           HD.getEle("foundPCon").display = "none";
           ifEmit(apwk) {
             unless (hasDf) {
-              HD.getEle("discoApwk").display = "block";
+              if (discoCounts < 25) {
+                HD.getEle("discoApwk").display = "none";
+                HD.getEle("discoScan").display = "block";
+              } else {
+                HD.getEle("discoScan").display = "none";
+                HD.getEle("discoApwk").display = "block";
+              }
             }
           }
           ifEmit(jvad) {

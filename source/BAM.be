@@ -3463,77 +3463,152 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      return(mcmd);
    }
 
-   //get the rgb value for the color at max brightness, so if largest were at 255
-   trueRgb(String rgb) Map {
-     log.log("in trueRgb");
-     log.log("rgb " + rgb);
-     Float tff = Float.intNew(255);
-     var rgbl = rgb.split(",");
-     Int r = Int.new(rgbl[0]);
-     Int g = Int.new(rgbl[1]);
-     Int b = Int.new(rgbl[2]);
-     Int max = Math:Ints.max(r, Math:Ints.max(g, b));
-     if (max > 255 || max < 1) {
-       plyer = Float.intNew(1);
-     } else {
-      Float maxf = Float.intNew(max);
-      Float plyer = tff / maxf;
-     }
-     Float rf = Float.intNew(r);
-     Float gf = Float.intNew(g);
-     Float bf = Float.intNew(b);
-     rf = rf * plyer;
-     gf = gf * plyer;
-     bf = bf * plyer;
-     r = rf.toInt();
-     g = gf.toInt();
-     b = bf.toInt();
-     log.log("true rgb " + r + "," + g + "," + b);
-     return(Maps.from("rf", rf, "gf", gf, "bf", bf, "r", r, "g", g, "b", b));
-   }
+  // Convert HSV (h,s,lvl) → RGB (r,g,b)
+  hsvToRgb(Map hd) {
+    Float sixf = Float.intNew(6);
+    Float onef = Float.intNew(1);
+    Float tff = Float.intNew(255);
+    Float tsf = Float.intNew(360);
+    Float ohf = Float.intNew(100);
 
-   rgbForRgbLvl(String rgb, String lvl) {
-     //what would you multiply the max color by to get to 255 (IS 255/maxcolorval)
-     //multiply all 3 by this, that's the true rgb color
-     log.log("in rgbForRgbLvl");
-     log.log("rgb " + rgb);
-     log.log("lvl " + lvl);
-     Float tff = Float.intNew(255);
-     Map tb = trueRgb(rgb);
-     Float rf = tb["rf"];
-     Float gf = tb["gf"];
-     Float bf = tb["bf"];
-     Int r = tb["r"];
-     Int g = tb["g"];
-     Int b = tb["b"];
-     Int min = 0;
-     if (r > 0 && (min == 0 || r < min)) { min = r; }
-     if (g > 0 && (min == 0 || g < min)) { min = g; }
-     if (b > 0 && (min == 0 || b < min)) { min = b; }
-     // what times min will make min == 1, can't go below
-     // min * x = 1, 1 / min = x
-     Float minf = Float.intNew(min);
-     Float onef = Float.intNew(1);
-     Float mindplyer = onef / minf;
-     Int lvli = Int.new(lvl);
-     if (lvli < 0 || lvli > 255) {
-       lvli = 255;
-     }
-     Float lvlf = Float.intNew(lvli);
-     Float dplyer = lvlf / tff;
-     if (dplyer < mindplyer) {
-       log.log("dplyer too low floor at mindplyer");
-       dplyer = mindplyer;
-     }
-     rf = rf * dplyer;
-     gf = gf * dplyer;
-     bf = bf * dplyer;
-     r = rf.toInt();
-     g = gf.toInt();
-     b = bf.toInt();
-     log.log("adjusted rgb " + r + "," + g + "," + b);
-     return(r.toString() + "," + g.toString() + "," + b.toString());
-   }
+    if (undef(hd.get("h"))) { hd.put("h", 0); }
+    if (undef(hd.get("s"))) { hd.put("s", 0); }
+    if (undef(hd.get("lvl"))) { hd.put("lvl", 255); }
+
+    Int hi = hd.get("h");
+    Int si = hd.get("s");
+    Int vi = hd.get("lvl");
+
+    if (hi > 359 || hi < 0) { hi = 0; }
+
+    Int i = hi / 60;
+    Float h = Float.intNew(hi) / tsf;
+    Float s = Float.intNew(si) / ohf;
+    Float v = Float.intNew(vi) / tff;
+
+    Float f = h * sixf - Float.intNew(i);
+    Float p = v * (onef - s);
+    Float q = v * (onef - f * s);
+    Float t = v * (onef - (onef - f) * s);
+
+    Float r; Float g; Float b;
+
+    if (i == 0) {
+      r = v; g = t; b = p;
+    } elseIf (i == 1) {
+      r = q; g = v; b = p;
+    } elseIf (i == 2) {
+      r = p; g = v; b = t;
+    } elseIf (i == 3) {
+      r = p; g = q; b = v;
+    } elseIf (i == 4) {
+      r = t; g = p; b = v;
+    } elseIf (i == 5) {
+      r = v; g = p; b = q;
+    } else {
+      r = v; g = p; b = q;
+    }
+
+    hd.put("r", (r * tff).toInt());
+    hd.put("g", (g * tff).toInt());
+    hd.put("b", (b * tff).toInt());
+  }
+
+
+  // Convert RGB (r,g,b) → HSV (h,s,lvl)
+  rgbToHsv(Map hd) {
+    Float tff = Float.intNew(255);
+    Float ohf = Float.intNew(100);
+    Float tsf = Float.intNew(360);
+    Float zero = Float.intNew(0);
+    Float one = Float.intNew(1);
+
+    if (undef(hd.get("r"))) { hd.put("r", 0); }
+    if (undef(hd.get("g"))) { hd.put("g", 0); }
+    if (undef(hd.get("b"))) { hd.put("b", 0); }
+
+    Float rf = Float.intNew(hd.get("r")) / tff;
+    Float gf = Float.intNew(hd.get("g")) / tff;
+    Float bf = Float.intNew(hd.get("b")) / tff;
+
+    Float maxv = rf;
+    if (gf > maxv) { maxv = gf; }
+    if (bf > maxv) { maxv = bf; }
+
+    Float minv = rf;
+    if (gf < minv) { minv = gf; }
+    if (bf < minv) { minv = bf; }
+
+    Float diff = maxv - minv;
+
+    Float h = zero;
+    Float s = zero;
+    Float v = maxv;
+
+    if (maxv != zero) {
+      s = diff / maxv;
+    } else {
+      s = zero;
+    }
+
+    if (diff == zero) {
+      h = zero;
+    } elseIf (maxv == rf) {
+      h = ( (gf - bf) / diff );
+    } elseIf (maxv == gf) {
+      h = ( (bf - rf) / diff ) + Float.intNew(2);
+    } elseIf (maxv == bf) {
+      h = ( (rf - gf) / diff ) + Float.intNew(4);
+    }
+
+    h = h * Float.intNew(60);
+    if (h < zero) { h = h + tsf; }
+
+    hd.put("h", h.toInt());
+    hd.put("s", (s * ohf).toInt());
+    hd.put("lvl", (v * tff).toInt());
+  }
+
+
+  // Given an RGB string "r,g,b" and brightness lvl (0–255),
+  // compute what RGB would look like at that brightness using HSV logic
+  rgbForRgbLvl(String rgb, String lvl) {
+    log.log("in rgbForRgbLvl (HSV-based)");
+    log.log("rgb " + rgb);
+    log.log("lvl " + lvl);
+
+    var rgbl = rgb.split(",");
+    Int r = Int.new(rgbl[0]);
+    Int g = Int.new(rgbl[1]);
+    Int b = Int.new(rgbl[2]);
+    Int lvli = Int.new(lvl);
+
+    if (lvli < 0) { lvli = 0; }
+    if (lvli > 255) { lvli = 255; }
+
+    // Build the color map
+    Map hd = Map.new();
+    hd.put("r", r);
+    hd.put("g", g);
+    hd.put("b", b);
+
+    // Convert RGB → HSV
+    rgbToHsv(hd);
+
+    // Override brightness
+    hd.put("lvl", lvli);
+
+    // Convert HSV → RGB
+    hsvToRgb(hd);
+
+    // Return string form
+    Int rr = hd.get("r");
+    Int gg = hd.get("g");
+    Int bb = hd.get("b");
+    String out = rr.toString() + "," + gg.toString() + "," + bb.toString();
+    log.log("adjusted rgb " + out);
+    return(out);
+  }
 
    cwForCwLvl(String cw, String lvl) {
      log.log("in cwForCwLvl cw " + cw + " lvl " + lvl);

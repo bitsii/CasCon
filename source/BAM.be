@@ -4981,11 +4981,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(type)) {
       if (type.begins("r")) {
         if (type == "rAthPlugV2") {
-          ftype = "Athom Plug V2";
+          ftype = "On Off Plug V2";
         } elseIf (type == "rAthBlb7w") {
-          ftype = "Athom Color Bulb 7w";
+          ftype = "7w Cold Warm White Color Bulb";
         } elseIf (type == "rAthBlb15w") {
-          ftype = "Athom Color Bulb 15w";
+          ftype = "15w Cold Warm White Color Bulb";
+        } elseIf (type == "rXcr9w") {
+          ftype = "9w Cold Warm White Color Bulb";
         } elseIf (type.begins("rMatr")) {
           ftype = "Voice Hub";
         } elseIf (type.begins("rGateTas")) {

@@ -117,13 +117,14 @@
         <f7-page>
           <f7-navbar>
             <f7-nav-left>
+            <f7-link onclick="callApp('loadWifiRequest');callApp('loadAutoVShareRequest');return true;" href='/settings/'>Settings</f7-link>
             </f7-nav-left>
             <f7-nav-title></f7-nav-title>
             <f7-button id="reloadButton" icon-f7='cloud_download' popup-open="#reload" style="display: none;"></f7-button>
             
             <f7-button id="loginButton" icon-f7='lock' login-screen-open="#login-screen" style="display: none;"></f7-button>
             <f7-nav-right>
-              <f7-link onclick="callApp('loadWifiRequest');callApp('loadAutoVShareRequest');return true;" href='/settings/'>Settings</f7-link>
+              <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic');return false;" href='#'>Help</f7-link>
               <!--<f7-link icon-if-ios="f7:menu" icon-if-md="material:menu"
               panel-open="right"></f7-link>-->
             </f7-nav-right>

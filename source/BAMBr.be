@@ -629,6 +629,7 @@ use class IUHub:Eui {
      clearQrShare();
      if (TS.notEmpty(HD.getElementById("shBlob").value)) {
       String qrsh = "cascon://?cx=" + HD.getElementById("shBlob").value;
+      //String qrsh = "https://gitlab.com/bitsii/CasCon/-/wikis/Casnic";
       emit(js) {
         """
         new QRCode("qrsharediv", bevl_qrsh.bems_toJsString());

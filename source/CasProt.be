@@ -108,11 +108,7 @@ class CasNic:CasProt {
         rs = 4;
       }
       rs = rs * 1000;
-      if (def(mcmd["runSync"]) && mcmd["runSync"]) {
-        sendRecvJvadMcmd(kdaddr, cmds, mcmd, rs);
-      } else {
-        System:Thread.new(System:Invocation.new(self, "sendRecvJvadMcmd", Lists.from(kdaddr, cmds, mcmd, rs))).start();
-      }
+      System:Thread.new(System:Invocation.new(self, "sendRecvJvadMcmd", Lists.from(kdaddr, cmds, mcmd, rs))).start();
       return(null);
    }
 

@@ -425,6 +425,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     checkStartMqtt() {
+      //log.log("checkStartMqtt");
       String mqft = app.configManager.get("mqtt.fullTime");
       if (TS.notEmpty(mqft) && mqft == "on") {
         mqttFullRemote = true;
@@ -452,6 +453,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     checkStartMqtt(String mqttMode) {
+      //log.log("checkStartMqtt mode " + mqttMode);
       Bool doStart = false;
       if (mqttMode == "remote" || mqttMode == "haRemote") {
         //these are always supported for the app for remote access and sending shares (respectively)
@@ -691,8 +693,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           log.log("ha got didpos " + didpos);
           var dp = didpos.split("-");
           Map mcmd = setDeviceSwMcmd(dp[0], dp[1], payload.lower());
-          mcmd["runSync"] = true;
+          Bool preempt = considerPreempt(mcmd);
           sendDeviceMcmd(mcmd);
+          if (preempt) {
+            log.log("preempting now!!!!!");
+            currCmds = null;
+          }
+          processCmdsRequest(null);
           stDiffed = true;
         } elseIf (topic.begins("homeassistant/light/") && topic.ends("/set")) {
           log.log("ha light switched");
@@ -705,22 +712,23 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           //else state
           if (incmd.has("brightness")) {
             mcmd = setDeviceLvlMcmd(dp[0], dp[1], incmd.get("brightness").toString());
-            mcmd["runSync"] = true;
-            sendDeviceMcmd(mcmd);
           } elseIf (incmd.has("color")) {
             Map rgb = incmd.get("color");
             String rgbs = "" + rgb["r"] + "," + rgb["g"] + "," + rgb["b"];
             mcmd = setDeviceRgbMcmd(dp[0], dp[1], rgbs);
-            mcmd["runSync"] = true;
-            sendDeviceMcmd(mcmd);
           } elseIf (incmd.has("color_temp")) {
             mcmd = setDeviceTempMcmd(dp[0], dp[1], miredToLs(incmd.get("color_temp")).toString());
-            mcmd["runSync"] = true;
-            sendDeviceMcmd(mcmd);
           } elseIf (incmd.has("state")) {
             mcmd = setDeviceSwMcmd(dp[0], dp[1], incmd.get("state").lower());
-            mcmd["runSync"] = true;
+          }
+          if (def(mcmd)) {
+            preempt = considerPreempt(mcmd);
             sendDeviceMcmd(mcmd);
+            if (preempt) {
+              log.log("preempting now!!!!!");
+              currCmds = null;
+            }
+            processCmdsRequest(null);
           }
           stDiffed = true;
         } elseIf (topic == "casnic/cmds") {
@@ -1630,9 +1638,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       mcmd.put("controlHash", controlHash);
     }
 
-    if (backgroundPulse) {
-      mcmd["runSync"] = true;
-    }
     sendDeviceMcmd(mcmd);
 
     return(null);
@@ -1730,9 +1735,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
     Map mcmd = Maps.from("prio", 3, "cb", "resolveTdsCb", "did", godid, "dkdname", dkdname, "pwt", 2, "cmds", cmds);
 
-    if (backgroundPulse) {
-      mcmd["runSync"] = true;
-    }
     sendDeviceMcmd(mcmd);
 
     return(null);
@@ -1794,15 +1796,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        mcmd["smallFail"] = true;
      }
 
-     if (backgroundPulse) {
-       mcmd["runSync"] = true;
-     }
      sendDeviceMcmd(mcmd);
 
      return(null);
    }
 
    getLastEventsCb(Map mcmd, request) Map {
+     //log.log("in gle cb");
      String cres = mcmd["cres"];
      String leid = mcmd["did"];
      if (mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) {
@@ -1891,9 +1891,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //log.log("cmds " + cmds);
      Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateSwStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
      mcmd["repsu"] = repsu;
-     if (backgroundPulse) {
-       mcmd["runSync"] = true;
-     }
      sendDeviceMcmd(mcmd);
 
      return(null);
@@ -1979,9 +1976,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       //log.log("cmds " + cmds);
       Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateRgbStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       mcmd["repsu"] = repsu;
-      if (backgroundPulse) {
-        mcmd["runSync"] = true;
-      }
       sendDeviceMcmd(mcmd);
 
       return(null);
@@ -2083,9 +2077,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       //log.log("cmds " + cmds);
       Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateTempStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       mcmd["repsu"] = repsu;
-      if (backgroundPulse) {
-        mcmd["runSync"] = true;
-      }
       sendDeviceMcmd(mcmd);
 
       return(null);
@@ -2171,9 +2162,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       //log.log("cmds " + cmds);
       Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateLvlStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       mcmd["repsu"] = repsu;
-      if (backgroundPulse) {
-        mcmd["runSync"] = true;
-      }
       sendDeviceMcmd(mcmd);
 
       return(null);
@@ -2246,9 +2234,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       //log.log("cmds " + cmds);
       Map mcmd = Maps.from("prio", 4, "mw", 5, "cb", "updateOifStateCb", "did", did, "dp", dp, "pwt", 3, "itype", itype, "cname", cname, "cmds", cmds, "iv", iv);
       mcmd["repsu"] = repsu;
-      if (backgroundPulse) {
-        mcmd["runSync"] = true;
-      }
       sendDeviceMcmd(mcmd);
 
       return(null);
@@ -2367,10 +2352,14 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           }
           try {
             if (backgroundPulse) {
+              //log.log("doing pulse");
               pulseDevices();
+              processCmdsRequest(null);
+            } else {
+              //log.log("not doing pulse");
             }
           } catch (any e) {
-            log.elog("except in pulseDevices");
+            log.elog("except in pulseDevices", e);
           }
         }
       }
@@ -2410,17 +2399,22 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        Int ckm;
      }
 
+     //log.log("in pulseDevices");
+
      Int ns = Time:Interval.now().seconds;
 
      if (undef(lastRun)) {
-       lastRun = ns;
+       lastRun = 0;
      }
-     if (ns - lastRun > 40) {
+     if (ns - lastRun > 40 && undef(ckm)) {
        //log.log("lastRun a while ago doing");
+       lastRun = ns;
        ckm = ns;
      }
      if (def(ckm) && ns - ckm > 2) {
        ckm = null;
+       hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+       pdevices = hadevs.getMap();
        checkStartMqtt();
      }
 
@@ -3083,6 +3077,20 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
+   considerPreempt(Map mcmd) Bool {
+      Map hcc = currCmds;
+      Bool preempt = false;
+      if (def(hcc) && TS.notEmpty(hcc["did"]) && def(hcc["prio"]) && def(mcmd) && TS.notEmpty(mcmd["did"])) {
+        log.log("past preempt 1 " + hcc["prio"] + " " + hcc["did"] + " " + mcmd["did"]);
+        log.log("will prempt!!!!!");
+        preempt = true;
+        if (TS.notEmpty(hcc["repsu"])) {
+          pendingStateUpdates += hcc["repsu"];
+        }
+      }
+      return(preempt);
+   }
+
    //callApp('devActRequest', 'setSw', 'IDOFDEVICE', 'POSOFDEVICE', document.getElementById('hatIDOFDEVICE-POSOFDEVICE').checked);
    devActRequest(String aType, String rhan, String rpos, String rstate, request) Map {
      log.log("in devActRequest " + aType + " " + rhan + " " + rpos + " " + rstate);
@@ -3101,22 +3109,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      mcmd["mw"] = 3;
      //mcmd["mw"] = 5;
 
-     Bool preempt = false;
-     if (def(request)) {
-      Map hcc = currCmds;
-      if (def(hcc) && TS.notEmpty(hcc["did"]) && def(hcc["prio"]) && def(mcmd) && TS.notEmpty(mcmd["did"])) {
-        log.log("past preempt 1 " + hcc["prio"] + " " + hcc["did"] + " " + mcmd["did"]);
-        unless (def(mcmd["runSync"]) && mcmd["runSync"]) {
-          log.log("will prempt!!!!!");
-          preempt = true;
-          if (TS.notEmpty(hcc["repsu"])) {
-            pendingStateUpdates += hcc["repsu"];
-          }
-        } else {
-          log.log("not preempt 2");
-        }
-      }
-     }
+     Bool preempt = considerPreempt(mcmd);
 
      if (sendDeviceMcmd(mcmd)!) {
        if (def(request)) {
@@ -3932,18 +3925,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          String pw = mcmd["pw"];
          String cres = mcmd["cres"];
          String iv = mcmd["iv"];
-         ifEmit(jv) {
-           Bool rs = mcmd["runSync"];
-           if (def(rs) && rs) {
-            if (TS.isEmpty(mcmd["cres"])) {
-              String jvadCmdsRes;
-              jvadCmdsRes = mcmd["creso"].o;
-              if (TS.notEmpty(jvadCmdsRes)) {
-                mcmd["cres"] = jvadCmdsRes;
-              }
-            }
-           }
-         }
          if (def(pver) && pver > 4 && def(pwt) && pwt > 0 && TS.notEmpty(pw) && TS.notEmpty(iv) && TS.notEmpty(cres)) {
            if (pver == 5) {
              log.log("will decrypt cres");
@@ -4140,9 +4121,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           mcmd.remove("kdaddr");
         }
         if (doRemote) {
-          if (TS.notEmpty(mcmd["kdname"]) && TS.notEmpty(mcmd["cmds"])) {
-            mcmd.remove("runSync");
-          } else {
+          unless (TS.notEmpty(mcmd["kdname"]) && TS.notEmpty(mcmd["cmds"])) {
             return(false);
           }
         }
@@ -4150,18 +4129,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         if (undef(priority)) {
           log.log("prio undefined in sendDeviceMcmd");
           priority = 5;
-        }
-        Bool rs = mcmd["runSync"];
-        if (def(rs) && rs) {
-          Bool ignore = mcmd["ignore"];
-          if (def(ignore) && ignore) {
-            log.log("got ignore noop");
-            return(false);
-          }
-          prepMcmd(mcmd);
-          processDeviceMcmd(mcmd);
-          processMcmdRes(mcmd, null);
-          return(true);
         }
 
         Container:LinkedList cmdQueue = cmdQueues.get(priority);

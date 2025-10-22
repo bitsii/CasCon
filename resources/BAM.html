@@ -345,8 +345,7 @@
             </f7-navbar>
             <!-- To share with a remote Relay device, click Share to Relay.-->
             <f7-block><b>To share with another mobile phone or tablet</b> click Display Code, then point the camera application on the other device at the code, and accept the prompts to go to Web Address. For more information click <f7-link onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#sharing-a-device');return false;" href='#'>here for Help.</f7-link> </f7-block>
-            <!--<f7-button class="col" onclick="callUI('showQrShare', false);return false;" outline>Display Restricted Code</f7-button>-->
-            <f7-button class="col" onclick="callUI('showQrShare', true);return false;" outline>Display Code</f7-button>
+            <f7-button class="col" onclick="callUI('showQrShare');return false;" outline>Display Code</f7-button>
             <div id="qrsharediv" style="margin: 20px 0 0 20px;"></div>
             <div id="qrerr" style="margin: 20px 0 0 20px;display: none;">You must have a device configured in the application and selected in Settings before you can share</div>
           </f7-page>
@@ -595,11 +594,8 @@
             autocapitalize="off"
           ></f7-list-input></f7-list-item>
           <f7-block>
-         <!--<f7-row tag="p">
-          <f7-button id="genShareButton" class="col" onclick="callUI('genDeviceShare', false);return false;" outline>Generate Restricted Device Share</f7-button>
-        </f7-row>-->
         <f7-row tag="p">
-          <f7-button id="genShareButton" class="col" onclick="callUI('genDeviceShare', true);return false;" outline>Generate Device Share</f7-button>
+          <f7-button id="genShareButton" class="col" onclick="callUI('genDeviceShare');return false;" outline>Generate Device Share</f7-button>
         </f7-row>
         <f7-row tag="p">
           <f7-button id="adsButton" class="col" popup-open="#veracshare" outline>Accept Device Share</f7-button>
@@ -700,7 +696,8 @@
         <fieldset><legend>Select MQTT Profile to configure</legend>
         <div><input type="radio" id="mqmremote" name="drone" value="huey" oninput="callUI('setMqttMode');"/><label for="mqmremote">App for Remote Access</label></div>
         <div><input type="radio" id="mqmrelay" name="drone" value="huey" oninput="callUI('setMqttMode');"/><label for="mqmrelay">Device for Remote Access</label></div>
-        <div><input type="radio" id="mqmharelay" name="drone" value="huey" oninput="callUI('setMqttMode');"/><label for="mqmharelay">Device for Integration (Homeassistant etc)</label></div>
+        <div><input type="radio" id="mqmharemote" name="drone" value="huey" oninput="callUI('setMqttMode');"/><label for="mqmharemote">App for Integration (Homeassistant etc)</label></div>
+        <div><input type="radio" id="mqmharelay" name="drone" value="huey" oninput="callUI('setMqttMode');"/><label for="mqmharelay">Device for Integration</label></div>
         </fieldset>
         </div>
 
@@ -756,15 +753,6 @@
         </div>
         </div>
 
-        <div id="divMqttAShare" style="display: none;">
-        <div class="item-title" style="width:150px;">Relay Accepts Shares over Mqtt</div>
-        <div class="item-after">
-        <label class="toggle">
-          <input type="checkbox" onclick="callApp('saveMqAsRequest', toOnOff(document.getElementById('mqAutoSw').checked));return true;" id="mqAutoSw"/>
-          <span class="toggle-icon"></span>
-        </label>
-        </div>
-        </div>
         <div id="divAutoVShare">
             <div class="item-title" style="width:150px;">Auto Share to Hubs</div>
             <div class="item-after">
@@ -803,7 +791,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="177"
+            value="178"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

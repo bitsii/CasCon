@@ -435,6 +435,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (TS.isEmpty(mqdis) || mqdis != "on") {
        checkStartMqtt("remote");
        checkStartMqtt("relay");
+       checkStartMqtt("haRemote");
        checkStartMqtt("haRelay");
       }
       slots {
@@ -451,7 +452,18 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     checkStartMqtt(String mqttMode) {
-       if (mqttMode == "remote") { //this is all we support in the app now, rest are for sending to devices
+      Bool doStart = false;
+      if (mqttMode == "remote" || mqttMode == "haRemote") {
+        //these are always supported for the app for remote access and sending shares (respectively)
+        doStart = true;
+      }
+      ifEmit(wajv) {
+        if (mqttMode == "relay" || mqttMode == "haRelay") {
+          //for wajv, typically ha plugin, these are supported
+          doStart = true;
+        }
+      }
+       if (doStart) {
        Mqtt mqtt = mqtts[mqttMode];
         if (undef(mqtt) || mqtt.isOpen!) {
           String mqttBroker = app.configManager.get("mqtt." + mqttMode + ".broker");
@@ -509,13 +521,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         log.log("mqtt opened");
         if (mqttMode == "haRelay") {
           mqtt.subscribe("homeassistant/status");
+          mqtt.subscribe("casnic/shares");
         }
         if (mqttMode == "remote") {
           mqtt.subscribe("casnic/res/" + reId);
         }
         if (mqttMode == "relay") {
           mqtt.subscribe("casnic/cmds");
-          mqtt.subscribe("casnic/shares");
         }
         mqtt.subscribe("casnic/ktlo/" + reId);
         setupMqttDevices(mqttMode);
@@ -705,12 +717,9 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           log.log("relay handlemessage for " + topic + " " + payload);
           System:Thread.new(System:Invocation.new(self, "handleRelay", Lists.from(topic, payload))).start();
         } elseIf (topic == "casnic/shares") {
-          String ashare = app.configManager.get("mqtt.autoShare");
-          if (TS.isEmpty(ashare) || ashare == "on") {
-            log.log("would now auto accept share");
-            log.log(payload);
-            acceptShareRequest(payload, null);
-          }
+          log.log("will now auto accept share");
+          log.log(payload);
+          acceptShareRequest(payload, null);
         } elseIf (topic == "casnic/res/" + reId) {
           log.log("got res in mqtt remote " + payload);
 
@@ -1443,21 +1452,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
          }
        }
      }
-     return(null);
-   }
-
-   loadMqAsRequest(request) Map {
-     String ashare = app.configManager.get("mqtt.autoShare");
-     if (TS.isEmpty(ashare)) {
-       ashare = "on";
-       app.configManager.put("mqtt.autoShare", ashare);
-     }
-     return(CallBackUI.mqAsResponse(ashare));
-   }
-
-   saveMqAsRequest(String ashare, request) Map {
-     log.log("got mqAsSet " + ashare);
-     app.configManager.put("mqtt.autoShare", ashare);
      return(null);
    }
 
@@ -2776,12 +2770,17 @@ use class BA:BamPlugin(App:AjaxPlugin) {
    reshareDevicesRequest(request) {
      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
      Map hasp = haspecs.getMap();
+     Bool didShare = false;
      for (any kv in hasp) {
       String sws = kv.value;
       if (TS.notEmpty(sws) && (sws.has(",a1,") || sws.has(",h1,"))) {
         checkShareDevices(kv.key, sws);
+        didShare = true;
         break;
       }
+     }
+     unless (didShare) {
+       shareDevicesMqtt();
      }
      return(CallBackUI.closeSettingsResponse());
    }
@@ -2860,6 +2859,44 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       String vsc = havsh.get(did);
       if (TS.isEmpty(vsc) || vsc == "isok") {
         brd("share", did, null, null);
+        shareDeviceMqtt(did);
+      }
+     }
+   }
+
+   shareDevicesMqtt() {
+    var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+    Map hasp = haspecs.getMap();
+    for (any kv in hasp) {
+      shareDeviceMqtt(kv.key);
+    }
+   }
+
+   shareDeviceMqtt(String did) {
+     Mqtt mqtt = mqtts["haRemote"];
+     if (def(mqtt) && mqtt.isOpen) {
+      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
+      String confs = hadevs.get(did);
+      if (TS.notEmpty(confs)) {
+      Map conf = Json:Unmarshaller.unmarshall(confs);
+
+      String onDevId = conf["ondid"];
+      String devName = conf["name"];
+      String devPass = conf["pass"];
+      String devSpass = conf["spass"];
+      if (TS.isEmpty(onDevId) || TS.isEmpty(devSpass)) {
+        return(self);
+      }
+      devName = devName.swap(",", "");
+      confs = onDevId + "," + devName + "," + devPass + "," + devSpass;
+      log.log("sharing confs " + confs);
+      String cx = Encode:Hex.encode(confs);
+      log.log("cx next");
+      log.log(cx);
+
+      log.log("try publishing shBlob to mqtt");
+       mqtt.publish("casnic/shares", cx);
+       log.log("share published");
       }
      }
    }
@@ -3860,15 +3897,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      }
      //check for timeout and null / interrupt
      return(null);
-   }
-
-   shareToMqttRequest(String shBlob, request) {
-     log.log("try publishing shBlob to mqtt");
-     Mqtt mqtt = mqtts["remote"];
-     if (def(mqtt) && mqtt.isOpen) {
-       mqtt.publish("casnic/shares", shBlob);
-       log.log("share published");
-     }
    }
 
    processMcmdRes(Map mcmd, request) {

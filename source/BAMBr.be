@@ -236,23 +236,6 @@ use class IUHub:Eui {
         }
         HC.callApp(Lists.from("loadMqFullRequest"));
         HC.callApp(Lists.from("loadMqDisRequest"));
-        /*dma = HD.getEle("divMqttAShare");
-        if (dma.display == "block") {
-          dma.display = "none";
-        } else {
-          dma.display = "block";
-        }*/
-      //}
-      /*ifEmit(jvad) {
-        HD.getEle("mqttMode").value = "remote";
-        HC.callApp(Lists.from("loadMqttRequest", "remote"));
-        HC.callApp(Lists.from("loadMqAsRequest"));
-      }
-      ifEmit(apwk) {
-        HD.getEle("mqttMode").value = "remote";
-        HC.callApp(Lists.from("loadMqttRequest", "remote"));
-        HC.callApp(Lists.from("loadMqAsRequest"));
-      }*/
    }
 
    wantSettings(String devId, String pos) {
@@ -487,13 +470,14 @@ use class IUHub:Eui {
       mqttMode = "remote";
      } elseIf (HD.getEle("mqmrelay").checked) {
       mqttMode = "relay";
+     } elseIf (HD.getEle("mqmharemote").checked) {
+      mqttMode = "haRemote";
      } elseIf (HD.getEle("mqmharelay").checked) {
       mqttMode = "haRelay";
      }
      HD.getEle("mqttMode").value = mqttMode;
      log.log("set mqttMode to " + mqttMode);
      HC.callApp(Lists.from("loadMqttRequest", mqttMode));
-     HC.callApp(Lists.from("loadMqAsRequest"));
    }
 
    mqFullResponse(String ashare) {
@@ -511,15 +495,6 @@ use class IUHub:Eui {
        HD.getEle("mqDisSw").checked = true;
      } else {
        HD.getEle("mqDisSw").checked = false;
-     }
-   }
-
-   mqAsResponse(String ashare) {
-     log.log("in mqAsResponse");
-     if (TS.notEmpty(ashare) && ashare == "on") {
-       HD.getEle("mqAutoSw").checked = true;
-     } else {
-       HD.getEle("mqAutoSw").checked = false;
      }
    }
 
@@ -624,8 +599,8 @@ use class IUHub:Eui {
      HD.getEle("qrerr").display = "none";
    }
 
-   showQrShare(Bool admin) {
-     genDeviceShare(admin);
+   showQrShare() {
+     genDeviceShare();
      clearQrShare();
      if (TS.notEmpty(HD.getElementById("shBlob").value)) {
       String qrsh = "cascon://?cx=" + HD.getElementById("shBlob").value;
@@ -640,9 +615,7 @@ use class IUHub:Eui {
      }
    }
 
-   genDeviceShare(Bool admin) {
-     //String devType = HD.getElementById("devType").value;
-     //String devId = HD.getElementById("devId").value;
+   genDeviceShare() {
      String onDevId = HD.getElementById("onDevId").value;
      String devName = HD.getElementById("devName").value;
      String devPass = HD.getElementById("devPass").value;
@@ -653,30 +626,7 @@ use class IUHub:Eui {
      }
      devName = devName.swap(",", "");
      String confs = onDevId + "," + devName + "," + devPass + "," + devSpass;
-     //Map conf = Map.new();
-     //conf["type"] = devType;
-     //conf["id"] = devId;
-     //conf["ondid"] = onDevId;
-     //conf["name"] = devName;
-     //if (admin && TS.notEmpty(devPass)) {
-     //  conf["pass"] = devPass;
-     //}
-     //conf["spass"] = devSpass;
-     //if (TS.notEmpty(devId) def(devCtls) && devCtls.has(devId)) {
-     //  String controlDef = devCtls.get(devId);
-     //  if (TS.notEmpty(controlDef)) {
-     //    conf["controlDef"] = controlDef;
-     //  }
-     //}
-     //if (TS.notEmpty(devId) def(specs) && specs.has(devId)) {
-     //  String spec = specs.get(devId);
-     //  if (TS.notEmpty(spec)) {
-     //    conf["spec"] = spec;
-     //  }
-     //}
-     //String confs = Json:Marshaller.marshall(conf);
      log.log("sharing confs " + confs);
-     //HC.callApp(Lists.from("saveDeviceRequest", devId, confs));
      String cx = Encode:Hex.encode(confs);
      log.log("cx next");
      log.log(cx);

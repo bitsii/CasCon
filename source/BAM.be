@@ -554,6 +554,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           for (any kv in hadevs.getMap()) {
             String did = kv.key;
             String confs = kv.value;
+            //log.log("in mqtt conf " + confs);
             Map conf = Json:Unmarshaller.unmarshall(confs);
             devices.put(did, confs);
             String ctl = hactls.get(did);
@@ -604,22 +605,28 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   } elseIf (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
                     tpp = "homeassistant/light/" + did + "-" + i;
                     cf = Maps.from("name", conf["name"], "command_topic", tpp + "/set", "state_topic", tpp + "/state", "unique_id", did + "-" + i, "schema", "json");
+                    List cmodes = List.new();
                     if (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
-                      cf.put("rgb", true);
+                      //cf.put("rgb", true);
+                      cmodes += "rgb";
                     } else {
-                      cf.put("rgb", false);
+                      //cf.put("rgb", false);
                     }
                     if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
                       cf.put("brightness", true);
-                      cf.put("brightness_scale", 255);
+                      //cf.put("brightness_scale", 255);
                     } else {
                       cf.put("brightness", false);
                     }
                     if (itype == "rgbcwgd" || itype == "rgbcwsgd" || itype == "cwgd") {
-                      cf.put("color_temp", true);
+                      //cf.put("color_temp", true);
+                      cmodes += "color_temp";
                     } else {
-                      cf.put("color_temp", false);
+                      //cf.put("color_temp", false);
                     }
+                    cf.put("supported_color_modes", cmodes);
+                    //cfs = "{\"name\":\"Light\",\"command_topic\":\"" += tpp += "/set\",\"state_topic\":\"" += tpp += "/state\",\"unique_id\":\"" += uid += "\",\"schema\":\"json\",\"brightness\":true,\"supported_color_modes\": [\"hs\",\"color_temp\"]}";
+
                     cfs = Json:Marshaller.marshall(cf);
                     log.log("will set discovery tpp " + tpp + " cfs " + cfs);
                     mqtt.subscribe(tpp + "/set");
@@ -640,6 +647,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                         String cw = hacw.get(did + "-" + i);
                         if (TS.notEmpty(cw)) {
                           dps.put("color_temp", lsToMired(Int.new(cw)));
+                          dps.put("color_mode", "color_temp");
                         }
                       }
                     }
@@ -647,6 +655,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                       String rgb = hargb.get(did + "-" + i);
                       if (TS.isEmpty(rgb)) {
                         rgb = "255,255,255";
+                      } else {
+                        dps.put("color_mode", "rgb");
                       }
                       var rgbl = rgb.split(",");
                       Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
@@ -2030,17 +2040,23 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                 }
                 if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
                   dps.put("brightness", Int.new(lv));
-                  if (itype == "rgbcwgd" || itype == "rgbcwsgd") {
+                  dps.put("color_mode", "rgb");
+                  /*if (itype == "rgbcwgd" || itype == "rgbcwsgd") {
                     if (TS.notEmpty(cw)) {
                        dps.put("color_temp", lsToMired(Int.new(cw)));
                     }
-                  }
+                  }*/
                 }
+
+                //jst = "{\"state\":\"" += st += "\",\"brightness\":" += hd.lvl += ",\"color_mode\":\"hs\",\"color\":{\"h\":" += hd.h += ".0,\"s\":" += hd.s += ".0}}";
+
                 var rgbl = cres.split(",");
                 Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
                 dps.put("color", rgbm);
                 String stpp = "homeassistant/light/" + did + "-" + dp + "/state";
-                mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+                unless (rgbm["r"] == 255 && rgbm["g"] == 255 && rgbm["b"] == 255) {
+                  mqtt.publish(stpp, Json:Marshaller.marshall(dps));
+                }
               }
             }
           }
@@ -3266,12 +3282,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         Mqtt mqtt = mqtts["haRelay"];
         if (def(mqtt) && mqtt.isOpen) {
           if (TS.notEmpty(itype)) {
-            if (itype == "rgb" || itype == "rgbgdim") {
+            if (itype == "rgb" || itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
               var rgbl = rgb.split(",");
               Map rgbm = Maps.from("r", Int.new(rgbl[0]), "g", Int.new(rgbl[1]), "b", Int.new(rgbl[2]));
               Map dps = Map.new();
               dps.put("state", "ON");
               dps.put("color", rgbm);
+              dps.put("color_mode", "rgb");
               if (itype == "rgbgdim" || itype == "rgbcwgd" || itype == "rgbcwsgd") {
                 dps.put("brightness", Int.new(mcmd["lv"]));
               }
@@ -3376,6 +3393,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               }
               if (TS.notEmpty(cw)) {
                 dps.put("color_temp", lsToMired(Int.new(cw)));
+                dps.put("color_mode", "color_temp");
               }
               if (TS.notEmpty(mcmd["rgb"])) {
                 var rgbl = mcmd.get("rgb").split(",");

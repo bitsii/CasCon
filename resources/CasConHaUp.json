@@ -3,8 +3,8 @@
       "addons" : [
          {
            "slug": "casnic",
-           "version" : "1.48.0",
-           "version_latest" : "1.48.0"
+           "version" : "1.181.0",
+           "version_latest" : "1.181.0"
          },
          {
            "slug": "yokels",

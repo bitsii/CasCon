@@ -435,8 +435,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       String mqdis = app.configManager.get("mqtt.disabled");
       if (TS.isEmpty(mqdis) || mqdis != "on") {
        checkStartMqtt("remote");
-       checkStartMqtt("relay");
        checkStartMqtt("haRemote");
+       checkStartMqtt("relay");
        checkStartMqtt("haRelay");
       }
       slots {
@@ -453,6 +453,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     checkStartMqtt(String mqttMode) {
+      ifEmit(jv) {
+        System:Thread.new(System:Invocation.new(self, "checkStartMqttInner", Lists.from(mqttMode))).start();
+      }
+      ifNotEmit(jv) {
+        checkStartMqttInner(mqttMode);
+      }
+    }
+
+    checkStartMqttInner(String mqttMode) {
       //log.log("checkStartMqtt mode " + mqttMode);
       Bool doStart = false;
       if (mqttMode == "remote" || mqttMode == "haRemote") {
@@ -2411,7 +2420,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        lastRun = ns;
        ckm = ns;
      }
-     if (def(ckm) && ns - ckm > 2) {
+     if (def(ckm) && ns - ckm > 1) {
        ckm = null;
        hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
        pdevices = hadevs.getMap();

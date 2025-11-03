@@ -1680,7 +1680,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             sccfs.put(did, mcmd["controlHash"]);
             if (cres.has(",gm,") || cres.has(",dm,") || cres.has(",h1,") || cres.has(",gt1,")) {
               log.log("sending mq to device");
-              updateMqttRequest(did, request);
+              updateMqttRequest(did, false, request);
               //return(null);
             }
             if (cres.has(",gt1,")) {
@@ -2743,7 +2743,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
-   updateMqttRequest(String did, request) Map {
+   updateMqttRequest(String did, Bool doEmpty, request) Map {
      log.log("in updateMqttRequest " + did);
 
      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
@@ -2762,7 +2762,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       bkr = bkr.swap("//", "");
       bkr = bkr.swap(" ", "");
       if (TS.isEmpty(bkr) || TS.isEmpty(mqr["mqttUser"]) || TS.isEmpty(mqr["mqttPass"])) {
-        cmds = "setsmc pass e";
+        if (doEmpty) {
+          cmds = "setsmc pass e";
+        } else {
+          return(null);
+        }
       } else {
         String cmds = "setsmc pass nohex " + bkr + " " + mqr["mqttUser"] + " " + mqr["mqttPass"] + " e";
       }

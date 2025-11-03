@@ -606,6 +606,7 @@ use class IUHub:Eui {
       String qrsh = "cascon://?cx=" + HD.getElementById("shBlob").value;
       //String qrsh = "https://gitlab.com/bitsii/CasCon/-/wikis/Casnic";
       //String qrsh = "https://gitlab.com/bitsii/CasCon/-/wikis/Pairing-Voice-Bridge";
+      //String qrsh = "https://gitlab.com/bitsii/CasCon/-/wikis/Remote-Access";
       emit(js) {
         """
         new QRCode("qrsharediv", bevl_qrsh.bems_toJsString());

@@ -4746,8 +4746,15 @@ use class BA:BamPlugin(App:AjaxPlugin) {
        } elseIf (TS.notEmpty(cres) && cres.has("mins of power on")) {
           //deleteDeviceRequest(mcmd["outdid"], request);
           throw(Alert.new("Error, must setup w/in 30 mins of power on. Unplug and replug in device and try again"));
+       } else {
+         var fl = cres.split(":");
+         if (fl.length > 1 && TS.notEmpty(fl[1])) {
+           throw(Alert.new(fl[1]));
+         } else {
+           throw(Alert.new("Device unavailable during setup"));
+         }
        }
-       return(CallBackUI.reloadResponse());
+       //return(CallBackUI.reloadResponse());
      }
      return(null);
    }

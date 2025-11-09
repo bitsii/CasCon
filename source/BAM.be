@@ -1690,6 +1690,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             }
             checkShareDevices(did, cres);
           }
+          if (def(currentEvents)) { currentEvents.remove(did); } //by now we have controls, but won't do another get all states because we "used it up", now we will try again.
           if (cres.has(",a1,")) {
             //return(CallBackUI.setElementsDisplaysResponse(Maps.from("doVB", "block")));
             return(CallBackUI.showVbResponse());

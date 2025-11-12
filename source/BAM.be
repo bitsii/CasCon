@@ -1794,13 +1794,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //log.log("cmds " + cmds);
 
      Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "pwt", 3, "cmds", cmds, "iv", iv);
-     Int jit = System:Random.getIntMax(9);
-     if (firstRun) { jit = 4; }
-     if (jit > 2 && jit < 6) {  //4-8 seconds (av 6) per device try
+     Int jit = System:Random.getIntMax(8);
+     if (firstRun) { jit = 0; }
+     if (jit < 4) {
        //in case something was remote or offline, every once in a while try local to see if back to local net
        mcmd["forceLocal"] = true;
        mcmd["smallFail"] = true;
-     } elseIf (jit > 5) {
+     } else {
        //also see if should be cleared from remote fails from time to time
        mcmd["forceRemote"] = true;
        mcmd["smallFail"] = true;
@@ -1815,10 +1815,13 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      //log.log("in gle cb");
      String cres = mcmd["cres"];
      String leid = mcmd["did"];
-     if (mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) {
-       Int ns = Time:Interval.now().seconds + 8;
-       if (def(gletimes)) { gletimes.put(leid, ns); }
-     }
+     //if (mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) {
+     //  if (def(gletimes)) {
+     //    Int ns = gletimes.get(leid);
+     //    ns += 2;
+     //    gletimes.put(leid, ns);
+     // }
+     //}
      //log.log("!!!! gle fc " + fc + " " + leid);
      if (TS.notEmpty(cres) && cres.has(";")) {
         if (cres.has(" ") && cres.find(" ") < cres.find(";")) {

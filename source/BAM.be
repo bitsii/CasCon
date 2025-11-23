@@ -2848,7 +2848,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      if (TS.notEmpty(cres)) {
         log.log("tasCb got cres " + cres);
         if (def(request)) {
-          return(CallBackUI.closeSettingsResponse());
+          if (mcmd.has("isOutset") && mcmd["isOutset"]) {
+            return(CallBackUI.reloadResponse());
+          } else {
+            return(CallBackUI.closeSettingsResponse());
+          }
         }
       }
       return(null);
@@ -4379,6 +4383,42 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       return(null);
    }
 
+   setupTasRequest(String outssid, request) Map {
+     log.log("in setupTasRequest");
+     Bool didit = false;
+     if (TS.notEmpty(outssid)) {
+      var haspecs = app.kvdbs.get("HASPECS"); //haspecs - device id to swspec
+      Map hasp = haspecs.getMap();
+      for (any kv in hasp) {
+        String sws = kv.value;
+        if (TS.notEmpty(sws) && sws.has(",gt1,")) {
+          String cmds = "tacmd pass outset " + outssid + " e";
+          Map mcmd = Maps.from("prio", 2, "cb", "tasCb", "isOutset", true, "did", kv.key, "pwt", 1, "cmds", cmds);
+          sendDeviceMcmd(mcmd);
+          didit = true;
+        }
+      }
+     }
+     unless (didit) {
+       throw(Alert.new("Tas Setup failed - have you setup your Tasmota Hub as a Casnic device already?  That's required first"));
+     }
+     return(null);
+   }
+
+   findTasRequest(Bool startingDiscover, request) Map {
+     Map retSsids = Map.new();
+     if (def(lastSsids) && lastSsids.isEmpty!) {
+       for (String ssid in lastSsids) {
+         retSsids.put(ssid, ssid);
+       }
+     }
+     findNewDevicesRequest(startingDiscover, request);
+     if (retSsids.notEmpty) {
+       return(CallBackUI.findTasResponse(retSsids));
+     }
+     return(null);
+   }
+
    findNewDevicesRequest(Bool startingDiscover, request) Map {
        log.log("in find new devices");
        if (startingDiscover) {
@@ -4793,8 +4833,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       if (TS.isEmpty(devSsid)) {
         var hawifi = app.kvdbs.get("HAWIFI"); //account hex to wifi network
-        devSsid = Hex.encode(hawifi.get(uhex + ".ssid.0"));
-        devSec = Hex.encode(hawifi.get(uhex + ".sec.0"));
+        devSsid = hawifi.get(uhex + ".ssid.0");
+        devSec = hawifi.get(uhex + ".sec.0");
+        if (TS.notEmpty(devSsid) && TS.notEmpty(devSec)) {
+          devSsid = Hex.encode(devSsid);
+          devSec = Hex.encode(devSec);
+        }
       }
 
       devName = toAlphaNumSpace(devName);

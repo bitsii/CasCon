@@ -254,6 +254,44 @@ use class IUHub:Eui {
      lastPickedWifi = wifieh;
    }
 
+   findTasResponse(Map ssids) {
+     log.log("in findTasResponse");
+     //tssid tssidl
+     Bool changed = false;
+     if (def(ssids) && TS.isEmpty(lastPickedWifi)) {
+       for (var kv in ssids) {
+         String s = kv.key;
+         if (TS.notEmpty(s)) {
+           unless (tssid.has(s)) {
+             //"tasm", "RGB" "rgb" "athom" "IoTor" "ESP" "EZPlug" "kauf" "esp" "Kauf"
+             var sl = s.lower();
+             if (sl.has("tasm") || sl.has("rgb") || sl.has("athom") || sl.has("iotor") || sl.has("esp") || sl.has("ezplug") || sl.has("kauf")) {
+               tssidl.prepend(s);
+             } else {
+               tssidl.append(s);
+             }
+             changed = true;
+             tssid.put(s);
+           }
+         }
+       }
+       if (changed) {
+          var wfd = HD.getEle("tasholder");
+          var wgb = HD.getEle("tasPickedButton");
+          if (wfd.exists && wgb.exists) {
+            var ehvs = Encode:Hex.new();
+            String netch = "<fieldset><legend>Select a network:</legend>";
+            for (var kvv in tssidl) {
+              String kvve = ehvs.encode(kvv);
+              netch += "<div><input type=\"radio\" id=\"pswi" += kvve += "\" onclick=\"callUI('pickedWifi', this.value);return true;\" name=\"drone\" value=\"" += kvve += "\"/><label for=\"pswi" += kvve += "\">" += kvv += "</label></div>";
+            }
+            netch += "</fieldset>";
+            wfd.innerHTML = netch;
+          }
+       }
+     }
+   }
+
    checkNexts() {
     unless (loggedIn) { return(self); }
     slots {
@@ -302,19 +340,24 @@ use class IUHub:Eui {
        if (TS.notEmpty(lastCx)) {
          HD.getElementById("disBackButton").click();
        } else {
-        if (TS.isEmpty(ddtf.value)) {
-          if (undef(discoCounts) || discoCounts > 30000) {
-            discoCounts = 0;
-          } else {
-            discoCounts++;
-          }
+        if (undef(discoCounts) || discoCounts > 30000) {
+          discoCounts = 0;
+        } else {
+          discoCounts++;
+        }
         if (discoCounts % 7 == 0) {
-            log.log("in checkNexts hitting findNewDevices");
-            Bool wasfnd = restartFnd;
-            restartFnd = false;
-            if (undef(wasfnd)) { wasfnd = true; }
-            HC.callApp(Lists.from("findNewDevicesRequest", wasfnd));
+          log.log("in checkNexts hitting findX");
+          Bool wasfnd = restartFnd;
+          restartFnd = false;
+          if (undef(wasfnd)) { wasfnd = true; }
+          if (def(inTasSetup) && inTasSetup) {
+            HC.callApp(Lists.from("findTasRequest", wasfnd));
           } else {
+            HC.callApp(Lists.from("findNewDevicesRequest", wasfnd));
+          }
+        }
+        if (TS.isEmpty(ddtf.value)) {
+          if (discoCounts % 7 != 0) {
             log.log("checkNexts gonna click discovery");
             sde.click();
           }
@@ -570,6 +613,28 @@ use class IUHub:Eui {
      }
    }
 
+   setupTas() {
+     inTasSetup = true;
+     lastPickedWifi = null;
+     slots {
+       Set tssid = Set.new();
+       LinkedList tssidl = LinkedList.new();
+     }
+     try { HD.getEle("noTasTxt").display = "none"; } catch (any ee) { }
+     try { HD.getEle("startingTasTxt").display = "none"; } catch (any eee) { }
+   }
+
+   tasPicked() {
+     if (TS.isEmpty(lastPickedWifi)) {
+       HD.getEle("noTasTxt").display = "block";
+       HD.getEle("startingTasTxt").display = "none";
+     } else {
+       HD.getEle("noTasTxt").display = "none";
+       HD.getEle("startingTasTxt").display = "block";
+       HC.callApp(Lists.from("setupTasRequest", lastPickedWifi));
+     }
+   }
+
    saveDevice() {
      String devType = HD.getElementById("devType").value;
      String devId = HD.getElementById("devId").value;
@@ -647,6 +712,7 @@ use class IUHub:Eui {
      log.log("stop setup");
      inDeviceSetup = false;
      restartFnd = true;
+     inTasSetup = false;
      HD.getEle("doingSetupSpin").display = "none";
    }
 
@@ -661,6 +727,7 @@ use class IUHub:Eui {
        String disDevId;
        String disDevDid;
        Bool inDeviceSetup;
+       Bool inTasSetup;
        Bool restartWifiList;
        Bool restartFnd;
      }

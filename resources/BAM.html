@@ -411,6 +411,29 @@
         </f7-view>
       </f7-popup>
 
+      <f7-popup id="setuptas">
+        <f7-view>
+          <f7-page>
+            <f7-navbar title="Choose Tasmota Device">
+              <!--<f7-nav-right>
+                <f7-link popup-close>Close</f7-link>
+              </f7-nav-right>-->
+            </f7-navbar>
+            <f7-block>Please choose the wifi network for the Tasmota device you are setting up when it appears.  Then click Setup Device.  If your device is already on your home Wifi choose Cancel Setup, go into Settings, and choose More / Rediscover Tasmota Devices instead.</f7-block>
+            <div id="tasholder">Discovering Device Networks</div>
+
+            <div id="noTasTxt" style="display: none;">You must choose a Tasmota setup network to proceed. If you don't see a suitable network make sure you have a Tasmota device not yet put on Wifi which is powered up.  Try unplugging and replugging it.  If it is already on your house wifi network, choose Cancel Setup, go into Settings, and choose More / Rediscover Tasmota Devices instead.</div>
+            <div id="startingTasTxt" style="display: none;">Attepting to put Tasmota device on the Wifi Network.  It should be discovered and added to the app sometime after it is added to the network.  You'll be returned to the device list once the Tasmota network setup completes.</div>
+              <f7-row tag="p">
+            <f7-button id="tasPickedButton" class="col" onclick="callUI('tasPicked');return false;" outline>Begin Setup</f7-button>
+            </f7-row>
+            <f7-row tag="p">
+            <f7-button class="col" id="givupTasSetup" onclick="location.reload();return false;" href='/' outline>Cancel Setup</f7-button>
+            </f7-row>
+          </f7-page>
+        </f7-view>
+      </f7-popup>
+
       <!-- Login Screen -->
       <f7-login-screen id="login-screen">
         <f7-view>
@@ -488,7 +511,12 @@
               <f7-row tag="p">
                   <f7-button class="col" onclick="callUI('startDeviceSetup');return false;" outline>Begin Setup</f7-button>
                 </f7-row>
+                <f7-row tag="p">
                 <f7-button id="showDeviceButton" class="col" onclick="callApp('displayNextDeviceRequest', document.getElementById('disDevSsid').value);return false;" outline>Show Next</f7-button>
+                </f7-row>
+                <f7-row tag="p">
+                <f7-button id="setupTasButton" class="col" onclick="callUI('setupTas');return true;" popup-open="#setuptas" outline>Add Tasmota Device</f7-button>
+                </f7-row>
                 <f7-row tag="p">
                   <f7-button class="col" onclick="callUI('openToUrl', 'https://gitlab.com/bitsii/CasCon/-/wikis/Casnic#setting-up-a-new-device-and-adding-it-to-the-network');return false;" outline back>Help</f7-button>
                 </f7-row>
@@ -791,7 +819,7 @@
             input-id="verBlurb"
             label="Casnic Version"
             type="text"
-            value="190"
+            value="191"
             readonly
           ></f7-list-input></f7-list-item>
         </f7-list>

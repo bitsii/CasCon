@@ -4400,7 +4400,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       }
      }
      unless (didit) {
-       throw(Alert.new("Tas Setup failed - have you setup your Tasmota Hub as a Casnic device already?  That's required first"));
+       return(CallBackUI.setElementsDisplaysResponse(Maps.from("gotNoHubTxt", "block", "startingTasTxt", "none")));
      }
      return(null);
    }

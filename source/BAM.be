@@ -244,7 +244,26 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       //String sname = serviceInfo.toString();
       //sname = sname.substring( 0, sname.indexOf(","));
-      String sname = serviceInfo.getServiceName();
+
+      String tname = null;
+
+      java.util.Map<String, byte[]> txtRecords = serviceInfo.getAttributes();
+        if (txtRecords != null) {
+            // Process TXT records
+            for (java.util.Map.Entry<String, byte[]> entry : txtRecords.entrySet()) {
+                System.out.println("TXT Record Key " + entry.getKey());
+                if (entry.getKey().startsWith("CasNic")) {
+                  tname = entry.getKey();
+                }
+            }
+        }
+
+      String sname;
+      if (tname != null) {
+       sname = tname;
+      } else {
+        sname = serviceInfo.getServiceName();
+      }
 
       String hip = host.getHostAddress().toString();
 
@@ -252,6 +271,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
       knownDevices.put(sname, hip);
       resolving.remove(sname);
+      resolving.remove(serviceInfo.getServiceName());
       wantedDevices.remove(sname);
       maybeResolve();
     }
@@ -1033,7 +1053,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     resolveAddr(String kdname) {
-      considerTds(kdname);
+      //considerTds(kdname);
       String kdaddr;
        var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
        ifEmit(wajv) {
@@ -2621,11 +2641,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
           @Override
           public void onServiceFound(NsdServiceInfo service) {
               // A service was found! Do something with it.
-              System.out.println("Service discovery success" + service);
+              System.out.println("Service discovery success " + service);
               String sname = service.getServiceName();
-              if (sname != null && sname.startsWith("CasNic")) {
+              if (sname != null) {
                 System.out.println("onServiceFound " + sname);
-                if (InitializeResolveListener.wantedDevices.containsKey(sname)) {
+                if (InitializeResolveListener.wantedDevices.containsKey(sname) || (!sname.startsWith("CasNic") && !InitializeResolveListener.wantedDevices.isEmpty())) {
                   InitializeResolveListener.resolving.put(sname, service);
                   InitializeResolveListener.maybeResolve();
                 }

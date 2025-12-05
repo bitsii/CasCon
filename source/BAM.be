@@ -275,7 +275,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         }
         slots {
           Map knc = Map.new();
-          Set locAddrs = Set.new();
+          CLocker lastResFrom = CLocker.new(Map.new());
           Bool mqttFullRemote = false;
         }
         ifEmit(wajv) {
@@ -766,6 +766,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             if (def(lmt)) { rescres = rescres.substring(0, lmt); }
             lmt = rescres.find("\n");
             if (def(lmt)) { rescres = rescres.substring(0, lmt); }
+            currCmds["cresoFrom"].o = "remote";
             currCmds["creso"].o = rescres;
           } else {
             log.log("currCmds undef or preempted ");
@@ -1478,6 +1479,8 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            kv.value.close();
          }
        }
+     } else {
+       checkStartMqtt();
      }
      return(null);
    }
@@ -1793,17 +1796,16 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      String cmds = "getlastevents q " + iv + "," + reId + " e";
      //log.log("cmds " + cmds);
 
-     Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "pwt", 3, "cmds", cmds, "iv", iv);
-     Int jit = System:Random.getIntMax(8);
-     if (firstRun) { jit = 0; }
-     if (jit < 4) {
-       //in case something was remote or offline, every once in a while try local to see if back to local net
-       mcmd["forceLocal"] = true;
-       mcmd["smallFail"] = true;
+     Map mcmd = Maps.from("prio", 5, "cb", "getLastEventsCb", "did", conf["id"], "pwt", 3, "cmds", cmds, "iv", iv, "smallFail", true);
+     if (firstRun) {
+       mcmd["forceLocalRemote"] = true;
      } else {
-       //also see if should be cleared from remote fails from time to time
-       mcmd["forceRemote"] = true;
-       mcmd["smallFail"] = true;
+      Int jit = System:Random.getIntMax(8);
+      if (jit < 4) {
+        mcmd["forceLocal"] = true;
+      } else {
+        mcmd["forceRemote"] = true;
+      }
      }
 
      sendDeviceMcmd(mcmd);
@@ -3802,7 +3804,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
            }
 
         ifEmit(apwk) {
-          unless (def(currCmds["doRemote"]) && currCmds["doRemote"]) {
           if (undef(currCmds["cres"])) {
           if (currCmds.has("bleSetup") && currCmds["bleSetup"]) {
             log.log("doing bleread");
@@ -3848,7 +3849,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             //"no getLastCres".print();
           }
         }
-        }
        }
      }
 
@@ -3875,6 +3875,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         } else {
           log.log("diff iv, preempted!!!!!!!!!!!!!!!!");
           if (def(currCmds["creso"])) { currCmds["creso"].o = null; }
+          if (def(currCmds["cresoFrom"])) { currCmds["cresoFrom"].o = null; }
           currCmds["cres"] = null;
         }
        } else {
@@ -3900,26 +3901,53 @@ use class BA:BamPlugin(App:AjaxPlugin) {
               } else {
                 prepMcmd(mcmd);
                 currCmds = mcmd;
-                if (def(mcmd["doRemote"]) && mcmd["doRemote"]) {
-                  //log.log("doing remote");
-                  String finCmds = prot.secCmds(mcmd);
-                  Mqtt mqtt = mqtts["remote"];
-                  if (def(mqtt) && mqtt.isOpen) {
-                    if (TS.notEmpty(mcmd["spec"]) && mcmd["spec"].has(",dm,")) {
-                      log.log("doing direct smc");
-                      mqtt.publish("casnic/cmd/" + mcmd["ondid"], finCmds);
-                    } else {
-                      log.log("doing proxy smc");
-                      finCmds = "rel1:" + mcmd["kdname"] + ";" + finCmds;
-                      mqtt.publish("casnic/cmds", finCmds);
-                    }
-                    //mcmd["cres"] = "ok"; //tmp to test
+                Bool doLocal; Bool doRemote;
+                if ((mcmd.has("prio") && mcmd["prio"] == 0) || (mcmd.has("forceLocalRemote") && mcmd["forceLocalRemote"])) {
+                  //user commands both ways if can.  Same for first gle to get a read on state.
+                  doLocal = true;
+                  doRemote = true;
+                } elseIf (mcmd.has("forceLocal") && mcmd["forceLocal"]) {
+                  doLocal = true;
+                  doRemote = false;
+                } elseIf (mcmd.has("forceRemote") && mcmd["forceRemote"]) {
+                  doLocal = false;
+                  doRemote = true;
+                } else {
+                  if (mcmd.has("did") && def(lastResFrom) && TS.notEmpty(lastResFrom.get(mcmd["did"])) && lastResFrom.get(mcmd["did"]) == "remote") {
+                    doLocal = false;
+                    doRemote = true;
                   } else {
-                    log.log("failed doing remote mqtt undef");
+                    doLocal = true;
+                    doRemote = false;
                   }
-                  return(null);
                 }
-                processDeviceMcmd(mcmd);
+                if (doRemote) {
+                  Mqtt mqtt = mqtts["remote"];
+                  //final check it's possible
+                  unless ((def(haveGm) && haveGm) || (TS.notEmpty(mcmd["spec"]) && mcmd["spec"].has(",dm,"))) {
+                    doRemote = false;
+                    doLocal = true;
+                  }
+                  unless (def(mqtt) && mqtt.isOpen) {
+                    doRemote = false;
+                    doLocal = true;
+                  }
+                }
+                if (doLocal) {
+                  processDeviceMcmd(mcmd);
+                }
+                if (doRemote) {
+                  log.log("doing remote");
+                  String finCmds = prot.secCmds(mcmd);
+                  if (TS.notEmpty(mcmd["spec"]) && mcmd["spec"].has(",dm,")) {
+                    log.log("doing direct smc");
+                    mqtt.publish("casnic/cmd/" + mcmd["ondid"], finCmds);
+                  } else {
+                    log.log("doing proxy smc");
+                    finCmds = "rel1:" + mcmd["kdname"] + ";" + finCmds;
+                    mqtt.publish("casnic/cmds", finCmds);
+                  }
+                }
                 return(null);
               }
             }
@@ -3933,11 +3961,12 @@ use class BA:BamPlugin(App:AjaxPlugin) {
 
    processMcmdRes(Map mcmd, request) {
        unless (mcmd.has("fromCmdsFail") && mcmd["fromCmdsFail"]) {
-         if (TS.notEmpty(mcmd["kdaddr"])) {
-           locAddrs.put(mcmd["kdaddr"]);
-         } elseIf (TS.notEmpty(mcmd["kdname"])) {
-           var harfails = app.kvdbs.get("HARFAILS"); //harfails - kdname to remote failing
-           harfails.remove(mcmd["kdname"]);
+         if (mcmd.has("did")) {
+          if (def(mcmd["cresoFrom"]) && def(mcmd["cresoFrom"].o) && mcmd["cresoFrom"].o == "remote") {
+            lastResFrom.put(mcmd["did"], "remote");
+          } else {
+            lastResFrom.put(mcmd["did"], "local");
+          }
          }
        }
        if (mcmd.has("cb")) {
@@ -4011,12 +4040,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (def(currentEvents)) {
         log.log("in cmds fail clearing currentEvents for did " + did);
         currentEvents.remove(did);
-      }
-      if (TS.notEmpty(kdaddr)) {
-        locAddrs.remove(kdaddr);
-      } elseIf (TS.notEmpty(kdname)) {
-        var harfails = app.kvdbs.get("HARFAILS"); //harfails - kdname to remote failing
-        harfails.put(kdname, kdname);
       }
       clearQueueDid(did);
      }
@@ -4100,50 +4123,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             } else {
               mcmd["pw"] = "";
             }
-          }
-        }
-        Bool doRemote = false;
-        Mqtt mqtt = mqtts["remote"];
-        if (def(mqtt) && mqtt.isOpen) {
-          if (mqttFullRemote) {
-            doRemote = true;
-          } else {
-            unless (TS.notEmpty(mcmd["kdaddr"]) && locAddrs.has(mcmd["kdaddr"])) {
-              //var harfails = app.kvdbs.get("HARFAILS"); //harfails - kdname to remote failing
-              //unless (TS.notEmpty(mcmd["kdname"]) && harfails.has(mcmd["kdname"])) {
-                unless (TS.isEmpty(did) || TS.isEmpty(sws) || sws.has(".gsh.")) {
-                  if (TS.notEmpty(sws) && sws.has(",dm,")) {
-                    doRemote = true;
-                  }
-                  if (def(haveGm) && haveGm) {
-                    doRemote = true;
-                  }
-                }
-              //}
-            }
-          }
-          if (mcmd.has("forceRemote") && mcmd["forceRemote"]) {
-            //log.log("got forceRemote");
-            if (TS.notEmpty(sws) && sws.has(",dm,")) {
-              doRemote = true;
-            }
-            if (def(haveGm) && haveGm) {
-              doRemote = true;
-            }
-          }
-        }
-        if (mcmd.has("forceLocal") && mcmd["forceLocal"]) {
-          //log.log("got forceLocal");
-          doRemote = false;
-        }
-        mcmd.put("doRemote", doRemote);
-        //log.log("doRemote " + doRemote);
-        if (doRemote) {
-          mcmd.remove("kdaddr");
-        }
-        if (doRemote) {
-          unless (TS.notEmpty(mcmd["kdname"]) && TS.notEmpty(mcmd["cmds"])) {
-            return(false);
           }
         }
         Int priority = mcmd["prio"];
@@ -4246,6 +4225,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
   prepMcmd(Map mcmd) {
     //log.log("in processDeviceMcmd");
     mcmd["creso"] = OLocker.new(null);
+    mcmd["cresoFrom"] = OLocker.new(null);
     unless (mcmd.has("pver")) {
       mcmd["pver"] = 6;
     }

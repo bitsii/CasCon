@@ -222,12 +222,12 @@ use class IUHub:Eui {
         } else {
           dma.display = "block";
         }
-        dma = HD.getEle("divMqFull");
-        if (dma.display == "block") {
-          dma.display = "none";
-        } else {
-          dma.display = "block";
-        }
+        //dma = HD.getEle("divMqFull");
+        //if (dma.display == "block") {
+        //  dma.display = "none";
+        //} else {
+        //  dma.display = "block";
+        //}
         dma = HD.getEle("divMqDis");
         if (dma.display == "block") {
           dma.display = "none";

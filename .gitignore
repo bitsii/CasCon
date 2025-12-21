@@ -50,6 +50,7 @@ csaweb/csaweb/Base/target
 
 #for android
 android/*
+system/android/*
 #end android
 
 #for ios

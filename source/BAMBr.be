@@ -860,11 +860,14 @@ use class IUHub:Eui {
      } else {
        HD.getEle("hideSw").checked = false;
      }
-     HD.getEle("devType").value = conf["type"];
-     HD.getEle("devTypeFriendly").value = conf["typeFriendly"];
+     if (TS.notEmpty(conf["type"])) {
+       HD.getEle("devType").value = conf["type"];
+     }
+     if (TS.notEmpty(conf["typeFriendly"])) {
+       HD.getEle("devTypeFriendly").value = conf["typeFriendly"];
+     }
      HD.getEle("devId").value = conf["id"];
      HD.getEle("onDevId").value = conf["ondid"];
-
      HD.getEle("devName").value = dname;
 
      if (TS.notEmpty(conf["pass"])) {

@@ -2728,7 +2728,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
       if (TS.notEmpty(sws) && (sws.has(",a1,") || sws.has(",h1,"))) {
         checkShareDevices(kv.key, sws);
         didShare = true;
-        break;
       }
      }
      unless (didShare) {
@@ -2883,6 +2882,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
      var hadevs = app.kvdbs.get("HADEVS"); //hadevs - device id to config
      Map hads = hadevs.getMap();
      sconf = hads.get(sdid);
+     if (TS.isEmpty(sconf)) { return(null); }
      Map conf = Json:Unmarshaller.unmarshall(sconf);
      String ctl = hactls.get(sdid);
      for (any kv in hads) {
@@ -2893,11 +2893,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         gdid = did;
         if (act == "chrestart") {
           cmds = "brd pass chrestart e";
-          Map mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
+          Map mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 16, "act", act, "cmds", cmds);
           sendDeviceMcmd(mcmd);
         } elseIf(act == "rmold") {
           cmds = "brd pass rmold e";
-          mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
+          mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 16, "act", act, "cmds", cmds);
           sendDeviceMcmd(mcmd);
         } else {
           //brd pass add ool ondid 0 spass e
@@ -2926,7 +2926,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   } else {
                     cmds = "brd pass rm " + etype + " " + conf["ondid"] + " " + ipos + " " + " e";
                   }
-                  mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 8, "act", act, "cmds", cmds);
+                  mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 16, "act", act, "cmds", cmds);
                 }
               }
             }

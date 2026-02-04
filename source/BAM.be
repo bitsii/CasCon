@@ -2893,11 +2893,11 @@ use class BA:BamPlugin(App:AjaxPlugin) {
         gdid = did;
         if (act == "chrestart") {
           cmds = "brd pass chrestart e";
-          Map mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 16, "act", act, "cmds", cmds);
+          Map mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 48, "act", act, "cmds", cmds);
           sendDeviceMcmd(mcmd);
         } elseIf(act == "rmold") {
           cmds = "brd pass rmold e";
-          mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 16, "act", act, "cmds", cmds);
+          mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 48, "act", act, "cmds", cmds);
           sendDeviceMcmd(mcmd);
         } else {
           //brd pass add ool ondid 0 spass e
@@ -2926,7 +2926,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
                   } else {
                     cmds = "brd pass rm " + etype + " " + conf["ondid"] + " " + ipos + " " + " e";
                   }
-                  mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 16, "act", act, "cmds", cmds);
+                  mcmd = Maps.from("prio", 2, "cb", "brdCb", "did", gdid, "pwt", 1, "mw", 24, "act", act, "cmds", cmds);
                 }
               }
             }

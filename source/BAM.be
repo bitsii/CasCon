@@ -1059,7 +1059,6 @@ use class BA:BamPlugin(App:AjaxPlugin) {
     }
 
     resolveAddr(String kdname) {
-      //considerTds(kdname);
       String kdaddr;
        var haknc = app.kvdbs.get("HAKNC"); //kdname to addr
        ifEmit(wajv) {
@@ -1102,6 +1101,7 @@ use class BA:BamPlugin(App:AjaxPlugin) {
             ifEmit(apwk) {
                app.runAsync("CasCon", "goGetAddr", Lists.from(kdname));
             }
+            considerTds(kdname);
 
     }
 
